@@ -1,0 +1,46 @@
+.searchBox input::placeholder, .searchBox input::-moz-placeholder, .searchBox
+input::-webkit-input-placeholder{
+    color: #373737 !important;
+}
+
+.categoryPanel button{
+    text-transform:capitalize !important;
+}
+/* 
+.categoryPanel .submenu{
+    display: none;
+} */
+
+.nav li .submenu{
+    visibility: hidden;
+}
+.nav li .submenu button{
+    font-weight: 400 !important;
+}
+
+.nav li:hover .submenu{
+    opacity: 1 !important;
+    visibility: inherit;
+}
+
+.nav li .submenu button:hover{
+    color: #7b0af4 !important;
+}
+
+.nav li .submenu li .submenu{
+    top: 0px !important;
+    left: 120% !important;
+    opacity: 0 !important;
+}
+
+.nav li .submenu li:hover .submenu{
+    left: 100% !important;
+    opacity: 1 !important;
+}
+
+.nav li .submenu li .submenu button{
+    color: rgba(0, 0, 0, 0.80) !important;
+}
+.nav li .submenu li .submenu button:hover{
+    color: #7b0af4 !important;
+}
