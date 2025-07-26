@@ -5,6 +5,7 @@ import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { FiEdit2, FiTrash2, FiPlus, FiSearch, FiX, FiChevronDown, FiChevronUp, FiImage, FiSave, FiList } from 'react-icons/fi';
 import Api from '../../Services/Api';
+import { FaComments } from 'react-icons/fa';
 
 const ProductList = () => {
   const [products, setProducts] = useState([]);
@@ -14,12 +15,12 @@ const ProductList = () => {
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [selectedSubcategory, setSelectedSubcategory] = useState('All');
   const navigate = useNavigate();
-  
+
   // States for modals
   const [showAddCategoryModal, setShowAddCategoryModal] = useState(false);
   const [showEditCategoryModal, setShowEditCategoryModal] = useState(false);
   const [showCategoriesModal, setShowCategoriesModal] = useState(false);
-  
+
   // Category states
   const [newCategory, setNewCategory] = useState({
     name: '',
@@ -32,7 +33,7 @@ const ProductList = () => {
   const [categoryImagePreview, setCategoryImagePreview] = useState('');
   const [uploadingImage, setUploadingImage] = useState(false);
   const [progress, setProgress] = useState(0);
-  
+
   // Data states
   const [categories, setCategories] = useState([]);
   const [expandedCategories, setExpandedCategories] = useState({});
@@ -51,18 +52,18 @@ const ProductList = () => {
         const { data: productsData } = await Api.get('/products');
         setProducts(productsData);
         setFilteredProducts(productsData);
-        
+
         // Fetch categories with subcategories
         const { data: categoriesData } = await Api.get('/categories');
         setCategories(categoriesData);
-        
+
         // Initialize expanded state for each category
         const expanded = {};
         categoriesData.forEach(cat => {
           expanded[cat._id] = false;
         });
         setExpandedCategories(expanded);
-        
+
         setLoading(false);
       } catch (error) {
         console.error('Error fetching data:', error);
@@ -76,26 +77,26 @@ const ProductList = () => {
 
   useEffect(() => {
     let results = products;
-    
+
     if (searchTerm) {
       results = results.filter(product =>
         product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
         product.description.toLowerCase().includes(searchTerm.toLowerCase())
       );
     }
-    
+
     if (selectedCategory !== 'All') {
-      results = results.filter(product => 
+      results = results.filter(product =>
         product.category === selectedCategory
       );
     }
-    
+
     if (selectedSubcategory !== 'All') {
-      results = results.filter(product => 
+      results = results.filter(product =>
         product.subcategory === selectedSubcategory
       );
     }
-    
+
     setFilteredProducts(results);
   }, [searchTerm, selectedCategory, selectedSubcategory, products]);
 
@@ -118,14 +119,14 @@ const ProductList = () => {
   // Upload image with progress tracking
   const uploadImage = async () => {
     if (!categoryImage) return null;
-    
+
     try {
       setUploadingImage(true);
       setProgress(0);
-      
+
       const formData = new FormData();
       formData.append('photo', categoryImage);
-      
+
       const { data } = await Api.post('/upload', formData, {
         headers: {
           'Content-Type': 'multipart/form-data'
@@ -137,7 +138,7 @@ const ProductList = () => {
           setProgress(percent);
         }
       });
-      
+
       return data.location;
     } catch (error) {
       console.error('Error uploading image:', error);
@@ -154,22 +155,22 @@ const ProductList = () => {
       toast.error('Category name cannot be empty');
       return;
     }
-    
+
     try {
       const imageUrl = await uploadImage();
-      
+
       const categoryData = {
         ...newCategory,
         imageUrl: imageUrl || ''
       };
       console.log('Adding category:', categoryData);
-      
-      
+
+
       const { data } = await Api.post('/categories', categoryData);
-      
+
       setCategories([...categories, data]);
       toast.success('Category added successfully');
-      
+
       // Reset form
       setNewCategory({
         name: '',
@@ -192,7 +193,7 @@ const ProductList = () => {
       toast.error('Subcategory name cannot be empty');
       return;
     }
-    
+
     setNewCategory(prev => ({
       ...prev,
       subcategories: [...prev.subcategories, { name: newSubcategoryName }]
@@ -220,26 +221,26 @@ const ProductList = () => {
       toast.error('Category name cannot be empty');
       return;
     }
-    
+
     try {
       let imageUrl = editingCategory.imageUrl;
-      
+
       // Only upload new image if one was selected
       if (categoryImage) {
         imageUrl = await uploadImage();
       }
-      
+
       const categoryData = {
         ...newCategory,
         imageUrl: imageUrl || editingCategory.imageUrl
       };
-      
+
       const { data } = await Api.put(`/categories/${editingCategory._id}`, categoryData);
-      
-      setCategories(categories.map(cat => 
+
+      setCategories(categories.map(cat =>
         cat._id === editingCategory._id ? data : cat
       ));
-      
+
       toast.success('Category updated successfully');
       setShowEditCategoryModal(false);
     } catch (error) {
@@ -267,11 +268,11 @@ const ProductList = () => {
     if (window.confirm('Are you sure you want to delete this subcategory?')) {
       try {
         await Api.delete(`/categories/${categoryId}/subcategories/${subcategoryId}`);
-        
+
         // Refresh categories
         const { data: updatedCategories } = await Api.get('/categories');
         setCategories(updatedCategories);
-        
+
         toast.success('Subcategory deleted successfully');
       } catch (error) {
         console.error('Error deleting subcategory:', error);
@@ -308,21 +309,21 @@ const ProductList = () => {
   return (
     <div className="container mx-auto px-4 py-6 bg-gray-50 min-h-screen">
       <ToastContainer position="top-center" autoClose={3000} />
-      
+
       {/* Add Category Modal */}
       {showAddCategoryModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
             <div className="border-b px-6 py-4 flex justify-between items-center bg-purple-700 text-white rounded-t-xl">
               <h3 className="text-xl font-bold">Add New Category</h3>
-              <button 
+              <button
                 onClick={() => setShowAddCategoryModal(false)}
                 className="text-white hover:text-gray-200"
               >
                 <FiX size={24} />
               </button>
             </div>
-            
+
             <div className="p-6">
               <div className="mb-6">
                 <label className="block text-gray-700 mb-2 font-medium">Category Name</label>
@@ -331,23 +332,23 @@ const ProductList = () => {
                   className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
                   placeholder="Enter category name"
                   value={newCategory.name}
-                  onChange={(e) => setNewCategory({...newCategory, name: e.target.value})}
+                  onChange={(e) => setNewCategory({ ...newCategory, name: e.target.value })}
                   disabled={uploadingImage}
                 />
               </div>
-              
+
               <div className="mb-6">
                 <label className="block text-gray-700 mb-2 font-medium">Category Image</label>
                 <div className="relative">
                   <div className="flex items-center justify-center w-full h-48 border-2 border-dashed border-purple-300 rounded-lg cursor-pointer bg-purple-50 hover:bg-purple-100 overflow-hidden">
                     {categoryImagePreview ? (
                       <div className="relative w-full h-full">
-                        <img 
-                          src={categoryImagePreview} 
-                          alt="Preview" 
+                        <img
+                          src={categoryImagePreview}
+                          alt="Preview"
                           className="w-full h-full object-contain rounded-lg"
                         />
-                        <button 
+                        <button
                           className="absolute top-2 right-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-600"
                           onClick={(e) => {
                             e.preventDefault();
@@ -369,9 +370,9 @@ const ProductList = () => {
                         </p>
                       </div>
                     )}
-                    <input 
-                      type="file" 
-                      className="absolute inset-0 w-full h-full opacity-0 cursor-pointer" 
+                    <input
+                      type="file"
+                      className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
                       accept="image/*"
                       onChange={handleCategoryImageChange}
                       disabled={uploadingImage}
@@ -379,7 +380,7 @@ const ProductList = () => {
                   </div>
                 </div>
               </div>
-              
+
               <div className="mb-6">
                 <label className="block text-gray-700 mb-2 font-medium">Subcategories</label>
                 <div className="flex mb-3">
@@ -397,13 +398,13 @@ const ProductList = () => {
                     <FiPlus className="mr-1" /> Add
                   </button>
                 </div>
-                
+
                 {newCategory.subcategories.length > 0 ? (
                   <div className="bg-purple-50 rounded-lg p-3 border border-purple-200">
                     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2">
                       {newCategory.subcategories.map((sub, index) => (
-                        <div 
-                          key={index} 
+                        <div
+                          key={index}
                           className="bg-white border border-purple-200 rounded-md px-3 py-2 flex items-center justify-between"
                         >
                           <span className="truncate font-medium text-purple-800">{sub.name}</span>
@@ -411,7 +412,7 @@ const ProductList = () => {
                             onClick={() => {
                               const updatedSubs = [...newCategory.subcategories];
                               updatedSubs.splice(index, 1);
-                              setNewCategory({...newCategory, subcategories: updatedSubs});
+                              setNewCategory({ ...newCategory, subcategories: updatedSubs });
                             }}
                             className="text-red-500 hover:text-red-700 ml-2"
                           >
@@ -427,7 +428,7 @@ const ProductList = () => {
                   </div>
                 )}
               </div>
-              
+
               {uploadingImage && (
                 <div className="mb-6 p-4 bg-purple-50 rounded-lg">
                   <div className="flex items-center justify-between mb-2">
@@ -435,15 +436,15 @@ const ProductList = () => {
                     <span className="text-purple-700 font-bold">{progress}%</span>
                   </div>
                   <div className="w-full bg-gray-200 rounded-full h-2.5">
-                    <div 
-                      className="bg-purple-600 h-2.5 rounded-full" 
+                    <div
+                      className="bg-purple-600 h-2.5 rounded-full"
                       style={{ width: `${progress}%` }}
                     ></div>
                   </div>
                 </div>
               )}
             </div>
-            
+
             <div className="border-t px-6 py-4 flex justify-end gap-3 bg-gray-50 rounded-b-xl">
               <button
                 onClick={() => setShowAddCategoryModal(false)}
@@ -463,21 +464,21 @@ const ProductList = () => {
           </div>
         </div>
       )}
-      
+
       {/* Edit Category Modal */}
       {showEditCategoryModal && editingCategory && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
             <div className="border-b px-6 py-4 flex justify-between items-center bg-purple-700 text-white rounded-t-xl">
               <h3 className="text-xl font-bold">Edit Category</h3>
-              <button 
+              <button
                 onClick={() => setShowEditCategoryModal(false)}
                 className="text-white hover:text-gray-200"
               >
                 <FiX size={24} />
               </button>
             </div>
-            
+
             <div className="p-6">
               <div className="mb-6">
                 <label className="block text-gray-700 mb-2 font-medium">Category Name</label>
@@ -486,23 +487,23 @@ const ProductList = () => {
                   className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
                   placeholder="Enter category name"
                   value={newCategory.name}
-                  onChange={(e) => setNewCategory({...newCategory, name: e.target.value})}
+                  onChange={(e) => setNewCategory({ ...newCategory, name: e.target.value })}
                   disabled={uploadingImage}
                 />
               </div>
-              
+
               <div className="mb-6">
                 <label className="block text-gray-700 mb-2 font-medium">Category Image</label>
                 <div className="relative">
                   <div className="flex items-center justify-center w-full h-48 border-2 border-dashed border-purple-300 rounded-lg cursor-pointer bg-purple-50 hover:bg-purple-100 overflow-hidden">
                     {categoryImagePreview ? (
                       <div className="relative w-full h-full">
-                        <img 
-                          src={categoryImagePreview} 
-                          alt="Preview" 
+                        <img
+                          src={categoryImagePreview}
+                          alt="Preview"
                           className="w-full h-full object-contain rounded-lg"
                         />
-                        <button 
+                        <button
                           className="absolute top-2 right-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-600"
                           onClick={(e) => {
                             e.preventDefault();
@@ -524,9 +525,9 @@ const ProductList = () => {
                         </p>
                       </div>
                     )}
-                    <input 
-                      type="file" 
-                      className="absolute inset-0 w-full h-full opacity-0 cursor-pointer" 
+                    <input
+                      type="file"
+                      className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
                       accept="image/*"
                       onChange={handleCategoryImageChange}
                       disabled={uploadingImage}
@@ -534,7 +535,7 @@ const ProductList = () => {
                   </div>
                 </div>
               </div>
-              
+
               <div className="mb-6">
                 <label className="block text-gray-700 mb-2 font-medium">Subcategories</label>
                 <div className="flex mb-3">
@@ -552,13 +553,13 @@ const ProductList = () => {
                     <FiPlus className="mr-1" /> Add
                   </button>
                 </div>
-                
+
                 {newCategory.subcategories.length > 0 ? (
                   <div className="bg-purple-50 rounded-lg p-3 border border-purple-200">
                     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2">
                       {newCategory.subcategories.map((sub, index) => (
-                        <div 
-                          key={index} 
+                        <div
+                          key={index}
                           className="bg-white border border-purple-200 rounded-md px-3 py-2 flex items-center justify-between"
                         >
                           <span className="truncate font-medium text-purple-800">{sub.name}</span>
@@ -566,7 +567,7 @@ const ProductList = () => {
                             onClick={() => {
                               const updatedSubs = [...newCategory.subcategories];
                               updatedSubs.splice(index, 1);
-                              setNewCategory({...newCategory, subcategories: updatedSubs});
+                              setNewCategory({ ...newCategory, subcategories: updatedSubs });
                             }}
                             className="text-red-500 hover:text-red-700 ml-2"
                           >
@@ -582,7 +583,7 @@ const ProductList = () => {
                   </div>
                 )}
               </div>
-              
+
               {uploadingImage && (
                 <div className="mb-6 p-4 bg-purple-50 rounded-lg">
                   <div className="flex items-center justify-between mb-2">
@@ -590,15 +591,15 @@ const ProductList = () => {
                     <span className="text-purple-700 font-bold">{progress}%</span>
                   </div>
                   <div className="w-full bg-gray-200 rounded-full h-2.5">
-                    <div 
-                      className="bg-purple-600 h-2.5 rounded-full" 
+                    <div
+                      className="bg-purple-600 h-2.5 rounded-full"
                       style={{ width: `${progress}%` }}
                     ></div>
                   </div>
                 </div>
               )}
             </div>
-            
+
             <div className="border-t px-6 py-4 flex justify-end gap-3 bg-gray-50 rounded-b-xl">
               <button
                 onClick={() => setShowEditCategoryModal(false)}
@@ -618,21 +619,21 @@ const ProductList = () => {
           </div>
         </div>
       )}
-      
+
       {/* Categories Modal */}
       {showCategoriesModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-y-auto">
             <div className="border-b px-6 py-4 flex justify-between items-center bg-purple-700 text-white rounded-t-xl">
               <h3 className="text-xl font-bold">Manage Categories</h3>
-              <button 
+              <button
                 onClick={() => setShowCategoriesModal(false)}
                 className="text-white hover:text-gray-200"
               >
                 <FiX size={24} />
               </button>
             </div>
-            
+
             <div className="p-6">
               <div className="mb-6 flex justify-end">
                 <button
@@ -645,18 +646,18 @@ const ProductList = () => {
                   <FiPlus className="mr-2" /> Add New Category
                 </button>
               </div>
-              
+
               <div className="space-y-4">
                 {categories.map(category => (
                   <div key={category._id} className="border border-purple-200 rounded-lg overflow-hidden">
-                    <div 
+                    <div
                       className="flex justify-between items-center p-4 bg-purple-50 cursor-pointer"
                       onClick={() => toggleCategory(category._id)}
                     >
                       <div className="flex items-center">
                         {category.imageUrl && (
-                          <img 
-                            src={category.imageUrl} 
+                          <img
+                            src={category.imageUrl}
                             alt={category.name}
                             className="w-12 h-12 rounded-md object-cover mr-4 border border-purple-300"
                           />
@@ -664,7 +665,7 @@ const ProductList = () => {
                         <span className="font-bold text-lg text-purple-800">{category.name}</span>
                       </div>
                       <div className="flex items-center gap-3">
-                        <button 
+                        <button
                           onClick={(e) => {
                             e.stopPropagation();
                             handleEditCategory(category);
@@ -674,7 +675,7 @@ const ProductList = () => {
                         >
                           <FiEdit2 size={18} />
                         </button>
-                        <button 
+                        <button
                           onClick={(e) => {
                             e.stopPropagation();
                             handleDeleteCategory(category._id);
@@ -690,7 +691,7 @@ const ProductList = () => {
                         )}
                       </div>
                     </div>
-                    
+
                     {expandedCategories[category._id] && (
                       <div className="bg-white p-4 border-t border-purple-100">
                         <h4 className="font-medium text-gray-700 mb-3">Subcategories</h4>
@@ -701,12 +702,12 @@ const ProductList = () => {
                         ) : (
                           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
                             {category.subcategories.map(subcategory => (
-                              <div 
-                                key={subcategory._id} 
+                              <div
+                                key={subcategory._id}
                                 className="flex items-center justify-between p-3 bg-gray-50 rounded-lg border border-gray-200"
                               >
                                 <span className="font-medium text-gray-700">{subcategory.name}</span>
-                              
+
                               </div>
                             ))}
                           </div>
@@ -720,25 +721,25 @@ const ProductList = () => {
           </div>
         </div>
       )}
-      
+
       <div className="flex flex-col md:flex-row justify-between items-center mb-8">
         <h1 className="text-2xl md:text-3xl font-bold text-purple-800 mb-4 md:mb-0">Product Inventory</h1>
         <div className="flex flex-wrap gap-3">
-          <button 
+          <button
             onClick={() => setShowCategoriesModal(true)}
             className="px-4 py-2.5 bg-purple-600 text-white rounded-lg hover:bg-purple-700 flex items-center font-medium"
           >
             <FiList className="mr-2" /> View Categories
           </button>
-          <Link 
-            to="/add-product" 
+          <Link
+            to="/add-product"
             className="px-4 py-2.5 bg-gradient-to-r from-purple-700 to-purple-900 text-white rounded-lg hover:opacity-90 flex items-center font-medium"
           >
             <FiPlus className="mr-2" /> Add Product
           </Link>
         </div>
       </div>
-      
+
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
         <div className="relative">
           <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-purple-600">
@@ -752,7 +753,7 @@ const ProductList = () => {
             onChange={(e) => setSearchTerm(e.target.value)}
           />
         </div>
-        
+
         <div>
           <select
             className="w-full px-4 py-3 border border-purple-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
@@ -768,7 +769,7 @@ const ProductList = () => {
             ))}
           </select>
         </div>
-        
+
         <div>
           <select
             className="w-full px-4 py-3 border border-purple-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
@@ -783,108 +784,117 @@ const ProductList = () => {
           </select>
         </div>
       </div>
-      
-<div>
-  {filteredProducts.length === 0 ? (
-    <div className="bg-white rounded-xl shadow-lg p-8 text-center border border-purple-200">
-      <div className="mx-auto bg-purple-100 rounded-full p-4 w-16 h-16 flex items-center justify-center">
-        <FiSearch className="text-purple-600 text-2xl" />
+
+      <div>
+        {filteredProducts.length === 0 ? (
+          <div className="bg-white rounded-xl shadow-lg p-8 text-center border border-purple-200">
+            <div className="mx-auto bg-purple-100 rounded-full p-4 w-16 h-16 flex items-center justify-center">
+              <FiSearch className="text-purple-600 text-2xl" />
+            </div>
+            <h3 className="text-xl font-semibold mt-4 text-purple-800">No products found</h3>
+            <p className="text-gray-500 mt-2">
+              Try adjusting your search or filters to find what you're looking for.
+            </p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {filteredProducts.map(product => (
+              <div key={product._id} className="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-shadow border border-purple-100">
+                <div className="relative">
+                  {product.images?.length > 0 ? (
+                    <img
+                      src={product.images[0]}
+                      alt={product.name}
+                      className="w-full h-48 object-cover"
+                    />
+                  ) : (
+                    <div className="bg-purple-50 w-full h-48 flex items-center justify-center">
+                      <span className="text-purple-400">No Image</span>
+                    </div>
+                  )}
+                  <div className="absolute top-3 right-3">
+                    <span className={`px-3 py-1 rounded-full text-xs font-semibold ${product.stock > 0 ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                      }`}>
+                      {product.stock > 0 ? 'In Stock' : 'Out of Stock'}
+                    </span>
+                  </div>
+                </div>
+
+                <div className="p-5">
+                  <h3 className="text-lg font-bold text-gray-800 mb-1">{product.name}</h3>
+                  <p className="text-gray-600 text-sm mb-2 line-clamp-2">{product.description}</p>
+
+                  <div className="flex items-center gap-2 mb-3">
+                    <span className="text-xl font-bold text-purple-700">
+                      ₹{product.discountPrice?.toFixed(2)}
+                    </span>
+                    {product.originalPrice > product.discountPrice && (
+                      <>
+                        <span className="text-gray-400 line-through text-sm">
+                          ₹{product.originalPrice?.toFixed(2)}
+                        </span>
+                        <span className="bg-green-100 text-green-600 px-2 py-1 text-xs rounded font-semibold">
+                          {product.discountPercent}% OFF
+                        </span>
+                      </>
+                    )}
+                  </div>
+
+                  <div className="text-sm text-gray-500 mb-3">
+                    <p className="truncate">
+                      <span className="font-medium text-purple-700">{product.category}</span>
+                      {product.subcategory && ` / ${product.subcategory}`}
+                    </p>
+                    {product.brand && (
+                      <p className="text-xs text-gray-400">Brand: {product.brand}</p>
+                    )}
+                  </div>
+
+                  {product.colors?.length > 0 && (
+                    <div className="flex gap-1 mb-3">
+                      {product.colors.slice(0, 3).map((color, index) => (
+                        <span key={index} className="px-2 py-1 bg-gray-100 text-gray-700 text-xs rounded">
+                          {color}
+                        </span>
+                      ))}
+                      {product.colors.length > 3 && (
+                        <span className="px-2 py-1 bg-gray-200 text-gray-600 text-xs rounded">
+                          +{product.colors.length - 3} more
+                        </span>
+                      )}
+                    </div>
+                  )}
+
+                  <div >
+                    <div className="flex justify-center">
+                      <button
+                        onClick={() => navigate(`/product/${product._id}`)}
+                        className="m-1 px-3 py-2 bg-white border border-purple-600 text-purple-600 rounded-lg hover:bg-purple-50 flex items-center"
+                      >
+                        <FiEdit2 className="mr-1" /> Edit
+                      </button>
+                      <button
+                        onClick={() => handleDeleteProduct(product._id)}
+                        className="m-1 px-3 py-2 bg-red-50 border border-red-500 text-red-500 rounded-lg hover:bg-red-100 flex items-center"
+                      >
+                        <FiTrash2 className="mr-1" /> Delete
+                      </button>
+                    </div>
+                    <div>
+                      <button
+                        className="btn btn-outline-primary btn-sm mt-2 px-5 py-2 m-2 d-flex align-items-center gap-2"
+                        onClick={() => navigate(`/product/${product._id}/reviews`)}
+                      >
+                        <FaComments /> View Reviews
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
-      <h3 className="text-xl font-semibold mt-4 text-purple-800">No products found</h3>
-      <p className="text-gray-500 mt-2">
-        Try adjusting your search or filters to find what you're looking for.
-      </p>
-    </div>
-  ) : (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-      {filteredProducts.map(product => (
-        <div key={product._id} className="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-shadow border border-purple-100">
-          <div className="relative">
-            {product.images?.length > 0 ? (
-              <img 
-                src={product.images[0]} 
-                alt={product.name}
-                className="w-full h-48 object-cover"
-              />
-            ) : (
-              <div className="bg-purple-50 w-full h-48 flex items-center justify-center">
-                <span className="text-purple-400">No Image</span>
-              </div>
-            )}
-            <div className="absolute top-3 right-3">
-              <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
-                product.stock > 0 ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
-              }`}>
-                {product.stock > 0 ? 'In Stock' : 'Out of Stock'}
-              </span>
-            </div>
-          </div>
-          
-          <div className="p-5">
-            <h3 className="text-lg font-bold text-gray-800 mb-1">{product.name}</h3>
-            <p className="text-gray-600 text-sm mb-2 line-clamp-2">{product.description}</p>
-
-            <div className="flex items-center gap-2 mb-3">
-              <span className="text-xl font-bold text-purple-700">
-                ₹{product.discountPrice?.toFixed(2)}
-              </span>
-              {product.originalPrice > product.discountPrice && (
-                <>
-                  <span className="text-gray-400 line-through text-sm">
-                    ₹{product.originalPrice?.toFixed(2)}
-                  </span>
-                  <span className="bg-green-100 text-green-600 px-2 py-1 text-xs rounded font-semibold">
-                    {product.discountPercent}% OFF
-                  </span>
-                </>
-              )}
-            </div>
-
-            <div className="text-sm text-gray-500 mb-3">
-              <p className="truncate">
-                <span className="font-medium text-purple-700">{product.category}</span>
-                {product.subcategory && ` / ${product.subcategory}`}
-              </p>
-              {product.brand && (
-                <p className="text-xs text-gray-400">Brand: {product.brand}</p>
-              )}
-            </div>
-
-            {product.colors?.length > 0 && (
-              <div className="flex gap-1 mb-3">
-                {product.colors.slice(0, 3).map((color, index) => (
-                  <span key={index} className="px-2 py-1 bg-gray-100 text-gray-700 text-xs rounded">
-                    {color}
-                  </span>
-                ))}
-                {product.colors.length > 3 && (
-                  <span className="px-2 py-1 bg-gray-200 text-gray-600 text-xs rounded">
-                    +{product.colors.length - 3} more
-                  </span>
-                )}
-              </div>
-            )}
-
-            <div className="flex justify-between">
-              <button
-                onClick={() => navigate(`/product/${product._id}`)}
-                className="px-3 py-2 bg-white border border-purple-600 text-purple-600 rounded-lg hover:bg-purple-50 flex items-center"
-              >
-                <FiEdit2 className="mr-1" /> Edit
-              </button>
-              <button 
-                onClick={() => handleDeleteProduct(product._id)}
-                className="px-3 py-2 bg-red-50 border border-red-500 text-red-500 rounded-lg hover:bg-red-100 flex items-center"
-              >
-                <FiTrash2 className="mr-1" /> Delete
-              </button>
-            </div>
-          </div>
-        </div>
-      ))}
-    </div>
-  )}
-</div>
 
     </div>
   );

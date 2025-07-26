@@ -35,8 +35,12 @@ const BuyNow = () => {
     const fetchData = async () => {
       try {
         if (location.state?.product) {
+          console.log('Product from state:', location.state.product);
+          
           setProduct(location.state.product);
           setQuantity(location.state.quantity || 1);
+          console.log('Quantity from state:', location.state.quantity);
+          
         } else {
           navigate('/');
           return;
@@ -114,11 +118,13 @@ const BuyNow = () => {
         total: subtotal,
         mode: 'buy-now'
       };
+console.log('Placing order with data:', orderData);
 
       const response = await Api.post('/orders', orderData, {
         headers: { Authorization: `Bearer ${token}` }
       });
-      await resetCart();
+      console.log('Order response:', response.data);
+      // await resetCart();
 
       toast.success('Order placed successfully!');
       navigate('/');

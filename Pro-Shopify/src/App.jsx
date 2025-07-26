@@ -23,54 +23,56 @@ import Header from './component/Header'
 import Navigation from './component/Navigation'
 import Footer from './component/Footer'
 import OfferBanner from './component/HomePage/OfferBanner'
+import ProductReviewsPage from './component/products/ProductReviewPage'
 
 function App() {
-const [isAuthenticated, setIsAuthenticated]=useState()
- const [showSubmenu, setShowSubmenu] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState()
+  const [showSubmenu, setShowSubmenu] = useState(false);
   return (
     <>
       <BrowserRouter>
-      <ScrollToTop />
-      <Header />
-      <Navigation />
-      <Routes>
-        {/* home page */}
-        <Route path='/' element={<Home />}></Route>
-        <Route path='/signup' element={<SignUp setIsAuthenticated={setIsAuthenticated}/>}></Route>
-        <Route path='/login' element={<Login setIsAuthenticated={setIsAuthenticated}/>}></Route>
-        <Route path='/Features' element={<Features />}></Route>
-        <Route path='/offerbanner' element={<OfferBanner />}></Route>
+        <ScrollToTop />
+        <Header />
+        <Navigation />
+        <Routes>
+          {/* home page */}
+          <Route path='/' element={<Home />}></Route>
+          <Route path='/signup' element={<SignUp setIsAuthenticated={setIsAuthenticated} />}></Route>
+          <Route path='/login' element={<Login setIsAuthenticated={setIsAuthenticated} />}></Route>
+          <Route path='/Features' element={<Features />}></Route>
+          <Route path='/offerbanner' element={<OfferBanner />}></Route>
 
-        {/* product */}
-        <Route path='/productslist' element={<ProductsList />}></Route>
-      <Route path="/productpage/:id" element={<ProductPage />} ></Route>
-        <Route path='/category/:category' element={<CategoryProduct />}></Route>
+          {/* product */}
+          <Route path='/productslist' element={<ProductsList />}></Route>
+          <Route path="/productpage/:id" element={<ProductPage />} ></Route>
+          <Route path='/category/:category' element={<CategoryProduct />}></Route>
 
-        {/* cart  */}
-        <Route path='/addtocart' element={<CartPage />}></Route>
-        <Route path='/buy-now' element={<BuyNow />}></Route>
-        <Route path='/checkout' element={<CheckoutPage />}></Route>
-        <Route path='/address/new' element={<AddressForm />}></Route>
+          {/* cart  */}
+          <Route path='/addtocart' element={<CartPage />}></Route>
+          <Route path='/buy-now' element={<BuyNow />}></Route>
+          <Route path='/checkout' element={<CheckoutPage />}></Route>
+          <Route path='/address/new' element={<AddressForm />}></Route>
 
-        {/* profile */}
-        <Route path='/profile' element={<ProfilePage />}></Route>
-        <Route path='/orders' element={<OrdersPage />}></Route>
-        <Route path='/orders/:id' element={<OrderDetails />}></Route>
-        <Route path='/help-center' element={<HelpCenter />}></Route>
-        <Route path='/wishlist' element={<Wishlist />}></Route>
+          {/* profile */}
+          <Route path='/profile' element={<ProfilePage />}></Route>
+          <Route path='/orders' element={<OrdersPage />}></Route>
+          <Route path='/orders/:id' element={<OrderDetails />}></Route>
+          <Route path='/help-center' element={<HelpCenter />}></Route>
+          <Route path='/wishlist' element={<Wishlist />}></Route>
+          <Route path="/productpage/:id/reviews" element={<ProductReviewsPage />} />
 
-      </Routes>
-      <ToastContainer 
-        position="bottom-center" 
-        autoClose={3000} 
-        hideProgressBar={false} 
-        newestOnTop={false} 
-        closeOnClick 
-        pauseOnHover 
-        draggable 
-        theme="dark" 
-      />
-      <Footer />
+        </Routes>
+        <ToastContainer
+          position="bottom-center"
+          autoClose={3000}
+          hideProgressBar={false}
+          newestOnTop={false}
+          closeOnClick
+          pauseOnHover
+          draggable
+          theme="dark"
+        />
+        <Footer />
       </BrowserRouter>
     </>
   )

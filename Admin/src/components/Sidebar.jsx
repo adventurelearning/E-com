@@ -4,7 +4,8 @@ import {
   FiChevronDown, FiChevronRight, FiGrid, FiBox,
   FiTruck, FiImage, FiUser, FiX, FiMenu,
   FiUsers,
-  FiShoppingCart
+  FiShoppingCart,
+  FiStar
 } from 'react-icons/fi';
 import { getAdminInfo } from '../utils/auth';
 
@@ -203,6 +204,18 @@ const Sidebar = ({ open, toggleSidebar }) => {
         //   path: '/SProduct',
         //   visible: true,
         // },
+      ],
+    },
+    {
+      title: 'Reviews & Ratings',
+      icon: <FiStar />,
+      visible: hasRole('Orders'),
+      subItems: [
+        {
+          title: 'Reviews',
+          path: '/review',
+          visible: true,
+        }
       ],
     },
     {

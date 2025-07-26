@@ -28,6 +28,8 @@ import { ToastContainer } from 'react-toastify';
 import Users from './pages/Users/User';
 import Orders from './pages/orders/Orders';
 import Offer from './components/Offer';
+import ReviewManagement from './pages/Review/ReviewManagement';
+import ProductReviews from './pages/Review/ProductReviews';
 
 function AppContent() {
   const [sidebarOpen, setSidebarOpen] = useState(true);
@@ -199,6 +201,16 @@ function AppContent() {
               </ProtectedRoute>
             } />
 
+            <Route path="/review" element={
+              <ProtectedRoute requiredPermission="Reviews">
+                <ReviewManagement />
+              </ProtectedRoute>
+            } />
+            <Route path="/product/:id/reviews" element={
+              <ProtectedRoute requiredPermission="Reviews">
+                <ProductReviews />
+              </ProtectedRoute>
+            } />
             {/* Catch-all route */}
             <Route path="*" element={<NotFoundPage />} />
           </Routes>

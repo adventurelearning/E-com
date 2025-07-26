@@ -47,6 +47,8 @@ import {
   HourglassEmpty
 } from '@mui/icons-material';
 import Api from '../../Services/Api';
+import AddReview from '../AddReview';
+import { toast } from 'react-toastify';
 
 const OrderDetails = () => {
   const { id } = useParams();
@@ -57,7 +59,38 @@ const OrderDetails = () => {
   const navigate = useNavigate();
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+const [reviewProduct, setReviewProduct] = useState(null);
+const handleOpenReview = (product) => {
+  setReviewProduct(product);
+};
 
+const handleCloseReview = () => {
+  setReviewProduct(null);
+};
+
+ const handleReviewSubmit = async (reviewData) => {
+    try {
+      // Add authorization token to request
+      // const token = localStorage.getItem('token');
+      
+      // Submit review to backend
+      const response = await Api.post('/reviews', reviewData);
+      
+      // Show success message
+      toast.success('Review submitted successfully!', { variant: 'success' });
+      
+      // Close review dialog
+      handleCloseReview();
+      
+      // Optionally: refresh product data to show new review
+      // fetchProductData(); 
+      
+    } catch (error) {
+      enqueueSnackbar(error.response?.data?.message || 'Failed to submit review', { 
+        variant: 'error' 
+      });
+    }
+  };
   useEffect(() => {
     const fetchOrderDetails = async () => {
       try {
@@ -437,6 +470,18 @@ const OrderDetails = () => {
                         }}
                       />
                     )}
+                            {order.status === 'delivered' && (
+  <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 1 }}>
+    <Button
+      variant="outlined"
+      size="small"
+      onClick={() => handleOpenReview(item.productId)}
+      sx={{ textTransform: 'none' }}
+    >
+      Write a Review
+    </Button>
+  </Box>
+)}
                   </React.Fragment>
                 );
               })}
@@ -559,6 +604,16 @@ const OrderDetails = () => {
           )}
         </Grid>
       </Grid>
+      {/* // Inside the OrderDetails return statement, after the Stepper component */}
+{reviewProduct && (
+  <AddReview
+    open={Boolean(reviewProduct)}
+    onClose={handleCloseReview}
+    product={reviewProduct}
+    onSubmit={handleReviewSubmit}
+  />
+)}
+
     </Box>
   );
 };
