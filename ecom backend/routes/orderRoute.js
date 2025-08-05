@@ -87,8 +87,9 @@ const fs = require('fs');
 // 👤 Get logged-in user's orders
 
 router.post('/', protect, async (req, res) => {
-  const { shippingAddress, paymentMethod, mode, productId, total } = req.body; // Removed quantity (not needed here)
+  const { shippingAddress, paymentMethod, mode, productId, total, quantity } = req.body; // Removed quantity (not needed here)
   const userId = req.user._id;
+  console.log('Placing order for user:', req.body);
 
   const user = await User.findById(userId);
   const cart = await Cart.findOne({ user: userId });
@@ -138,13 +139,18 @@ router.post('/', protect, async (req, res) => {
   // ====== 2. ITEM PROCESSING ======
   let items = [];
   if (mode === 'buy-now') {
-    items = cart.items.filter(i => i.productId.equals(productId));
-    if (items.length === 0) {
-      return res.status(400).json({ message: 'Buy-now item not found in cart' });
+    if (!productId || !quantity) {
+      return res.status(400).json({ message: 'Missing product or quantity for buy-now' });
     }
+
+    items = [{
+      productId,
+      quantity: Number(quantity),
+    }];
   } else {
     items = cart.items;
   }
+
 
   // ====== 3. ORDER CREATION ======
   const order = new Order({
@@ -169,14 +175,40 @@ router.post('/', protect, async (req, res) => {
     total: total, // ✅ save total passed from frontend
 
   });
+  console.log('Order data:', order);
 
   await order.save();
 
   // ====== 4. CART CLEANUP ======
   if (mode === 'buy-now') {
-    cart.items = cart.items.filter(i => !i.productId.equals(productId));
-    await (cart.items.length > 0 ? cart.save() : Cart.deleteOne({ _id: cart._id }));
-  } else {
+    const cartItemIndex = cart.items.findIndex(i => i.productId.toString() === productId);
+
+    if (cartItemIndex !== -1) {
+      const cartItem = cart.items[cartItemIndex];
+      const cartQty = Number(cartItem.quantity);
+      const buyQty = Number(quantity);
+
+      if (cartQty > buyQty) {
+        // Reduce the quantity in cart
+        cart.items[cartItemIndex].quantity = cartQty - buyQty;
+        await cart.save();
+      } else {
+        // Remove the item from cart
+        cart.items.splice(cartItemIndex, 1);
+
+        if (cart.items.length > 0) {
+          await cart.save();
+        } else {
+          await Cart.deleteOne({ _id: cart._id });
+        }
+      }
+
+      console.log(`Cart updated after buy-now: Product ${productId} reduced by ${buyQty}`);
+    } else {
+      console.log(`Buy-now product ${productId} not found in cart. No cart update needed.`);
+    }
+  }
+  else {
     await Cart.deleteOne({ _id: cart._id }); // More precise deletion
   }
 
@@ -321,153 +353,153 @@ router.get('/:id/invoice', protect, async (req, res) => {
     // ====== HEADER SECTION ======
     // Decorative header background
     doc.rect(0, 0, doc.page.width, 120)
-       .fill(primaryColor);
-    
+      .fill(primaryColor);
+
     // Company logo and info
     doc.fillColor('#fff')
-       .fontSize(24)
-       .text('ProShopify', 50, 40, { link: 'https://yourbrand.com' });
-    
+      .fontSize(24)
+      .text('ProShopify', 50, 40, { link: 'https://yourbrand.com' });
+
     doc.fillColor('rgba(255,255,255,0.7)')
-       .fontSize(10)
-       .text('123 Premium Plaza', 50, 70)
-       .text('Mumbai, Maharashtra 400001', 50, 85)
-       .text('GSTIN: 27ABCDE1234F1Z0', 50, 100);
-    
+      .fontSize(10)
+      .text('123 Premium Plaza', 50, 70)
+      .text('Mumbai, Maharashtra 400001', 50, 85)
+      .text('GSTIN: 27ABCDE1234F1Z0', 50, 100);
+
     // Invoice title
     doc.fillColor('#fff')
-       .fontSize(28)
-       .font('Helvetica-Bold')
-       .text('INVOICE', doc.page.width - 200, 70, { align: 'right' });
-    
+      .fontSize(28)
+      .font('Helvetica-Bold')
+      .text('INVOICE', doc.page.width - 200, 70, { align: 'right' });
+
     doc.fillColor('rgba(255,255,255,0.7)')
-       .fontSize(12)
-       .text(`#${order._id}`, doc.page.width - 200, 100, { align: 'right' });
+      .fontSize(12)
+      .text(`#${order._id}`, doc.page.width - 200, 100, { align: 'right' });
 
     // ====== CLIENT & DETAILS SECTION ======
     let y = 150;
-    
+
     // Client details box
     doc.roundedRect(50, y, 240, 100, 5)
-       .fill(lightColor);
-    
+      .fill(lightColor);
+
     doc.fillColor(darkColor)
-       .fontSize(14)
-       .font('Helvetica-Bold')
-       .text('BILLED TO:', 65, y + 20);
-    
+      .fontSize(14)
+      .font('Helvetica-Bold')
+      .text('BILLED TO:', 65, y + 20);
+
     doc.font('Helvetica')
-       .fillColor(darkColor)
-       .fontSize(11)
-       .text(order.shippingAddress.fullName, 65, y + 40)
-       .text(order.shippingAddress.street, 65, y + 55)
-       .text(`${order.shippingAddress.city}, ${order.shippingAddress.state} - ${order.shippingAddress.postalCode}`, 65, y + 70)
-       .text(`Phone: ${order.shippingAddress.phone}`, 65, y + 85);
-    
+      .fillColor(darkColor)
+      .fontSize(11)
+      .text(order.shippingAddress.fullName, 65, y + 40)
+      .text(order.shippingAddress.street, 65, y + 55)
+      .text(`${order.shippingAddress.city}, ${order.shippingAddress.state} - ${order.shippingAddress.postalCode}`, 65, y + 70)
+      .text(`Phone: ${order.shippingAddress.phone}`, 65, y + 85);
+
     // Invoice details box
     doc.roundedRect(310, y, 240, 100, 5)
-       .fill(lightColor);
-    
+      .fill(lightColor);
+
     doc.font('Helvetica-Bold')
-       .text('INVOICE DETAILS:', 325, y + 20);
-    
+      .text('INVOICE DETAILS:', 325, y + 20);
+
     doc.font('Helvetica')
-       .text(`Date: ${new Date(order.createdAt).toLocaleDateString('en-IN')}`, 325, y + 40)
-       .text(`Status: ${order.status.toUpperCase()}`, 325, y + 55)
-       .text(`Payment: ${order.paymentMethod.toUpperCase()}`, 325, y + 70)
-       .text(`Order ID: ${order._id}`, 325, y + 85);
-    
+      .text(`Date: ${new Date(order.createdAt).toLocaleDateString('en-IN')}`, 325, y + 40)
+      .text(`Status: ${order.status.toUpperCase()}`, 325, y + 55)
+      .text(`Payment: ${order.paymentMethod.toUpperCase()}`, 325, y + 70)
+      .text(`Order ID: ${order._id}`, 325, y + 85);
+
     y += 130;
 
     // ====== PRODUCTS TABLE ======
     // Table header
     doc.fillColor(darkColor)
-       .font('Helvetica-Bold')
-       .fontSize(10)
-       .text('PRODUCT', 50, y)
-       .text('PRICE', 350, y)
-       .text('QTY', 430, y)
-       .text('TOTAL', 480, y);
-    
+      .font('Helvetica-Bold')
+      .fontSize(10)
+      .text('PRODUCT', 50, y)
+      .text('PRICE', 350, y)
+      .text('QTY', 430, y)
+      .text('TOTAL', 480, y);
+
     // Header underline
     doc.moveTo(50, y + 10)
-       .lineTo(doc.page.width - 50, y + 10)
-       .lineWidth(1)
-       .stroke(borderColor);
-    
+      .lineTo(doc.page.width - 50, y + 10)
+      .lineWidth(1)
+      .stroke(borderColor);
+
     y += 20;
-    
+
     // Products list
     let subtotal = 0;
     order.items.forEach((item, index) => {
       if (index > 0) y += 5;
-      
+
       // Alternate row background
       if (index % 2 === 0) {
         doc.rect(50, y - 5, doc.page.width - 100, 25)
-           .fill(lightColor);
+          .fill(lightColor);
       }
-      
+
       const productTotal = item.productId.discountPrice * item.quantity;
       subtotal += productTotal;
-      
+
       doc.fillColor(darkColor)
-         .font('Helvetica')
-         .fontSize(10)
-         .text(item.productId.name, 55, y, { width: 280 })
-         .text(`₹${item.productId.discountPrice.toFixed(2)}`, 350, y)
-         .text(item.quantity.toString(), 430, y)
-         .text(`₹${productTotal.toFixed(2)}`, 480, y);
-      
+        .font('Helvetica')
+        .fontSize(10)
+        .text(item.productId.name, 55, y, { width: 280 })
+        .text(`₹${item.productId.discountPrice.toFixed(2)}`, 350, y)
+        .text(item.quantity.toString(), 430, y)
+        .text(`₹${productTotal.toFixed(2)}`, 480, y);
+
       y += 25;
     });
-    
+
     // Table bottom border
     doc.moveTo(50, y)
-       .lineTo(doc.page.width - 50, y)
-       .lineWidth(1)
-       .stroke(borderColor);
-    
+      .lineTo(doc.page.width - 50, y)
+      .lineWidth(1)
+      .stroke(borderColor);
+
     y += 20;
 
     // ====== TOTALS SECTION ======
     const shipping = order.shippingPrice || 0;
     const tax = order.taxPrice || 0;
     const total = subtotal + shipping + tax;
-    
+
     // Totals box
     doc.roundedRect(350, y, 200, 140, 5)
-       .fill(lightColor);
-    
+      .fill(lightColor);
+
     doc.font('Helvetica')
-       .fillColor(darkColor)
-       .fontSize(11)
-       .text('Subtotal:', 360, y + 20)
-       .text(`₹${subtotal.toFixed(2)}`, 460, y + 20, { align: 'right' })
-       .text('Shipping:', 360, y + 40)
-       .text(`₹${shipping.toFixed(2)}`, 460, y + 40, { align: 'right' })
-       .text('Tax:', 360, y + 60)
-       .text(`₹${tax.toFixed(2)}`, 460, y + 60, { align: 'right' });
-    
+      .fillColor(darkColor)
+      .fontSize(11)
+      .text('Subtotal:', 360, y + 20)
+      .text(`₹${subtotal.toFixed(2)}`, 460, y + 20, { align: 'right' })
+      .text('Shipping:', 360, y + 40)
+      .text(`₹${shipping.toFixed(2)}`, 460, y + 40, { align: 'right' })
+      .text('Tax:', 360, y + 60)
+      .text(`₹${tax.toFixed(2)}`, 460, y + 60, { align: 'right' });
+
     doc.moveTo(360, y + 80)
-       .lineTo(490, y + 80)
-       .stroke(borderColor);
-    
+      .lineTo(490, y + 80)
+      .stroke(borderColor);
+
     doc.font('Helvetica-Bold')
-       .fillColor(primaryColor)
-       .fontSize(12)
-       .text('GRAND TOTAL:', 360, y + 95)
-       .text(`₹${total.toFixed(2)}`, 460, y + 95, { align: 'right' });
-    
+      .fillColor(primaryColor)
+      .fontSize(12)
+      .text('GRAND TOTAL:', 360, y + 95)
+      .text(`₹${total.toFixed(2)}`, 460, y + 95, { align: 'right' });
+
     y += 160;
 
     // ====== FOOTER ======
     doc.fillColor('#6c757d')
-       .fontSize(9)
-       .text('Thank you for your business!', 50, y, { align: 'center' })
-       .text('Terms: Goods sold are non-refundable | All prices include GST', 50, y + 15, { align: 'center' })
-       .text('Need help? contact@yourbrand.com | +91 1234567890', 50, y + 30, { align: 'center' });
-    
+      .fontSize(9)
+      .text('Thank you for your business!', 50, y, { align: 'center' })
+      .text('Terms: Goods sold are non-refundable | All prices include GST', 50, y + 15, { align: 'center' })
+      .text('Need help? contact@yourbrand.com | +91 1234567890', 50, y + 30, { align: 'center' });
+
     // Watermark
     // doc.fillColor('rgba(45, 127, 249, 0.05)')
     //    .fontSize(72)
@@ -476,14 +508,14 @@ router.get('/:id/invoice', protect, async (req, res) => {
     //      align: 'center',
     //      oblique: 15
     //    });
-    
+
     // Page numbers
     const pages = doc.bufferedPageRange();
     for (let i = 0; i < pages.count; i++) {
       doc.switchToPage(i);
       doc.fillColor('#6c757d')
-         .fontSize(8)
-         .text(`Page ${i + 1} of ${pages.count}`, doc.page.width - 50, doc.page.height - 20);
+        .fontSize(8)
+        .text(`Page ${i + 1} of ${pages.count}`, doc.page.width - 50, doc.page.height - 20);
     }
 
     doc.end();

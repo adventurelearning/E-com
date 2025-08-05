@@ -25,7 +25,8 @@
     "react-router-dom": "^7.6.2",
     "react-simple-star-rating": "^5.1.7",
     "react-toastify": "^11.0.5",
-    "styled-components": "^6.1.19"
+    "styled-components": "^6.1.19",
+    "yet-another-react-lightbox": "^3.25.0"
   },
   "devDependencies": {
     "@eslint/js": "^9.25.0",

@@ -21,7 +21,7 @@ router.get('/', async (req, res) => {
 // @access  Public
 router.get('/:id', async (req, res) => {
   try {
-    const product = await Product.findById(req.params.id);
+    const product = await Product.findById(req.params.id).populate('addedBy', 'name email');
     if (!product) return res.status(404).json({ message: 'Product not found' });
     res.json(product);
   } catch (err) {
@@ -47,7 +47,10 @@ router.post('/', protect,requireRole('admin'),async (req, res) => {
       images,
       colors,
       sizeChart,
-      stock
+      stock,
+      specifications,
+      featureDescriptions,
+      groupId
     } = req.body;
 
     const product = new Product({
@@ -63,8 +66,10 @@ router.post('/', protect,requireRole('admin'),async (req, res) => {
       colors: colors || [],
       sizeChart: sizeChart || [],
       stock,
-      addedBy: req.user._id
-
+      addedBy: req.user._id,
+      specifications,
+      featureDescriptions,
+      groupId
     });
 
     const createdProduct = await product.save();
@@ -96,8 +101,13 @@ router.put('/:id', protect,requireRole('admin'), async (req, res) => {
       images,
       colors,
       sizeChart,
-      stock
+      stock,
+      specifications,
+      featureDescriptions,
+      ratingAttributes,
+      groupId
     } = req.body;
+console.log("rating atri",ratingAttributes);
 
     const product = await Product.findById(req.params.id);
     if (!product) return res.status(404).json({ message: 'Product not found' });
@@ -114,6 +124,11 @@ router.put('/:id', protect,requireRole('admin'), async (req, res) => {
     product.colors = colors || product.colors;
     product.sizeChart = sizeChart || product.sizeChart;
     product.stock = stock ?? product.stock;
+    product.specifications = specifications ?? product.specifications;
+    product.featureDescriptions = featureDescriptions ?? product.featureDescriptions;
+    product.ratingAttributes = ratingAttributes ?? product.ratingAttributess;
+    product.groupId = groupId || product.groupId;
+
 
     const updatedProduct = await product.save();
     res.json(updatedProduct);
@@ -143,5 +158,15 @@ router.delete('/:id', protect,requireRole('admin'), async (req, res) => {
   }
 });
 
+// GET /products/group/:groupId
+router.get('/group/:groupId', async (req, res) => {
+  const { groupId } = req.params;
+  try {
+    const variants = await Product.find({ groupId });
+    res.json(variants);
+  } catch (err) {
+    res.status(500).json({ error: 'Server error' });
+  }
+});
 
 module.exports = router;

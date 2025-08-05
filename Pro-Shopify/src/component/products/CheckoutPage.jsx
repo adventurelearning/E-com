@@ -112,7 +112,7 @@ const CheckoutPage = () => {
       });
 
       setCart({ items: [] });
-      await resetCart();
+      // await resetCart();
       toast.success('Order placed successfully!');
       navigate('/', { state: { orderId: response.data._id } });
 
