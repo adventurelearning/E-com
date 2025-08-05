@@ -8,15 +8,15 @@ const connectDB = require('./config/db');
 const errorHandler = require('./utils/errorHandler').errorHandler;
 // const { errorHandler } = require('./middlewares/error');
 const path = require('path');
-const imageupload=require('./routes/uploadRoute');
-const categoryRoutes = require('./routes/categoryRoutes');
-const SupplierProduct = require('./routes/suplierRoute');
-const cartRoutes = require('./routes/cartRoute');
-const orderRoutes = require('./routes/orderRoute');
-const userRoutes = require('./routes/userRoute');
-const wishlistRoutes = require('./routes/wishlistRoute');
-const offerRoutes = require('./routes/offerRoutes');
-const reviewRoutes = require('./routes/reviewRoutes');
+const imageupload = require('./routes/uploadRoute.js');
+const categoryRoutes = require('./routes/categoryRoutes.js');
+const SupplierProduct = require('./routes/suplierRoute.js');
+const cartRoutes = require('./routes/cartRoute.js');
+const orderRoutes = require('./routes/orderRoute.js');
+const userRoutes = require('./routes/userRoute.js');
+const wishlistRoutes = require('./routes/wishlistRoute.js');
+const offerRoutes = require('./routes/offerRoutes.js');
+const reviewRoutes = require('./routes/reviewRoutes.js');
 
 // Initialize Express app
 const app = express();
