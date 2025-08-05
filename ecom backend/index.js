@@ -17,7 +17,7 @@ const userRoutes = require("./routes/userRoute.js");
 const wishlistRoutes = require("./routes/wishlistRoute.js");
 const offerRoutes = require("./routes/offerRoutes.js");
 const reviewRoutes = require("./routes/reviewRoutes.js");
-const uploadRoute = require("./routes/uploadRoute.js");
+// const uploadRoute = require("./routes/uploadRoute.js");
 // Initialize Express app
 const app = express();
 
@@ -69,7 +69,7 @@ app.use("/api/users", userRoutes);
 app.use("/api/wishlist", wishlistRoutes);
 app.use("/api", offerRoutes);
 app.use("/api/reviews", reviewRoutes);
-app.use("/api/upload", uploadRoute);
+// app.use("/api/upload", uploadRoute);
 // Error handling middleware
 app.use(errorHandler);
 
