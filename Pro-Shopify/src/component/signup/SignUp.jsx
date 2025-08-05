@@ -123,6 +123,7 @@ const SignUp = () => {
       setError(err.message || 'Google signup failed');
     } finally {
       setLoading(false);
+      window.location.reload();
     }
   };
 
