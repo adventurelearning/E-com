@@ -8,7 +8,7 @@ const connectDB = require('./config/db');
 const errorHandler = require('./utils/errorHandler').errorHandler;
 // const { errorHandler } = require('./middlewares/error');
 const path = require('path');
-const imageupload = require('./routes/uploadRoute.js');
+const uploadRoute = require('./routes/uploadRoute.js');
 const categoryRoutes = require('./routes/categoryRoutes.js');
 const SupplierProduct = require('./routes/suplierRoute.js');
 const cartRoutes = require('./routes/cartRoute.js');
@@ -59,7 +59,7 @@ if (process.env.NODE_ENV === 'development') {
 // Routes
 app.use('/api/auth', require('./routes/authRoutes'));
 
-app.use('/api/upload', imageupload);
+app.use('/api/upload', uploadRoute);
 app.use('/api/products', productRoutes);
 app.use('/api/banners', BannerRoutes);
 app.use('/api/adminUsers', AdminUserRoutes);
