@@ -1,9 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-import { FiSave, FiArrowLeft, FiUpload, FiX, FiPlus, FiMinus } from 'react-icons/fi';
+import { FiSave, FiArrowLeft, FiUpload, FiX, FiPlus, FiMinus, FiCalendar } from 'react-icons/fi';
 import Api from '../../Services/Api';
+import TinyEditor from '../../components/Editor';
 
 const Product = () => {
   const { id } = useParams();
@@ -20,6 +21,9 @@ const Product = () => {
     description: '',
     originalPrice: '',
     discountPrice: '',
+    specialPrice: '',
+    specialPriceStart: '',
+    specialPriceEnd: '',
     category: '',
     subcategory: '',
     brand: '',
@@ -28,11 +32,13 @@ const Product = () => {
     stock: '',
     specifications: [],
     featureDescriptions: [],
-    ratingAttributes: ['Quality', 'Color', 'Design', 'Size'], // Add this line
-    groupId: '', // New field
-
-
+    ratingAttributes: ['Quality', 'Color', 'Design', 'Size'],
+    groupId: '',
   });
+
+  // Cloudinary configuration
+  const CLOUD_NAME = import.meta.env.VITE_CLOUD_NAME; // Replace with your Cloudinary cloud name
+  const UPLOAD_PRESET = import.meta.env.VITE_UPLOAD_PRESET; // Replace with your upload preset
 
   // Clean up blob URLs on unmount
   useEffect(() => {
@@ -44,6 +50,22 @@ const Product = () => {
       });
     };
   }, [images]);
+
+  // Convert UTC ISO string to local datetime string (YYYY-MM-DDTHH:mm)
+  const utcToLocalDatetimeString = (isoString) => {
+    if (!isoString) return '';
+    const date = new Date(isoString);
+    if (isNaN(date)) return '';
+
+    // Format date in local timezone
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    const hours = String(date.getHours()).padStart(2, '0');
+    const minutes = String(date.getMinutes()).padStart(2, '0');
+
+    return `${year}-${month}-${day}T${hours}:${minutes}`;
+  };
 
   useEffect(() => {
     async function init() {
@@ -68,6 +90,9 @@ const Product = () => {
             description: data.description,
             originalPrice: data.originalPrice,
             discountPrice: data.discountPrice,
+            specialPrice: data.specialPrice || '',
+            specialPriceStart: utcToLocalDatetimeString(data.specialPriceStart),
+            specialPriceEnd: utcToLocalDatetimeString(data.specialPriceEnd),
             category: categoryObj?._id || '',
             subcategory: subcategoryId,
             brand: data.brand,
@@ -77,8 +102,7 @@ const Product = () => {
             specifications: data.specifications || [],
             featureDescriptions: data.featureDescriptions || [],
             ratingAttributes: data.ratingAttributes || ['Quality', 'Color', 'Design', 'Size'],
-            groupId: data.groupId || '', // Added this line
-
+            groupId: data.groupId || '',
           });
 
           // Set subcategories for dropdown
@@ -103,11 +127,36 @@ const Product = () => {
 
   const validate = () => {
     const errs = {};
-    ['name', 'description', 'originalPrice', 'discountPrice', 'category', 'brand', 'stock'].forEach(f => {
+    ['name', 'originalPrice', 'category', 'brand', 'stock'].forEach(f => {
       if (!product[f] || (typeof product[f] === 'string' && !product[f].trim())) errs[f] = 'Required';
     });
+
+    // Description validation
+    if (!product.description || product.description.trim() === '<p><br></p>' || product.description.trim() === '') {
+      errs.description = 'Description is required';
+    }
+
     if (Number(product.discountPrice) > Number(product.originalPrice)) {
       errs.discountPrice = 'Discounted price must be ≤ original price';
+    }
+
+    // Special price validation
+    if (product.specialPrice) {
+      if (!product.specialPriceStart) errs.specialPriceStart = 'Start date required';
+      if (!product.specialPriceEnd) errs.specialPriceEnd = 'End date required';
+
+      if (product.specialPriceStart && product.specialPriceEnd) {
+        const startDate = new Date(product.specialPriceStart);
+        const endDate = new Date(product.specialPriceEnd);
+
+        if (endDate <= startDate) {
+          errs.specialPriceEnd = 'End date must be after start date';
+        }
+
+        if (Number(product.specialPrice) >= Number(product.originalPrice)) {
+          errs.specialPrice = 'Special price must be less than original price';
+        }
+      }
     }
 
     // Check for at least one successfully uploaded image
@@ -124,6 +173,11 @@ const Product = () => {
     const { name, value } = e.target;
     setProduct(prev => ({ ...prev, [name]: value }));
     if (errors[name]) setErrors(prev => ({ ...prev, [name]: '' }));
+  };
+
+  const handleEditorChange = (content) => {
+    setProduct(prev => ({ ...prev, description: content }));
+    if (errors.description) setErrors(prev => ({ ...prev, description: '' }));
   };
 
   const handleImageSelect = async (e) => {
@@ -164,20 +218,32 @@ const Product = () => {
     );
 
     try {
-      const fd = new FormData();
-      fd.append('photo', img.file);
-
-      const { data } = await Api.post('/upload', fd, {
-        headers: { 'Content-Type': 'multipart/form-data' }
-      });
+      const formData = new FormData();
+      formData.append('file', img.file);
+      formData.append('upload_preset', UPLOAD_PRESET);
+      
+      // Upload to Cloudinary
+      const response = await fetch(
+        `https://api.cloudinary.com/v1_1/${CLOUD_NAME}/image/upload`, 
+        {
+          method: 'POST',
+          body: formData
+        }
+      );
+      
+      const data = await response.json();
+      
+      if (!response.ok) {
+        throw new Error(data.error?.message || 'Upload failed');
+      }
 
       // Update with server URL and filename
       setImages(prev =>
         prev.map(i =>
           i.url === img.url
             ? {
-              url: data.location,
-              serverFilename: data.location,
+              url: data.secure_url,
+              serverFilename: data.secure_url,
               status: 'uploaded'
             }
             : i
@@ -192,7 +258,7 @@ const Product = () => {
           i.url === img.url ? { ...i, status: 'error' } : i
         )
       );
-      toast.error('Image upload failed');
+      toast.error('Image upload failed: ' + err.message);
     }
   };
 
@@ -208,16 +274,27 @@ const Product = () => {
 
   const uploadFeatureImage = async (file, featureIndex) => {
     try {
-      const fd = new FormData();
-      fd.append('photo', file);
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('upload_preset', UPLOAD_PRESET);
+      
+      const response = await fetch(
+        `https://api.cloudinary.com/v1_1/${CLOUD_NAME}/image/upload`, 
+        {
+          method: 'POST',
+          body: formData
+        }
+      );
+      
+      const data = await response.json();
+      
+      if (!response.ok) {
+        throw new Error(data.error?.message || 'Upload failed');
+      }
 
-      const { data } = await Api.post('/upload', fd, {
-        headers: { 'Content-Type': 'multipart/form-data' }
-      });
-
-      return data.location;
+      return data.secure_url;
     } catch (err) {
-      toast.error('Feature image upload failed');
+      toast.error('Feature image upload failed: ' + err.message);
       return null;
     }
   };
@@ -257,6 +334,12 @@ const Product = () => {
 
       const pr = {
         ...product,
+        specialPriceStart: product.specialPriceStart
+          ? new Date(product.specialPriceStart).toISOString()
+          : '',
+        specialPriceEnd: product.specialPriceEnd
+          ? new Date(product.specialPriceEnd).toISOString()
+          : '',
         images: finalImages,
         category: categoryName,
         subcategory: subcategoryName,
@@ -265,8 +348,7 @@ const Product = () => {
           product.discountPrice
         ),
         ratingAttributes: product.ratingAttributes,
-        groupId: product.groupId, // Added this line
-
+        groupId: product.groupId,
       };
 
       if (id) {
@@ -334,15 +416,13 @@ const Product = () => {
 
                 <div className="md:col-span-2">
                   <label className="block text-sm font-medium text-gray-700 mb-1">Description *</label>
-                  <textarea
-                    name="description"
-                    className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 ${errors.description ? 'border-red-500' : 'border-gray-300'
-                      }`}
-                    rows="4"
-                    value={product.description}
-                    onChange={handleChange}
-                    placeholder="Describe your product in detail"
-                  />
+                  <div className={`border border-gray-300 rounded-lg ${errors.description ? 'border-red-500' : ''}`}>
+                    <TinyEditor
+                      value={product.description}
+                      onChange={handleEditorChange}
+                      height={400}
+                    />
+                  </div>
                   {errors.description && <p className="mt-1 text-sm text-red-600">{errors.description}</p>}
                 </div>
                 <div>
@@ -361,39 +441,128 @@ const Product = () => {
                     Products are grouped using a <strong>Group ID</strong> to represent color variations.
                     On the frontend, only the first product image from each group is shown to preview the color variant.
                   </p>
-
                 </div>
-
               </div>
-
             </div>
 
             {/* Pricing */}
             <div className="bg-white p-6 rounded-xl border border-purple-100 shadow-sm">
               <h3 className="text-lg font-semibold text-purple-800 border-b border-purple-200 pb-3 mb-4">Pricing</h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {['originalPrice', 'discountPrice'].map((f, i) => (
-                  <div key={f}>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                {/* Original Price */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Original Price *
+                  </label>
+                  <div className="relative">
+                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-purple-700">
+                      ₹
+                    </div>
+                    <input
+                      name="originalPrice"
+                      type="number"
+                      min="0"
+                      step="0.01"
+                      className={`w-full pl-10 pr-4 py-2 border rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 ${errors.originalPrice ? 'border-red-500' : 'border-gray-300'
+                        }`}
+                      value={product.originalPrice}
+                      onChange={handleChange}
+                      placeholder="Original price"
+                    />
+                  </div>
+                  {errors.originalPrice && <p className="mt-1 text-sm text-red-600">{errors.originalPrice}</p>}
+                </div>
+
+                {/* Discount Price */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Discount Price
+                  </label>
+                  <div className="relative">
+                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-purple-700">
+                      ₹
+                    </div>
+                    <input
+                      name="discountPrice"
+                      type="number"
+                      min="0"
+                      step="0.01"
+                      className={`w-full pl-10 pr-4 py-2 border rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 ${errors.discountPrice ? 'border-red-500' : 'border-gray-300'
+                        }`}
+                      value={product.discountPrice}
+                      onChange={handleChange}
+                      placeholder="Discounted price"
+                    />
+                  </div>
+                  {errors.discountPrice && <p className="mt-1 text-sm text-red-600">{errors.discountPrice}</p>}
+                </div>
+
+                {/* Special Price */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Special Price
+                  </label>
+                  <div className="relative">
+                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-purple-700">
+                      ₹
+                    </div>
+                    <input
+                      name="specialPrice"
+                      type="number"
+                      min="0"
+                      step="0.01"
+                      className={`w-full pl-10 pr-4 py-2 border rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 ${errors.specialPrice ? 'border-red-500' : 'border-gray-300'
+                        }`}
+                      value={product.specialPrice}
+                      onChange={handleChange}
+                      placeholder="Limited-time offer"
+                    />
+                  </div>
+                  {errors.specialPrice && <p className="mt-1 text-sm text-red-600">{errors.specialPrice}</p>}
+                </div>
+
+                {/* Special Price Dates */}
+                <div className="md:col-span-3 grid grid-cols-1 md:grid-cols-2 gap-6 pt-4">
+                  <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
-                      {f === 'originalPrice' ? 'Original Price *' : 'Discount Price *'}
+                      Special Price Start Date
                     </label>
                     <div className="relative">
-                      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-purple-700">
-                        ₹
+                      <div className="absolute inset-y-0 left-0 pl-3 flex items-center text-purple-700">
+                        <FiCalendar />
                       </div>
                       <input
-                        name={f}
-                        type="text"
-                        className={`w-full pl-10 pr-4 py-2 border rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 ${errors[f] ? 'border-red-500' : 'border-gray-300'
+                        type="datetime-local"
+                        name="specialPriceStart"
+                        className={`w-full pl-10 pr-4 py-2 border rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 ${errors.specialPriceStart ? 'border-red-500' : 'border-gray-300'
                           }`}
-                        value={product[f]}
+                        value={product.specialPriceStart}
                         onChange={handleChange}
-                        placeholder={f === 'originalPrice' ? "Original price" : "Discounted price"}
                       />
                     </div>
-                    {errors[f] && <p className="mt-1 text-sm text-red-600">{errors[f]}</p>}
+                    {errors.specialPriceStart && <p className="mt-1 text-sm text-red-600">{errors.specialPriceStart}</p>}
                   </div>
-                ))}
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Special Price End Date
+                    </label>
+                    <div className="relative">
+                      <div className="absolute inset-y-0 left-0 pl-3 flex items-center text-purple-700">
+                        <FiCalendar />
+                      </div>
+                      <input
+                        type="datetime-local"
+                        name="specialPriceEnd"
+                        className={`w-full pl-10 pr-4 py-2 border rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 ${errors.specialPriceEnd ? 'border-red-500' : 'border-gray-300'
+                          }`}
+                        value={product.specialPriceEnd}
+                        onChange={handleChange}
+                      />
+                    </div>
+                    {errors.specialPriceEnd && <p className="mt-1 text-sm text-red-600">{errors.specialPriceEnd}</p>}
+                  </div>
+                </div>
               </div>
             </div>
 
@@ -445,7 +614,8 @@ const Product = () => {
                   <label className="block text-sm font-medium text-gray-700 mb-1">Total Stock *</label>
                   <input
                     name="stock"
-                    type="text"
+                    type="number"
+                    min="0"
                     className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 ${errors.stock ? 'border-red-500' : 'border-gray-300'
                       }`}
                     value={product.stock}
@@ -456,7 +626,6 @@ const Product = () => {
                 </div>
               </div>
             </div>
-
 
             {/* Images */}
             <div className="bg-white p-6 rounded-xl border border-purple-100 shadow-sm">
@@ -841,7 +1010,8 @@ const Product = () => {
                       <div>
                         <label className="block text-sm text-gray-600 mb-1">Stock</label>
                         <input
-                          type="text"
+                          type="number"
+                          min="0"
                           className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
                           placeholder="Available quantity"
                           value={sz.stock}
@@ -871,7 +1041,8 @@ const Product = () => {
                 </div>
               )}
             </div>
-            {/* Rating Categories - NEW SECTION */}
+
+            {/* Rating Categories */}
             <div className="bg-white p-6 rounded-xl border border-purple-100 shadow-sm">
               <div className="flex justify-between items-center mb-4">
                 <h3 className="text-lg font-semibold text-purple-800">Rating Categories</h3>
@@ -919,6 +1090,7 @@ const Product = () => {
                 These categories will appear in product reviews for customers to rate separately.
               </p>
             </div>
+
             {/* Submit */}
             <div className="flex justify-end gap-4 pt-4 border-t border-purple-200">
               <button
