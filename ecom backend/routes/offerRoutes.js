@@ -1,31 +1,15 @@
 const express = require('express');
 const router = express.Router();
 const Offer = require('../models/Offer');
-const multer = require('multer');
-const path = require('path');
-
-// Multer configuration
-const storage = multer.diskStorage({
-    destination: (req, file, cb) => {
-        cb(null, path.join(__dirname, '../uploads'));
-    },
-    filename: (req, file, cb) => {
-        cb(null, Date.now() + path.extname(file.originalname));
-    }
-});
-
-const upload = multer({ storage });
-
-const getFullImageUrl = (filename) => {
-    return `${process.env.BASE_URL}/uploads/${filename}`;
-};
 
 // Create a new offer
-router.post('/offers', upload.single('bannerImage'), async (req, res) => {
+router.post('/offers', async (req, res) => {
   try {
-    const { title, subtitle, price, discountPrice, link } = req.body;
+    const { title, subtitle, price, discountPrice, link, bannerImage } = req.body;
 
-     const bannerImage = getFullImageUrl(req.file.filename);
+    if (!bannerImage) {
+      return res.status(400).json({ message: 'Banner image is required' });
+    }
     
     const offer = new Offer({
       title,
@@ -67,9 +51,9 @@ router.get('/offers/:id', async (req, res) => {
 });
 
 // Update offer
-router.put('/offers/:id', upload.single('bannerImage'), async (req, res) => {
+router.put('/offers/:id', async (req, res) => {
   try {
-    const { title, subtitle, price, discountPrice, link } = req.body;
+    const { title, subtitle, price, discountPrice, link, bannerImage } = req.body;
     const updateData = {
       title,
       subtitle,
@@ -78,8 +62,9 @@ router.put('/offers/:id', upload.single('bannerImage'), async (req, res) => {
       link
     };
 
-    if (req.file) {
-      updateData.bannerImage = `/uploads/${req.file.filename}`;
+    // Only update bannerImage if a new one was provided
+    if (bannerImage) {
+      updateData.bannerImage = bannerImage;
     }
 
     const offer = await Offer.findByIdAndUpdate(req.params.id, updateData, { new: true });
