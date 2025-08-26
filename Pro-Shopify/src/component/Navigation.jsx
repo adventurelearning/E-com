@@ -155,9 +155,9 @@ const Navigation = () => {
                     animate={{ x: [0, 2, 0] }}
                     transition={{ repeat: Infinity, duration: 2 }}
                 >
-                    <GoRocket className="text-lg" />
+                    <GoRocket className="text-lg animate-bounce" />
                 </motion.div>
-                <span className="text-sm font-medium">Free Home Delivery</span>
+                <span className="text-sm font-medium animate-bounce">Free Home Delivery</span>
             </div>
         </div>
     );
