@@ -45,8 +45,7 @@ function App() {
           {/* product */}
           <Route path='/productslist' element={<ProductsList />}></Route>
           <Route path="/productpage/:id" element={<ProductPage />} ></Route>
-          <Route path='/category/:category' element={<CategoryProduct />}></Route>
-
+<Route path='/category/:category/:subcategory?' element={<CategoryProduct />}></Route>
           {/* cart  */}
           <Route path='/addtocart' element={<CartPage />}></Route>
           <Route path='/buy-now' element={<BuyNow />}></Route>

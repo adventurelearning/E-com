@@ -20,6 +20,14 @@ const categorySchema = new mongoose.Schema({
     default: ''
   },
   subcategories: [subcategorySchema],
+  visibleInMenu: {
+    type: Boolean,
+    default: true
+  },
+  order: {
+    type: Number,
+    default: 0
+  },
   createdAt: {
     type: Date,
     default: Date.now

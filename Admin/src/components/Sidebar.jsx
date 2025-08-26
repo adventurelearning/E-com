@@ -150,28 +150,28 @@ const Sidebar = ({ open, toggleSidebar }) => {
         },
       ],
     },
-    {
-      title: 'Suppliers',
-      icon: <FiTruck />,
-      visible: hasRole('Supplier Management'),
-      subItems: [
-        {
-          title: 'All Suppliers',
-          path: '/suppliers',
-          visible: true,
-        },
-        {
-          title: 'Add Supplier',
-          path: '/add-supplier',
-          visible: true,
-        },
-        {
-          title: 'Approve Applications',
-          path: '/approve-suppliers',
-          visible: true,
-        },
-      ],
-    },
+    // {
+    //   title: 'Suppliers',
+    //   icon: <FiTruck />,
+    //   visible: hasRole('Supplier Management'),
+    //   subItems: [
+    //     {
+    //       title: 'All Suppliers',
+    //       path: '/suppliers',
+    //       visible: true,
+    //     },
+    //     {
+    //       title: 'Add Supplier',
+    //       path: '/add-supplier',
+    //       visible: true,
+    //     },
+    //     {
+    //       title: 'Approve Applications',
+    //       path: '/approve-suppliers',
+    //       visible: true,
+    //     },
+    //   ],
+    // },
     {
       title: 'Users',
       icon: <FiUsers />,
@@ -218,23 +218,23 @@ const Sidebar = ({ open, toggleSidebar }) => {
         }
       ],
     },
-    {
-      title: 'Products-S',
-      icon: <FiBox />,
-      visible: hasRole('Suplier'),
-      subItems: [
-        {
-          title: 'Add Product-S',
-          path: '/Add-SProduct',
-          visible: true,
-        },
-        {
-          title: 'Product-S',
-          path: '/SProduct',
-          visible: true,
-        },
-      ],
-    },
+    // {
+    //   title: 'Products-S',
+    //   icon: <FiBox />,
+    //   visible: hasRole('Suplier'),
+    //   subItems: [
+    //     {
+    //       title: 'Add Product-S',
+    //       path: '/Add-SProduct',
+    //       visible: true,
+    //     },
+    //     {
+    //       title: 'Product-S',
+    //       path: '/SProduct',
+    //       visible: true,
+    //     },
+    //   ],
+    // },
   ];
 
   return (
