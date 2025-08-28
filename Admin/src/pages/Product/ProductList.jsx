@@ -25,7 +25,9 @@ const ProductList = () => {
   const [newCategory, setNewCategory] = useState({
     name: '',
     imageUrl: '',
-    subcategories: []
+    subcategories: [],
+   visibleInMenu: true, // New field
+    order: 0            // New field
   });
   const [editingCategory, setEditingCategory] = useState(null);
   const [newSubcategoryName, setNewSubcategoryName] = useState('');
@@ -117,7 +119,7 @@ const ProductList = () => {
   };
 
   // Upload image with progress tracking
-  const uploadImage = async () => {
+ const uploadImage = async () => {
     if (!categoryImage) return null;
 
     try {
@@ -125,24 +127,30 @@ const ProductList = () => {
       setProgress(0);
 
       const formData = new FormData();
-      formData.append('photo', categoryImage);
-
-      const { data } = await Api.post('/upload', formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data'
-        },
-        onUploadProgress: (progressEvent) => {
-          const percent = Math.round(
-            (progressEvent.loaded * 100) / progressEvent.total
-          );
-          setProgress(percent);
+      formData.append('file', categoryImage);
+      formData.append('upload_preset', import.meta.env.VITE_UPLOAD_PRESET); // Add upload preset
+      
+      // Upload to Cloudinary
+      const response = await fetch(
+        `https://api.cloudinary.com/v1_1/${import.meta.env.VITE_CLOUD_NAME}/image/upload`, 
+        {
+          method: 'POST',
+          body: formData,
+          // Note: Cloudinary doesn't support progress tracking in the same way
+          // You might need to use a different approach for progress tracking
         }
-      });
+      );
+      
+      const data = await response.json();
+      
+      if (!response.ok) {
+        throw new Error(data.error?.message || 'Upload failed');
+      }
 
-      return data.location;
+      return data.secure_url; // Cloudinary returns secure_url instead of location
     } catch (error) {
       console.error('Error uploading image:', error);
-      toast.error('Failed to upload image');
+      toast.error('Failed to upload image: ' + error.message);
       return null;
     } finally {
       setUploadingImage(false);
@@ -161,7 +169,9 @@ const ProductList = () => {
 
       const categoryData = {
         ...newCategory,
-        imageUrl: imageUrl || ''
+        imageUrl: imageUrl || '',
+          visibleInMenu: newCategory.visibleInMenu,
+        order: newCategory.order
       };
       console.log('Adding category:', categoryData);
 
@@ -175,7 +185,8 @@ const ProductList = () => {
       setNewCategory({
         name: '',
         imageUrl: '',
-        subcategories: []
+        subcategories: [],
+
       });
       setNewSubcategoryName('');
       setCategoryImage(null);
@@ -207,7 +218,9 @@ const ProductList = () => {
     setNewCategory({
       name: category.name,
       imageUrl: category.imageUrl,
-      subcategories: category.subcategories
+      subcategories: category.subcategories,
+        visibleInMenu: category.visibleInMenu, // New field
+      order: category.order                  // New field
     });
     if (category.imageUrl) {
       setCategoryImagePreview(category.imageUrl);
@@ -443,6 +456,46 @@ const ProductList = () => {
                   </div>
                 </div>
               )}
+
+                <div className="mb-6">
+                <label className="block text-gray-700 mb-2 font-medium">Menu Visibility</label>
+                <div className="flex items-center">
+                  <label className="relative inline-flex items-center cursor-pointer">
+                    <input
+                      type="checkbox"
+                      className="sr-only peer"
+                      checked={newCategory.visibleInMenu}
+                      onChange={(e) => setNewCategory({ 
+                        ...newCategory, 
+                        visibleInMenu: e.target.checked 
+                      })}
+                    />
+                    <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-purple-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-purple-600"></div>
+                    <span className="ml-3 text-sm font-medium text-gray-900">
+                      {newCategory.visibleInMenu ? 'Visible in Menu' : 'Hidden in Menu'}
+                    </span>
+                  </label>
+                </div>
+              </div>
+              
+              {/* NEW: Order Input */}
+              <div className="mb-6">
+                <label className="block text-gray-700 mb-2 font-medium">Display Order</label>
+                <input
+                  type="number"
+                  min="0"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+                  placeholder="Lower numbers appear first"
+                  value={newCategory.order}
+                  onChange={(e) => setNewCategory({ 
+                    ...newCategory, 
+                    order: parseInt(e.target.value) || 0 
+                  })}
+                />
+                <p className="mt-1 text-sm text-gray-500">
+                  Categories are sorted by this number (ascending)
+                </p>
+              </div>
             </div>
 
             <div className="border-t px-6 py-4 flex justify-end gap-3 bg-gray-50 rounded-b-xl">
@@ -598,6 +651,48 @@ const ProductList = () => {
                   </div>
                 </div>
               )}
+
+                {/* NEW: Visible In Menu Toggle */}
+              <div className="mb-6">
+                <label className="block text-gray-700 mb-2 font-medium">Menu Visibility</label>
+                <div className="flex items-center">
+                  <label className="relative inline-flex items-center cursor-pointer">
+                    <input
+                      type="checkbox"
+                      className="sr-only peer"
+                      checked={newCategory.visibleInMenu}
+                      onChange={(e) => setNewCategory({ 
+                        ...newCategory, 
+                        visibleInMenu: e.target.checked 
+                      })}
+                    />
+                    <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-purple-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-purple-600"></div>
+                    <span className="ml-3 text-sm font-medium text-gray-900">
+                      {newCategory.visibleInMenu ? 'Visible in Menu' : 'Hidden in Menu'}
+                    </span>
+                  </label>
+                </div>
+              </div>
+              
+              {/* NEW: Order Input */}
+              <div className="mb-6">
+                <label className="block text-gray-700 mb-2 font-medium">Display Order</label>
+                <input
+                  type="number"
+                  min="0"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+                  placeholder="Lower numbers appear first"
+                  value={newCategory.order}
+                  onChange={(e) => setNewCategory({ 
+                    ...newCategory, 
+                    order: parseInt(e.target.value) || 0 
+                  })}
+                />
+                <p className="mt-1 text-sm text-gray-500">
+                  Categories are sorted by this number (ascending)
+                </p>
+              </div>
+              
             </div>
 
             <div className="border-t px-6 py-4 flex justify-end gap-3 bg-gray-50 rounded-b-xl">
@@ -822,7 +917,7 @@ const ProductList = () => {
 
                 <div className="p-5">
                   <h3 className="text-lg font-bold text-gray-800 mb-1">{product.name}</h3>
-                  <p className="text-gray-600 text-sm mb-2 line-clamp-2">{product.description}</p>
+                  <p className="text-gray-600 text-sm mb-2 line-clamp-2" dangerouslySetInnerHTML={ { __html:product.description}}></p>
 
                   <div className="flex items-center gap-2 mb-3">
                     <span className="text-xl font-bold text-purple-700">

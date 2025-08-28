@@ -41,7 +41,7 @@ router.post('/', async (req, res) => {
 // Get all categories with subcategories
 router.get('/', async (req, res) => {
   try {
-    const categories = await Category.find().sort({ createdAt: -1 });
+    const categories = await Category.find().sort({ order: 1, createdAt: -1 });
     res.json(categories);
   } catch (error) {
     console.error('Error fetching categories:', error);
@@ -51,7 +51,7 @@ router.get('/', async (req, res) => {
 
 router.put('/:id', async (req, res) => {
   try {
-    const { name, imageUrl, subcategories = [] } = req.body;
+    const { name, imageUrl, subcategories = [], visibleInMenu, order } = req.body;
 
     if (!name) {
       return res.status(400).json({ message: 'Category name is required' });
@@ -71,6 +71,15 @@ router.put('/:id', async (req, res) => {
     // Update fields
     category.name = name.trim();
     category.imageUrl = imageUrl || '';
+    
+    // Update new fields if provided
+    if (typeof visibleInMenu !== 'undefined') {
+      category.visibleInMenu = visibleInMenu;
+    }
+    
+    if (typeof order !== 'undefined') {
+      category.order = order;
+    }
 
     // Replace all subcategories with new ones
     category.subcategories = subcategories

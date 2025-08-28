@@ -1,8 +1,8 @@
 import Button from '@mui/material/Button';
-import React, { useContext, useState } from 'react';
+import React, { useContext, useState, useEffect } from 'react';
 import { RiMenu2Fill } from "react-icons/ri";
 import { LiaAngleDownSolid, LiaTimesSolid } from "react-icons/lia";
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { GoRocket } from "react-icons/go";
 import Category from './Category';
 import '../component/search.css';
@@ -11,6 +11,7 @@ import { useMediaQuery } from '@mui/material';
 import { Drawer, IconButton } from '@mui/material';
 import { FiMenu } from 'react-icons/fi';
 import { motion, AnimatePresence } from 'framer-motion';
+import Api from '../Services/Api';
 
 const Navigation = () => {
     const [isOpenCatPanel, setIsOpenCatPanel] = useState(false);
@@ -18,6 +19,30 @@ const Navigation = () => {
     const [activeSubmenu, setActiveSubmenu] = useState(null);
     const { product } = useContext(ProductContext);
     const isMobile = useMediaQuery('(max-width:1024px)');
+    const [categories, setCategories] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const location = useLocation();
+
+    // Fetch categories from API
+    useEffect(() => {
+        const fetchCategories = async () => {
+            try {
+                setLoading(true);
+                const response = await Api.get('/categories');
+                // Filter categories that are visible in menu and sort by order
+                const visibleCategories = response.data
+                    .filter(cat => cat.visibleInMenu)
+                    .sort((a, b) => a.order - b.order);
+                setCategories(visibleCategories);
+            } catch (error) {
+                console.error('Error fetching categories:', error);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchCategories();
+    }, []);
 
     const Categories = () => {
         setIsOpenCatPanel(true);
@@ -32,31 +57,35 @@ const Navigation = () => {
         setActiveSubmenu(activeSubmenu === index ? null : index);
     };
 
+    // Check if a category or subcategory is active
+    const isCategoryActive = (categoryPath, subcategoryPath = null) => {
+        const currentPath = location.pathname;
+        
+        if (subcategoryPath) {
+            return currentPath === subcategoryPath;
+        }
+        
+        // For main category, check if it matches or is a parent of current path
+        return currentPath === categoryPath || currentPath.startsWith(`${categoryPath}/`);
+    };
+
+    // Convert categories to navItems format
     const navItems = [
         { name: 'Home', path: '/' },
-        { 
-            name: 'Fashion', 
-            path: '/category/MENSWEAR',
-            submenu: [
-                { name: 'Men', path: '/category/MENSWEAR' },
-                { name: 'Women', path: '/category/WOMENSWEAR' },
-                { name: 'Kids', path: '/category/KIDS' }
-            ]
-        },
-        { 
-            name: 'Electronics', 
-            path: '/category/ELECTRONICS',
-            submenu: [
-                { name: 'IPHONE', path: `/category/IPHONE'S` },
-                { name: 'LAPTOP', path: '/category/LAPTOP' },
-                { name: 'OPPO', path: '/category/OPPO' }
-            ]
-        },
-        { name: 'Bags', path: '/category/BAGS' },
-        { name: 'Footwear', path: '/category/FOOTWEAR' },
-        { name: 'Beauty', path: '/category/BEAUTY' },
-        { name: 'Gadgets', path: '/category/GADGETS' },
-        { name: 'Jewellery', path: '/category/JEWELLERY' }
+        ...categories.map(category => {
+            const categoryPath = `/category/${category.name.toLowerCase().replace(/\s+/g, '-')}`;
+            
+            return {
+                name: category.name,
+                path: categoryPath,
+                submenu: category.subcategories && category.subcategories.length > 0 
+                    ? category.subcategories.map(sub => ({
+                        name: sub.name,
+                        path: `${categoryPath}/${sub.name.toLowerCase().replace(/\s+/g, '-')}`
+                    }))
+                    : null
+            };
+        })
     ];
 
     const drawer = (
@@ -82,82 +111,105 @@ const Navigation = () => {
                     Explore Our Collections
                 </Button>
             </div>
-            <ul className="space-y-1">
-                {navItems.map((item, index) => (
-                    <li key={item.name} className="list-none">
-                        {item.submenu ? (
-                            <div className="group">
-                                <Button 
-                                    fullWidth
-                                    className={`!justify-between !text-left !text-gray-800 hover:!text-[#d10024] !font-medium !normal-case ${
-                                        activeSubmenu === index ? '!text-[#d10024]' : ''
-                                    }`}
-                                    onClick={() => toggleSubmenu(index)}
-                                    endIcon={
-                                        <motion.div
-                                            animate={{ rotate: activeSubmenu === index ? 180 : 0 }}
-                                            transition={{ duration: 0.2 }}
+            {loading ? (
+                <div className="text-center py-4">Loading categories...</div>
+            ) : (
+                <ul className="space-y-1">
+                    {navItems.map((item, index) => (
+                        <li key={item.name} className="list-none">
+                            {item.submenu ? (
+                                <div className="group">
+                                    <div className="flex items-center justify-between">
+                                        <Link 
+                                            to={item.path} 
+                                            className="flex-grow"
+                                            onClick={handleDrawerToggle}
                                         >
-                                            <LiaAngleDownSolid className="text-sm" />
-                                        </motion.div>
-                                    }
-                                >
-                                    {item.name}
-                                </Button>
-                                <AnimatePresence>
-                                    {activeSubmenu === index && (
-                                        <motion.ul
-                                            initial={{ height: 0, opacity: 0 }}
-                                            animate={{ height: 'auto', opacity: 1 }}
-                                            exit={{ height: 0, opacity: 0 }}
-                                            transition={{ duration: 0.2 }}
-                                            className="pl-4 overflow-hidden"
+                                            <Button 
+                                                fullWidth
+                                                className={`!justify-start !text-left !font-medium !normal-case ${
+                                                    isCategoryActive(item.path) 
+                                                        ? '!text-[#d10024]' 
+                                                        : '!text-gray-800 hover:!text-[#d10024]'
+                                                }`}
+                                            >
+                                                {item.name}
+                                            </Button>
+                                        </Link>
+                                        <IconButton 
+                                            onClick={() => toggleSubmenu(index)}
+                                            className="!text-gray-600 hover:!text-[#d10024]"
                                         >
-                                            {item.submenu.map((subItem) => (
-                                                <li key={subItem.name}>
-                                                    <Link 
-                                                        to={subItem.path} 
-                                                        className="block w-full"
-                                                        onClick={handleDrawerToggle}
-                                                    >
-                                                        <Button 
-                                                            fullWidth
-                                                            className="!justify-start !text-left !text-gray-600 hover:!text-[#d10024] !font-normal !normal-case"
+                                            {activeSubmenu === index ? (
+                                                <LiaAngleDownSolid className="transform rotate-180" />
+                                            ) : (
+                                                <LiaAngleDownSolid />
+                                            )}
+                                        </IconButton>
+                                    </div>
+                                    <AnimatePresence>
+                                        {activeSubmenu === index && (
+                                            <motion.ul
+                                                initial={{ height: 0, opacity: 0 }}
+                                                animate={{ height: 'auto', opacity: 1 }}
+                                                exit={{ height: 0, opacity: 0 }}
+                                                transition={{ duration: 0.2 }}
+                                                className="pl-4 overflow-hidden"
+                                            >
+                                                {item.submenu.map((subItem) => (
+                                                    <li key={subItem.name}>
+                                                        <Link 
+                                                            to={subItem.path} 
+                                                            className="block w-full"
+                                                            onClick={handleDrawerToggle}
                                                         >
-                                                            {subItem.name}
-                                                        </Button>
-                                                    </Link>
-                                                </li>
-                                            ))}
-                                        </motion.ul>
-                                    )}
-                                </AnimatePresence>
-                            </div>
-                        ) : (
-                            <Link 
-                                to={item.path} 
-                                className="block w-full"
-                                onClick={handleDrawerToggle}
-                            >
-                                <Button 
-                                    fullWidth
-                                    className="!justify-start !text-left !text-gray-800 hover:!text-[#d10024] !font-medium !normal-case"
+                                                            <Button 
+                                                                fullWidth
+                                                                className={`!justify-start !text-left !font-normal !normal-case ${
+                                                                    isCategoryActive(item.path, subItem.path)
+                                                                        ? '!text-[#d10024]' 
+                                                                        : '!text-gray-600 hover:!text-[#d10024]'
+                                                                }`}
+                                                            >
+                                                                {subItem.name}
+                                                            </Button>
+                                                        </Link>
+                                                    </li>
+                                                ))}
+                                            </motion.ul>
+                                        )}
+                                    </AnimatePresence>
+                                </div>
+                            ) : (
+                                <Link 
+                                    to={item.path} 
+                                    className="block w-full"
+                                    onClick={handleDrawerToggle}
                                 >
-                                    {item.name}
-                                </Button>
-                            </Link>
-                        )}
-                    </li>
-                ))}
-            </ul>
+                                    <Button 
+                                        fullWidth
+                                        className={`!justify-start !text-left !font-medium !normal-case ${
+                                            isCategoryActive(item.path) 
+                                                ? '!text-[#d10024]' 
+                                                : '!text-gray-800 hover:!text-[#d10024]'
+                                        }`}
+                                    >
+                                        {item.name}
+                                    </Button>
+                                </Link>
+                            )}
+                        </li>
+                    ))}
+                </ul>
+            )}
             <div className="mt-6 pt-4 border-t flex items-center gap-2 text-[#d10024]">
                 <motion.div
                     animate={{ x: [0, 2, 0] }}
                     transition={{ repeat: Infinity, duration: 2 }}
                 >
-                    <GoRocket className="text-lg" />
+                    <GoRocket className="text-lg animate-bounce" />
                 </motion.div>
-                <span className="text-sm font-medium">Free Home Delivery</span>
+                <span className="text-sm font-medium animate-bounce">Free Home Delivery</span>
             </div>
         </div>
     );
@@ -179,72 +231,75 @@ const Navigation = () => {
                             </IconButton>
                         )}
                         
-                        {/* <div className='lg:w-[18%] hidden lg:block'>
-                            <Button 
-                                fullWidth
-                                variant="outlined"
-                                className='!text-gray-800 gap-2 !font-medium !text-sm !border-[#d10024] hover:!border-[#d10024] hover:!bg-red-50'
-                                onClick={Categories}
-                                startIcon={<RiMenu2Fill className='text-[#d10024]' />}
-                                endIcon={<LiaAngleDownSolid className='text-[#d10024]' />}
-                            >
-                                Explore Our Collections
-                            </Button>
-                        </div> */}
-                        
                         <div className='lg:w-[62%] hidden lg:block'>
-                            <ul className='flex items-center gap-5'>
-                                {navItems.map((item) => (
-                                    <li key={item.name} className="list-none relative group">
-                                        {item.submenu ? (
-                                            <>
-                                                <Button 
-                                                    className={`!font-medium !text-gray-800 hover:!text-[#d10024] !text-sm !normal-case ${
-                                                        window.location.pathname.includes(item.path) ? '!text-[#d10024]' : ''
-                                                    }`}
-                                                >
-                                                    {item.name}
-                                                </Button>
-                                                <motion.div
-                                                    className='submenu absolute top-full left-0 min-w-[200px] z-10 bg-white shadow-lg rounded-b-md opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 border-t-2 border-[#d10024]'
-                                                    initial={{ y: 10 }}
-                                                    whileHover={{ y: 0 }}
-                                                >
-                                                    <ul>
-                                                        {item.submenu.map((subItem) => (
-                                                            <li 
-                                                                key={subItem.name} 
-                                                                className="list-none w-full hover:bg-gray-50 transition-colors"
-                                                            >
-                                                                <Link to={subItem.path}>
-                                                                    <Button 
-                                                                        fullWidth
-                                                                        className={`!text-gray-700 !justify-start !rounded-none hover:!text-[#d10024] !text-sm !normal-case ${
-                                                                            window.location.pathname === subItem.path ? '!text-[#d10024]' : ''
-                                                                        }`}
-                                                                    >
-                                                                        {subItem.name}
-                                                                    </Button>
-                                                                </Link>
-                                                            </li>
-                                                        ))}
-                                                    </ul>
-                                                </motion.div>
-                                            </>
-                                        ) : (
-                                            <Link to={item.path}>
-                                                <Button 
-                                                    className={`!font-medium !text-gray-800 hover:!text-[#d10024] !text-sm !normal-case ${
-                                                        window.location.pathname === item.path ? '!text-[#d10024]' : ''
-                                                    }`}
-                                                >
-                                                    {item.name}
-                                                </Button>
-                                            </Link>
-                                        )}
-                                    </li>
-                                ))}
-                            </ul>
+                            {loading ? (
+                                <div className="flex items-center gap-5">
+                                    {[1, 2, 3, 4].map(i => (
+                                        <div key={i} className="h-6 bg-gray-200 rounded w-20 animate-pulse"></div>
+                                    ))}
+                                </div>
+                            ) : (
+                                <ul className='flex items-center gap-5'>
+                                    {navItems.map((item) => (
+                                        <li key={item.name} className="list-none relative group">
+                                            {item.submenu ? (
+                                                <>
+                                                    <Link to={item.path}>
+                                                        <Button 
+                                                            className={`!font-medium !text-sm !normal-case ${
+                                                                isCategoryActive(item.path) 
+                                                                    ? '!text-[#d10024]' 
+                                                                    : '!text-gray-800 hover:!text-[#d10024]'
+                                                            }`}
+                                                        >
+                                                            {item.name}
+                                                        </Button>
+                                                    </Link>
+                                                    <motion.div
+                                                        className='submenu absolute top-full left-0 min-w-[200px] z-10 bg-white shadow-lg rounded-b-md opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 border-t-2 border-[#d10024]'
+                                                        initial={{ y: 10 }}
+                                                        whileHover={{ y: 0 }}
+                                                    >
+                                                        <ul>
+                                                            {item.submenu.map((subItem) => (
+                                                                <li 
+                                                                    key={subItem.name} 
+                                                                    className="list-none w-full hover:bg-gray-50 transition-colors"
+                                                                >
+                                                                    <Link to={subItem.path}>
+                                                                        <Button 
+                                                                            fullWidth
+                                                                            className={`!text-gray-700 !justify-start !rounded-none !text-sm !normal-case ${
+                                                                                isCategoryActive(item.path, subItem.path)
+                                                                                    ? '!text-[#d10024]' 
+                                                                                    : 'hover:!text-[#d10024]'
+                                                                            }`}
+                                                                        >
+                                                                            {subItem.name}
+                                                                        </Button>
+                                                                    </Link>
+                                                                </li>
+                                                            ))}
+                                                        </ul>
+                                                    </motion.div>
+                                                </>
+                                            ) : (
+                                                <Link to={item.path}>
+                                                    <Button 
+                                                        className={`!font-medium !text-sm !normal-case ${
+                                                            isCategoryActive(item.path) 
+                                                                ? '!text-[#d10024]' 
+                                                                : '!text-gray-800 hover:!text-[#d10024]'
+                                                        }`}
+                                                    >
+                                                        {item.name}
+                                                    </Button>
+                                                </Link>
+                                            )}
+                                        </li>
+                                    ))}
+                                </ul>
+                            )}
                         </div>
                         
                         <div className='lg:w-[20%] hidden lg:flex items-center justify-end'>

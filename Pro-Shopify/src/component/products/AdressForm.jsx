@@ -1,53 +1,61 @@
-import React, { useState } from 'react';
+import React from 'react';
+import { useFormik } from 'formik';
+import * as Yup from 'yup';
 import Api from '../../Services/Api';
 import { toast } from 'react-toastify';
-import { FiX, FiHome, FiBriefcase, FiMapPin, FiUser, FiPhone, FiMail } from 'react-icons/fi';
+import {
+  FiX, FiHome, FiBriefcase, FiMapPin, FiUser, FiPhone, FiMail
+} from 'react-icons/fi';
 
 const AddressForm = ({ onSave, onClose, initialData = {} }) => {
-  const [formData, setFormData] = useState({
-    fullName: initialData.fullName || '',
-    phone: initialData.phone || '',
-    street: initialData.street || '',
-    city: initialData.city || '',
-    state: initialData.state || '',
-    postalCode: initialData.postalCode || '',
-    country: initialData.country || 'India',
-    label: initialData.label || 'Home',
-    isDefault: initialData.isDefault || false
-  });
-  const [loading, setLoading] = useState(false);
+  const formik = useFormik({
+    initialValues: {
+      fullName: initialData.fullName || '',
+      phone: initialData.phone || '',
+      street: initialData.street || '',
+      city: initialData.city || '',
+      state: initialData.state || '',
+      postalCode: initialData.postalCode || '',
+      country: initialData.country || 'India',
+      label: initialData.label || 'Home',
+      isDefault: initialData.isDefault || false,
+    },
+    validationSchema: Yup.object({
+      fullName: Yup.string().required('Full name is required'),
+      phone: Yup.string()
+        .matches(/^[6-9]\d{9}$/, 'Enter a valid 10-digit Indian phone number')
+        .required('Phone number is required'),
+      street: Yup.string().required('Street address is required'),
+      city: Yup.string().required('City is required'),
+      state: Yup.string().required('State is required'),
+      postalCode: Yup.string()
+        .matches(/^\d{6}$/, 'Postal code must be 6 digits')
+        .required('Postal code is required'),
+    }),
+    onSubmit: async (values, { setSubmitting }) => {
+      try {
+        const token = localStorage.getItem('token');
+        if (!token) {
+          toast.error('Please login to continue');
+          return;
+        }
 
-  const handleChange = (e) => {
-    const { name, value, type, checked } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: type === 'checkbox' ? checked : value
-    }));
-  };
+        await Api.post('/users/addresses', values, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setLoading(true);
-    try {
-      const token = localStorage.getItem('token');
-      if (!token) {
-        toast.error('Please login to continue');
-        return;
+        toast.success('Address saved successfully!');
+        if (onSave) onSave();
+        if (onClose) onClose();
+      } catch (error) {
+        toast.error(error.response?.data?.message || 'Failed to save address');
+      } finally {
+        setSubmitting(false);
       }
-
-      await Api.post('/users/addresses', formData, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-
-      toast.success('Address saved successfully!');
-      if (onSave) onSave();
-      if (onClose) onClose();
-    } catch (error) {
-      toast.error(error.response?.data?.message || 'Failed to save address');
-    } finally {
-      setLoading(false);
     }
-  };
+  });
+
+  const { values, errors, touched, handleChange, handleSubmit, isSubmitting, setFieldValue } = formik;
 
   const getLabelIcon = (label) => {
     switch (label) {
@@ -67,26 +75,22 @@ const AddressForm = ({ onSave, onClose, initialData = {} }) => {
               <FiMapPin className="mr-2 text-[#d10024]" />
               {initialData._id ? 'Edit Address' : 'Add New Address'}
             </h2>
-            <button 
-              onClick={onClose}
-              className="text-gray-400 hover:text-gray-600 transition-colors p-1"
-              aria-label="Close"
-            >
+            <button onClick={onClose} className="text-gray-400 hover:text-gray-600 p-1">
               <FiX className="text-xl" />
             </button>
           </div>
-          
+
           {/* Form */}
           <form onSubmit={handleSubmit} className="space-y-5">
-            {/* Address Type */}
+            {/* Label Buttons */}
             <div className="grid grid-cols-3 gap-3">
               {['Home', 'Work', 'Other'].map((label) => (
                 <button
                   key={label}
                   type="button"
-                  onClick={() => setFormData({...formData, label})}
+                  onClick={() => setFieldValue('label', label)}
                   className={`flex items-center justify-center py-2 px-3 rounded-lg border transition-colors ${
-                    formData.label === label
+                    values.label === label
                       ? 'border-[#d10024] bg-purple-50 text-[#d10024]'
                       : 'border-gray-200 hover:border-gray-300'
                   }`}
@@ -98,161 +102,156 @@ const AddressForm = ({ onSave, onClose, initialData = {} }) => {
             </div>
 
             {/* Full Name */}
-            <div className="relative">
-              <label className="block text-sm font-medium text-gray-700 mb-1">Full Name</label>
+            <div>
+              <label className="block text-sm font-medium mb-1">Full Name</label>
               <div className="relative">
                 <FiUser className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
                 <input
-                  type="text"
                   name="fullName"
-                  value={formData.fullName}
+                  value={values.fullName}
                   onChange={handleChange}
-                  className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg "
+                  className="w-full pl-10 pr-3 py-2 border rounded-lg"
                   placeholder="John Doe"
-                  required
                 />
               </div>
+              {touched.fullName && errors.fullName && (
+                <div className="text-red-500 text-sm mt-1">{errors.fullName}</div>
+              )}
             </div>
 
             {/* Phone Number */}
-            <div className="relative">
-              <label className="block text-sm font-medium text-gray-700 mb-1">Phone Number</label>
+            <div>
+              <label className="block text-sm font-medium mb-1">Phone Number</label>
               <div className="relative">
                 <FiPhone className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
                 <input
-                  type="tel"
                   name="phone"
-                  value={formData.phone}
+                  value={values.phone}
                   onChange={handleChange}
-                  className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg "
+                  className="w-full pl-10 pr-3 py-2 border rounded-lg"
                   placeholder="+91 9876543210"
-                  required
                 />
               </div>
+              {touched.phone && errors.phone && (
+                <div className="text-red-500 text-sm mt-1">{errors.phone}</div>
+              )}
             </div>
 
             {/* Street Address */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Street Address</label>
+              <label className="block text-sm font-medium mb-1">Street Address</label>
               <textarea
                 name="street"
-                value={formData.street}
+                value={values.street}
                 onChange={handleChange}
                 rows="3"
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg "
+                className="w-full px-3 py-2 border rounded-lg"
                 placeholder="123 Main St, Apartment 4B"
-                required
               />
+              {touched.street && errors.street && (
+                <div className="text-red-500 text-sm mt-1">{errors.street}</div>
+              )}
             </div>
 
             {/* City & State */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">City</label>
+                <label className="block text-sm font-medium mb-1">City</label>
                 <input
-                  type="text"
                   name="city"
-                  value={formData.city}
+                  value={values.city}
                   onChange={handleChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg "
+                  className="w-full px-3 py-2 border rounded-lg"
                   placeholder="Mumbai"
-                  required
                 />
+                {touched.city && errors.city && (
+                  <div className="text-red-500 text-sm mt-1">{errors.city}</div>
+                )}
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">State</label>
+                <label className="block text-sm font-medium mb-1">State</label>
                 <input
-                  type="text"
                   name="state"
-                  value={formData.state}
+                  value={values.state}
                   onChange={handleChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+                  className="w-full px-3 py-2 border rounded-lg"
                   placeholder="Maharashtra"
-                  required
                 />
+                {touched.state && errors.state && (
+                  <div className="text-red-500 text-sm mt-1">{errors.state}</div>
+                )}
               </div>
             </div>
 
             {/* Postal Code & Country */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Postal Code</label>
+                <label className="block text-sm font-medium mb-1">Postal Code</label>
                 <input
-                  type="text"
                   name="postalCode"
-                  value={formData.postalCode}
+                  value={values.postalCode}
                   onChange={handleChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg  "
+                  className="w-full px-3 py-2 border rounded-lg"
                   placeholder="400001"
-                  required
                 />
+                {touched.postalCode && errors.postalCode && (
+                  <div className="text-red-500 text-sm mt-1">{errors.postalCode}</div>
+                )}
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Country</label>
+                <label className="block text-sm font-medium mb-1">Country</label>
                 <div className="relative">
                   <input
-                    type="text"
                     name="country"
-                    value={formData.country}
-                    onChange={handleChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50"
+                    value={values.country}
                     disabled
+                    className="w-full px-3 py-2 border rounded-lg bg-gray-50"
                   />
-                  <div className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500">
-                    <FiMail />
-                  </div>
+                  <FiMail className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500" />
                 </div>
               </div>
             </div>
 
             {/* Default Address Toggle */}
             <div className="flex items-center pt-2">
-              <div className="flex items-center h-5">
-                <input
-                  type="checkbox"
-                  name="isDefault"
-                  checked={formData.isDefault}
-                  onChange={handleChange}
-                  id="defaultAddress"
-                  className="h-4 w-4 text-[#d10024] focus:ring-[#d10024] border-gray-300 rounded"
-                />
-              </div>
+              <input
+                type="checkbox"
+                name="isDefault"
+                checked={values.isDefault}
+                onChange={() => setFieldValue('isDefault', !values.isDefault)}
+                className="h-4 w-4 text-[#d10024] focus:ring-[#d10024] border-gray-300 rounded"
+              />
               <div className="ml-3 text-sm">
-                <label htmlFor="defaultAddress" className="font-medium text-gray-700">
-                  Set as default address
-                </label>
+                <label className="font-medium text-gray-700">Set as default address</label>
                 <p className="text-gray-500">Use this as your primary shipping address</p>
               </div>
             </div>
 
-            {/* Form Actions */}
+            {/* Submit / Cancel */}
             <div className="flex justify-end gap-3 pt-6">
               <button
                 type="button"
                 onClick={onClose}
-                className="px-5 py-2.5 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
+                className="px-5 py-2.5 border rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50"
               >
                 Cancel
               </button>
               <button
                 type="submit"
-                disabled={loading}
-                className="px-5 py-2.5 bg-gradient-to-r from-[#d10024] to-[#b10024] text-white rounded-lg text-sm font-medium hover:from-[#d10024]
-                 hover:to-[#b10024] transition-colors disabled:opacity-70 flex items-center justify-center min-w-24"
+                disabled={isSubmitting}
+                className="px-5 py-2.5 bg-gradient-to-r from-[#d10024] to-[#b10024] text-white rounded-lg text-sm font-medium hover:opacity-90 transition-colors flex items-center justify-center min-w-24"
               >
-                {loading ? (
+                {isSubmitting ? (
                   <>
-                    <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <svg className="animate-spin mr-2 h-4 w-4 text-white" viewBox="0 0 24 24">
                       <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
                     </svg>
                     Saving...
                   </>
-                ) : (
-                  'Save Address'
-                )}
+                ) : 'Save Address'}
               </button>
             </div>
           </form>
