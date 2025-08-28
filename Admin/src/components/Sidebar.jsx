@@ -7,6 +7,7 @@ import {
   FiShoppingCart,
   FiStar
 } from 'react-icons/fi';
+import { GrConfigure } from "react-icons/gr";
 import { getAdminInfo } from '../utils/auth';
 
 const SidebarItem = ({ title, icon, children, path, toggleSidebar }) => {
@@ -216,6 +217,18 @@ const Sidebar = ({ open, toggleSidebar }) => {
           path: '/review',
           visible: true,
         }
+      ],
+    },
+    {
+      title: 'Configuration',
+      icon: <GrConfigure />,
+      visible: hasRole('Suplier'),
+      subItems: [
+        {
+          title: 'Logo_Images',
+          path: '/logo',
+          visible: true,
+        },
       ],
     },
     // {
