@@ -192,7 +192,7 @@ const Sidebar = ({ open, toggleSidebar }) => {
         // },
       ],
     },
-        {
+    {
       title: 'Orders',
       icon: <FiShoppingCart />,
       visible: hasRole('Orders'),
@@ -221,12 +221,7 @@ const Sidebar = ({ open, toggleSidebar }) => {
         }
       ],
     },
-        {
-      title: 'Settings',
-      icon: <FiSettings />,
-      path: '/Settings',
-      visible: hasRole('Settings'),
-     
+
     {
       title: 'Configuration',
       icon: <GrConfigure />,
@@ -238,6 +233,12 @@ const Sidebar = ({ open, toggleSidebar }) => {
           visible: true,
         },
       ],
+    },
+        {
+      title: 'Settings',
+      icon: <FiSettings />,
+      path: '/Settings',
+      visible: hasRole('Settings'),
     },
     // {
     //   title: 'Products-S',
