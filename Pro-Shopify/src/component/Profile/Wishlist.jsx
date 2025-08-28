@@ -72,7 +72,7 @@ const Wishlist = () => {
             </p>
             <Link
               to="/"
-              className="bg-[#d10024] text-white px-6 py-3 rounded-lg inline-block hover:bg-[#b30020] transition-colors duration-200 ease-in-out"
+              className="bg-primary text-white px-6 py-3 rounded-lg inline-block hover:bg-[#b30020] transition-colors duration-200 ease-in-out"
             >
               Browse Products
             </Link>
@@ -121,7 +121,7 @@ const Wishlist = () => {
                     {/* Add to Cart button */}
                     <motion.button
                       onClick={() => handleAddToCart(item.product._id)}
-                      className="flex-1 bg-[#d10024] text-white py-2 rounded flex items-center justify-center gap-2 text-sm hover:bg-[#b30020] transition-colors duration-200"
+                      className="flex-1 bg-primary text-white py-2 rounded flex items-center justify-center gap-2 text-sm hover:bg-[#b30020] transition-colors duration-200"
                       whileHover={{ scale: 1.02 }}
                       whileTap={{ scale: 0.98 }}
                     >

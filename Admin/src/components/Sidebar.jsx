@@ -5,7 +5,9 @@ import {
   FiTruck, FiImage, FiUser, FiX, FiMenu,
   FiUsers,
   FiShoppingCart,
-  FiStar
+  FiStar,
+  FiCamera,
+  FiSettings
 } from 'react-icons/fi';
 import { GrConfigure } from "react-icons/gr";
 import { getAdminInfo } from '../utils/auth';
@@ -219,6 +221,12 @@ const Sidebar = ({ open, toggleSidebar }) => {
         }
       ],
     },
+        {
+      title: 'Settings',
+      icon: <FiSettings />,
+      path: '/Settings',
+      visible: hasRole('Settings'),
+     
     {
       title: 'Configuration',
       icon: <GrConfigure />,
