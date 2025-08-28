@@ -9,6 +9,7 @@ import {
   FiCamera,
   FiSettings
 } from 'react-icons/fi';
+import { GrConfigure } from "react-icons/gr";
 import { getAdminInfo } from '../utils/auth';
 
 const SidebarItem = ({ title, icon, children, path, toggleSidebar }) => {
@@ -226,6 +227,17 @@ const Sidebar = ({ open, toggleSidebar }) => {
       path: '/Settings',
       visible: hasRole('Settings'),
      
+    {
+      title: 'Configuration',
+      icon: <GrConfigure />,
+      visible: hasRole('Suplier'),
+      subItems: [
+        {
+          title: 'Logo_Images',
+          path: '/logo',
+          visible: true,
+        },
+      ],
     },
     // {
     //   title: 'Products-S',

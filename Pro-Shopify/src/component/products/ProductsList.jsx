@@ -90,7 +90,7 @@ const ProductCard = ({ product }) => {
                   e.stopPropagation();
                   prevImage();
                 }}
-                className="absolute left-2 top-1/2 -translate-y-1/2 bg-white text-gray-800 p-2 rounded-full shadow-md hover:bg-gray-100"
+                className="absolute left-2 top-1/2  bg-white text-gray-800 p-2 rounded-full shadow-md hover:bg-gray-100"
                 whileHover={{ scale: 1.1 }}
                 whileTap={{ scale: 0.9 }}
                 aria-label="Previous image"
@@ -102,7 +102,7 @@ const ProductCard = ({ product }) => {
                   e.stopPropagation();
                   nextImage();
                 }}
-                className="absolute right-2 top-1/2 -translate-y-1/2 bg-white text-gray-800 p-2 rounded-full shadow-md hover:bg-gray-100"
+                className="absolute right-2 top-1/2  bg-white text-gray-800 p-2 rounded-full shadow-md hover:bg-gray-100"
                 whileHover={{ scale: 1.1 }}
                 whileTap={{ scale: 0.9 }}
                 aria-label="Next image"

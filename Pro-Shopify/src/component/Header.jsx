@@ -123,6 +123,12 @@ const Header = () => {
     }
   };
 
+  useEffect(()=>{
+    Api.get('/logo').then((res)=>{
+      console.log(res.data);
+    })
+  },[]);
+
   const handleDrawerToggle = () => {
     setMobileOpen(!mobileOpen);
   };

@@ -35,6 +35,7 @@ import { autoGravity } from '@cloudinary/url-gen/qualifiers/gravity';
 import { AdvancedImage } from '@cloudinary/react';
 import Settings from './pages/Settings/Settings';
 import ThemePage from './pages/Settings/Theme';
+import Logo from './configuration/Logo';
 
 function AppContent() {
   const [sidebarOpen, setSidebarOpen] = useState(true);
@@ -234,6 +235,13 @@ function AppContent() {
                 <ThemePage />
               </ProtectedRoute>
             } />
+
+            <Route path="/logo" element={
+              <ProtectedRoute requiredPermission="Suplier">
+                <Logo />
+              </ProtectedRoute>
+            } />
+
             {/* Catch-all route */}
             <Route path="*" element={<NotFoundPage />} />
           </Routes>
