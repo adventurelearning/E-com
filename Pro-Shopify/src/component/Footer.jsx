@@ -10,12 +10,12 @@ const Footer = () => {
           {/* Contact Us Section */}
           <div className="space-y-4">
             <h2 className="text-2xl font-bold text-black mb-4 relative pb-2 after:content-[''] 
-            after:absolute after:bottom-0 after:left-0 after:w-16 after:h-1 after:bg-[#d10024]">
+            after:absolute after:bottom-0 after:left-0 after:w-16 after:h-1 after:bg-primary">
               Contact Us
             </h2>
             <div className="space-y-3">
               <div className="flex items-start">
-                <div className="mt-1 mr-3 text-[#d10024]">
+                <div className="mt-1 mr-3 text-primary">
                   <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" 
                   fill="currentColor">
                     <path fillRule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 
@@ -30,19 +30,19 @@ const Footer = () => {
               </div>
               
               <div className="flex items-center">
-                <FaEnvelope className="text-[#d10024] mr-3" />
-                <a href="mailto:sales@yourcompany.com" className="hover:text-[#d10024]
+                <FaEnvelope className="text-primary mr-3" />
+                <a href="mailto:sales@yourcompany.com" className="hover:text-primary
                 transition-colors">
                     sales@yourcompany.com</a>
               </div>
               
               <div className="flex items-center">
-                <FaPhoneAlt className="text-[#d10024] mr-3" />
-                <a href="tel:+919876543210" className="hover:text-[#d10024] transition-colors">
+                <FaPhoneAlt className="text-primary mr-3" />
+                <a href="tel:+919876543210" className="hover:text-primary transition-colors">
                     (+91) 0000-000-000</a>
               </div>
               
-              <button className="flex items-center mt-4 bg-[#d10024] hover:bg-[#d10024] text-white 
+              <button className="flex items-center mt-4 bg-primary hover:bg-primary text-white 
               px-2 py-3 rounded-lg transition-all transform hover:-translate-y-1">
                 <FaCommentAlt className="mr-2" />
                 <span className="">Online Chat Customer Support</span>
@@ -54,32 +54,32 @@ const Footer = () => {
           <div>
             <h3 className="text-xl font-bold text-black mb-4 relative pb-2 after:content-[''] 
             after:absolute 
-            after:bottom-0 after:left-0 after:w-16 after:h-1 after:bg-[#d10024]">
+            after:bottom-0 after:left-0 after:w-16 after:h-1 after:bg-primary">
               Products
             </h3>
             <div className="grid grid-cols-1 gap-x-8 gap-y-3">
-              <a href="#" className="hover:text-[#d10024] transition-colors flex items-center group">
-                <FaArrowRight className="mr-2 text-xs text-[#d10024] opacity-0 group-hover:opacity-100
+              <a href="#" className="hover:text-primary transition-colors flex items-center group">
+                <FaArrowRight className="mr-2 text-xs text-primary opacity-0 group-hover:opacity-100
                  transition-opacity" />
                 Prices Drop
               </a>
-              <a href="#" className="hover:text-[#d10024] transition-colors flex items-center group">
-                <FaArrowRight className="mr-2 text-xs text-[#d10024] opacity-0 group-hover:opacity-100
+              <a href="#" className="hover:text-primary transition-colors flex items-center group">
+                <FaArrowRight className="mr-2 text-xs text-primary opacity-0 group-hover:opacity-100
                  transition-opacity" />
                 Delivery
               </a>
-              <a href="#" className="hover:text-[#d10024] transition-colors flex items-center group">
-                <FaArrowRight className="mr-2 text-xs text-[#d10024] opacity-0 group-hover:opacity-100
+              <a href="#" className="hover:text-primary transition-colors flex items-center group">
+                <FaArrowRight className="mr-2 text-xs text-primary opacity-0 group-hover:opacity-100
                  transition-opacity" />
                 New Products
               </a>
-              <a href="#" className="hover:text-[#d10024] transition-colors flex items-center group">
-                <FaArrowRight className="mr-2 text-xs text-[#d10024] opacity-0 group-hover:opacity-100
+              <a href="#" className="hover:text-primary transition-colors flex items-center group">
+                <FaArrowRight className="mr-2 text-xs text-primary opacity-0 group-hover:opacity-100
                  transition-opacity" />
                 Best Sales
               </a>
-              <a href="#" className="hover:text-[#d10024] transition-colors flex items-center group">
-                <FaArrowRight className="mr-2 text-xs text-[#d10024] opacity-0 group-hover:opacity-100 
+              <a href="#" className="hover:text-primary transition-colors flex items-center group">
+                <FaArrowRight className="mr-2 text-xs text-primary opacity-0 group-hover:opacity-100 
                 transition-opacity" />
                 Contact Us
               </a>
@@ -89,7 +89,7 @@ const Footer = () => {
           {/* Our Company Section */}
           <div>
             <h3 className="text-xl font-bold text-black mb-4 relative pb-2 after:content-[''] 
-            after:absolute after:bottom-0 after:left-0 after:w-16 after:h-1 after:bg-[#d10024]">
+            after:absolute after:bottom-0 after:left-0 after:w-16 after:h-1 after:bg-primary">
               Our Company
             </h3>
             <div className="space-y-3">
@@ -97,7 +97,7 @@ const Footer = () => {
               'Secure Payment', 'Login'].map((item) => (
                 <a key={item} href="#" className="hover:purple-blue-400 transition-colors 
                 flex items-center group block">
-                  <FaArrowRight className="mr-2 text-xs text-[#d10024] opacity-0 
+                  <FaArrowRight className="mr-2 text-xs text-primary opacity-0 
                   group-hover:opacity-100 transition-opacity" />
                   {item}
                 </a>
@@ -108,7 +108,7 @@ const Footer = () => {
           {/* Newsletter Section */}
           <div>
             <h3 className="text-xl font-bold text-black mb-4 relative pb-2 after:content-[''] 
-            after:absolute after:bottom-0 after:left-0 after:w-16 after:h-1 after:bg-[#d10024]">
+            after:absolute after:bottom-0 after:left-0 after:w-16 after:h-1 after:bg-primary">
               Subscribe To Newsletter
             </h3>
             <p className="mb-6 text-black-300">
@@ -129,7 +129,7 @@ const Footer = () => {
               
               <button 
                 type="submit"
-                className="w-full bg-[#d10024] hover:bg-[#d10024] text-white font-medium
+                className="w-full bg-primary hover:bg-primary text-white font-medium
                  py-3 px-4 rounded-lg transition-all transform hover:-translate-y-1 flex items-center 
                  justify-center"
               >
@@ -146,8 +146,8 @@ const Footer = () => {
                 <input 
                   type="checkbox" 
                   id="agreeTerms" 
-                  className="mt-1 mr-3 rounded bg-gray-700 border-gray-600 text-[#d10024]
-                   focus:ring-[#d10024]"
+                  className="mt-1 mr-3 rounded bg-gray-700 border-gray-600 text-primary
+                   focus:ring-primary"
                   required
                 />
                 <label htmlFor="agreeTerms" className="text-sm text-black-300">
@@ -165,7 +165,7 @@ const Footer = () => {
             © {new Date().getFullYear()} Pro-shopify. All rights reserved.
           </div>
           <div className="flex space-x-6">
-            <a href="#" className="text-black-400 hover:text-[#d10024] transition-colors">
+            <a href="#" className="text-black-400 hover:text-primary transition-colors">
               <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                 <path fillRule="evenodd" d="M22 12c0-5.523-4.477-10-10-10S2 6.477 2 12c0 4.991 3.657 
                 9.128 8.438 9.878v-6.987h-2.54V12h2.54V9.797c0-2.506 1.492-3.89 3.777-3.89 1.094 
@@ -173,7 +173,7 @@ const Footer = () => {
                 2.89h-2.33v6.988C18.343 21.128 22 16.991 22 12z" clipRule="evenodd" />
               </svg>
             </a>
-            <a href="#" className="text-black-400 hover:text-[#d10024] transition-colors">
+            <a href="#" className="text-black-400 hover:text-primary transition-colors">
               <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                 <path d="M8.29 20.251c7.547 0 11.675-6.253 11.675-11.675 0-.178 0-.355-.012-.53A8.348 
                 8.348 0 0022 5.92a8.19 8.19 0 01-2.357.646 4.118 4.118 0 001.804-2.27 8.224 8.224 
@@ -183,7 +183,7 @@ const Footer = () => {
                 1.84" />
               </svg>
             </a>
-            <a href="#" className="text-black-400 hover:text-[#d10024] transition-colors">
+            <a href="#" className="text-black-400 hover:text-primary transition-colors">
               <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                 <path fillRule="evenodd" d="M12.315 2c2.43 0 2.784.013 3.808.06 1.064.049 1.791.218 
                 2.427.465a4.902 4.902 0 011.772 1.153 4.902 4.902 0 011.153 1.772c.247.636.416 

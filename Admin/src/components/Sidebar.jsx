@@ -5,7 +5,9 @@ import {
   FiTruck, FiImage, FiUser, FiX, FiMenu,
   FiUsers,
   FiShoppingCart,
-  FiStar
+  FiStar,
+  FiCamera,
+  FiSettings
 } from 'react-icons/fi';
 import { getAdminInfo } from '../utils/auth';
 
@@ -217,6 +219,13 @@ const Sidebar = ({ open, toggleSidebar }) => {
           visible: true,
         }
       ],
+    },
+        {
+      title: 'Settings',
+      icon: <FiSettings />,
+      path: '/Settings',
+      visible: hasRole('Settings'),
+     
     },
     // {
     //   title: 'Products-S',

@@ -132,7 +132,7 @@ const ProductReviewsPage = () => {
     return (
       <div className="flex justify-center items-center min-h-screen">
         <div className="flex flex-col items-center">
-          <div className="animate-pulse rounded-full h-16 w-16 bg-[#d10024] mb-4"></div>
+          <div className="animate-pulse rounded-full h-16 w-16 bg-primary mb-4"></div>
           <p className="text-gray-600">Loading reviews...</p>
         </div>
       </div>
@@ -142,7 +142,7 @@ const ProductReviewsPage = () => {
   if (error) {
     return (
       <div className="max-w-md mx-auto mt-12 p-8 bg-white rounded-2xl shadow-lg border border-red-100">
-        <div className="bg-[#d10024] text-white w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-6">
+        <div className="bg-primary text-white w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-6">
           <FaRegStar className="text-2xl" />
         </div>
         <h3 className="text-2xl font-bold text-gray-800 mb-4 text-center">Error loading reviews</h3>
@@ -150,7 +150,7 @@ const ProductReviewsPage = () => {
         <div className="text-center">
           <Link 
             to={`/productpage/${id}`} 
-            className="inline-flex items-center px-5 py-2.5 bg-[#d10024] hover:bg-[#d10024] text-white rounded-lg font-medium shadow-md hover:shadow-lg transition-all"
+            className="inline-flex items-center px-5 py-2.5 bg-primary hover:bg-primary text-white rounded-lg font-medium shadow-md hover:shadow-lg transition-all"
           >
             <FaChevronLeft className="mr-2" />
             Return to product
@@ -164,7 +164,7 @@ const ProductReviewsPage = () => {
     return (
       <div className="text-center py-16 max-w-2xl mx-auto bg-white rounded-2xl p-8 shadow-lg">
         <div className="bg-[#f8d7da] w-24 h-24 rounded-full flex items-center justify-center mx-auto mb-6">
-          <FaRegStar className="text-[#d10024] text-4xl" />
+          <FaRegStar className="text-primary text-4xl" />
         </div>
         <h2 className="text-3xl font-bold text-gray-800 mb-4">No reviews yet</h2>
         <p className="text-gray-600 mb-8 max-w-md mx-auto">
@@ -172,7 +172,7 @@ const ProductReviewsPage = () => {
         </p>
         <button
           onClick={() => navigate(`/productpage/${id}/write-review`)}
-          className="inline-flex items-center px-6 py-3 bg-[#d10024] hover:bg-[#d10024] text-white font-bold rounded-xl shadow-lg hover:shadow-xl transition-all"
+          className="inline-flex items-center px-6 py-3 bg-primary hover:bg-primary text-white font-bold rounded-xl shadow-lg hover:shadow-xl transition-all"
         >
           Write Your Review
         </button>
@@ -199,7 +199,7 @@ const ProductReviewsPage = () => {
       <div className="mb-6">
         <button 
           onClick={() => navigate(`/productpage/${id}`)}
-          className="flex items-center text-[#d10024] hover:text-[#a0001c] font-medium transition-colors"
+          className="flex items-center text-primary hover:text-[#a0001c] font-medium transition-colors"
         >
           <FaChevronLeft className="mr-2" />
           Back to Product
@@ -211,7 +211,7 @@ const ProductReviewsPage = () => {
         <div className="lg:w-1/4">
           <div className="bg-white p-6 rounded-2xl shadow-lg border border-gray-100 sticky top-20">
             <div className="text-center mb-8">
-              <div className="inline-block bg-[#d10024] text-white text-5xl font-bold mb-2 px-6 py-3 rounded-xl">
+              <div className="inline-block bg-primary text-white text-5xl font-bold mb-2 px-6 py-3 rounded-xl">
                 {product.averageRating.toFixed(1)}
               </div>
               <div className="flex justify-center mb-3">
@@ -220,7 +220,7 @@ const ProductReviewsPage = () => {
                   readonly
                   size={28}
                   SVGstyle={{ display: 'inline-block' }}
-                  fillColor="#d10024"
+                  fillColor="primary"
                   emptyColor="#e0e0e0"
                 />
               </div>
@@ -243,12 +243,12 @@ const ProductReviewsPage = () => {
                   >
                     <div className="flex items-center w-16">
                       <span className="text-gray-800 font-medium mr-1">{dist.rating}</span>
-                      <FaStar className="text-[#d10024]" />
+                      <FaStar className="text-primary" />
                     </div>
                     <div className="flex-1 ml-2">
                       <div className="w-full bg-gray-200 rounded-full h-2.5 overflow-hidden">
                         <div 
-                          className="bg-[#d10024] h-full rounded-full" 
+                          className="bg-primary h-full rounded-full" 
                           style={{ width: `${dist.percentage}%` }}
                         ></div>
                       </div>
@@ -278,7 +278,7 @@ const ProductReviewsPage = () => {
                           readonly 
                           size={18} 
                           SVGstyle={{ display: 'inline-block' }} 
-                          fillColor="#d10024"
+                          fillColor="primary"
                           emptyColor="#e0e0e0"
                         />
                         <span className="ml-2 text-sm text-gray-500">({value.count} ratings)</span>
@@ -296,7 +296,7 @@ const ProductReviewsPage = () => {
                   setRatingFilter(0);
                   setSortOption('newest');
                 }}
-                className="mt-8 w-full py-3 text-center bg-[#d10024] hover:bg-[#d10024] text-white rounded-xl font-medium shadow-md hover:shadow-lg transition-all"
+                className="mt-8 w-full py-3 text-center bg-primary hover:bg-primary text-white rounded-xl font-medium shadow-md hover:shadow-lg transition-all"
               >
                 Clear All Filters
               </button>
@@ -318,7 +318,7 @@ const ProductReviewsPage = () => {
                     readonly
                     size={20}
                     SVGstyle={{ display: 'inline-block' }}
-                    fillColor="#d10024"
+                    fillColor="primary"
                     emptyColor="#e0e0e0"
                     className="mr-2"
                   />
@@ -362,7 +362,7 @@ const ProductReviewsPage = () => {
                                 className="w-full h-full object-cover"
                               />
                             ) : (
-                              <span className="text-[#d10024] font-bold text-xl">
+                              <span className="text-primary font-bold text-xl">
                                 {review.user?.name?.charAt(0) || 'U'}
                               </span>
                             )}
@@ -381,7 +381,7 @@ const ProductReviewsPage = () => {
                         
                         {review.detailedRatings && (
                           <div className="mt-4 bg-red-50 px-3 py-1.5 rounded-full text-sm inline-block">
-                            <span className="font-medium text-[#d10024]">
+                            <span className="font-medium text-primary">
                               {Math.floor(review.rating)} Star Review
                             </span>
                           </div>
@@ -396,7 +396,7 @@ const ProductReviewsPage = () => {
                             readonly
                             size={20}
                             SVGstyle={{ display: 'inline-block' }}
-                            fillColor="#d10024"
+                            fillColor="primary"
                             emptyColor="#e0e0e0"
                             className="mr-3"
                           />
@@ -411,7 +411,7 @@ const ProductReviewsPage = () => {
                           {review.comment && review.comment.length > 200 && (
                             <button 
                               onClick={() => toggleExpand(review._id)}
-                              className="text-[#d10024] hover:text-[#a0001c] text-sm font-medium mt-1"
+                              className="text-primary hover:text-[#a0001c] text-sm font-medium mt-1"
                             >
                               {expandedReview === review._id ? 'Show less' : 'Read more'}
                             </button>
@@ -462,14 +462,14 @@ const ProductReviewsPage = () => {
                             className="flex items-center text-gray-500 hover:text-red-500 mr-6"
                           >
                             {likedReviews[review._id] ? (
-                              <FaHeart className="text-[#d10024] mr-1.5" />
+                              <FaHeart className="text-primary mr-1.5" />
                             ) : (
                               <FaRegHeart className="mr-1.5" />
                             )}
                             <span>{likedReviews[review._id] ? 'Liked' : 'Helpful'}</span>
                           </button>
                           
-                          <button className="text-gray-500 hover:text-[#d10024]">
+                          <button className="text-gray-500 hover:text-primary">
                             Report
                           </button>
                         </div>
@@ -480,7 +480,7 @@ const ProductReviewsPage = () => {
               ) : (
                 <div className="text-center py-12 rounded-2xl bg-gray-50 border border-gray-200">
                   <div className="bg-[#f8d7da] w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6">
-                    <FaFilter className="text-[#d10024] text-3xl" />
+                    <FaFilter className="text-primary text-3xl" />
                   </div>
                   <h3 className="text-2xl font-bold text-gray-800 mb-3">No reviews match your filters</h3>
                   <p className="text-gray-600 mb-6 max-w-md mx-auto">
@@ -491,7 +491,7 @@ const ProductReviewsPage = () => {
                       setRatingFilter(0);
                       setSortOption('newest');
                     }}
-                    className="inline-flex items-center px-5 py-2.5 bg-[#d10024] hover:bg-[#d10024] text-white rounded-xl font-medium shadow-md hover:shadow-lg transition-all"
+                    className="inline-flex items-center px-5 py-2.5 bg-primary hover:bg-primary text-white rounded-xl font-medium shadow-md hover:shadow-lg transition-all"
                   >
                     Clear all filters
                   </button>
@@ -521,7 +521,7 @@ const ProductReviewsPage = () => {
                       onClick={() => setCurrentPage(i + 1)}
                       className={`h-10 w-10 rounded-full flex items-center justify-center ${
                         currentPage === i + 1
-                          ? 'bg-[#d10024] text-white shadow-md'
+                          ? 'bg-primary text-white shadow-md'
                           : 'bg-white text-gray-700 hover:bg-gray-50 border border-gray-200'
                       }`}
                     >
@@ -548,7 +548,7 @@ const ProductReviewsPage = () => {
             <div className="mt-10 pt-8 border-t border-gray-200 text-center">
               <button
                 onClick={() => navigate(`/productpage/${id}/write-review`)}
-                className="inline-flex items-center px-8 py-4 bg-[#d10024] hover:bg-[#d10024] text-white font-bold rounded-2xl shadow-xl hover:shadow-2xl transition-all"
+                className="inline-flex items-center px-8 py-4 bg-primary hover:bg-primary text-white font-bold rounded-2xl shadow-xl hover:shadow-2xl transition-all"
               >
                 Write Your Review
                 <FaStar className="ml-3 text-yellow-300" />

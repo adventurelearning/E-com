@@ -198,7 +198,7 @@ const CartPage = () => {
             </p>
             <Link
               to="/"
-              className="bg-[#d10024] hover:bg-[#b10024] text-white px-6 py-3 rounded-lg transition-colors font-medium inline-flex items-center gap-2"
+              className="bg-primary hover:bg-[#b10024] text-white px-6 py-3 rounded-lg transition-colors font-medium inline-flex items-center gap-2"
             >
               Start Shopping
             </Link>
@@ -346,7 +346,7 @@ const CartPage = () => {
                 </div>
 
                 <button
-                  className="w-full bg-[#d10024] hover:bg-[#b10024] text-white py-3 rounded-lg transition-colors font-medium mb-4"
+                  className="w-full bg-primary hover:bg-[#b10024] text-white py-3 rounded-lg transition-colors font-medium mb-4"
                   onClick={() => navigate('/checkout')}
                 >
                   Proceed to Checkout
@@ -354,7 +354,7 @@ const CartPage = () => {
 
                 <Link
                   to="/"
-                  className="block text-center text-[#d10024] hover:underline font-medium"
+                  className="block text-center text-primary hover:underline font-medium"
                 >
                   Continue Shopping
                 </Link>

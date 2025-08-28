@@ -72,7 +72,7 @@ const Features = () => {
             >
               <div className="flow-root bg-white rounded-lg px-6 pb-8 h-full shadow-lg hover:shadow-xl transition-all duration-300 ease-in-out hover:-translate-y-2">
                 <div className="-mt-6">
-                  <div className="flex items-center justify-center h-16 w-16 rounded-md bg-gradient-to-r from-[#d10024] to-[#8b0000] text-white mx-auto">
+                  <div className="flex items-center justify-center h-16 w-16 rounded-md bg-gradient-to-r from-blue-600 to-blue-400 text-white mx-auto">
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
                       className="h-8 w-8"

@@ -24,10 +24,30 @@ import Navigation from './component/Navigation'
 import Footer from './component/Footer'
 import OfferBanner from './component/HomePage/OfferBanner'
 import ProductReviewsPage from './component/products/ProductReviewPage'
+import Api from './Services/Api'
+import { useEffect } from 'react'
 
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState()
   const [showSubmenu, setShowSubmenu] = useState(false);
+   useEffect(() => {
+    async function loadTheme() {
+      try {
+        const res = await Api.get("/theme"); 
+        const theme = res.data;
+
+        if (theme) {
+          document.documentElement.style.setProperty("--color-primary", theme.primary);
+          document.documentElement.style.setProperty("--color-secondary", theme.secondary);
+          document.documentElement.style.setProperty("--color-accent", theme.accent);
+        }
+      } catch (err) {
+        console.error("Error loading theme:", err);
+      }
+    }
+
+    loadTheme();
+  }, []);
   return (
     <>
       <BrowserRouter>

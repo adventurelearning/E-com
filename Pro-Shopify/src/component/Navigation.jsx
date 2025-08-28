@@ -94,7 +94,7 @@ const Navigation = () => {
                 <h2 className="text-xl font-bold text-gray-800">Menu</h2>
                 <IconButton 
                     onClick={handleDrawerToggle}
-                    className="!text-gray-600 hover:!bg-red-50 hover:!text-[#d10024]"
+                    className="!text-gray-600 hover:!bg-red-50 hover:!text-primary"
                 >
                     <LiaTimesSolid />
                 </IconButton>
@@ -103,10 +103,10 @@ const Navigation = () => {
                 <Button 
                     fullWidth
                     variant="outlined"
-                    className='!text-gray-800 gap-2 !font-medium !text-sm !border-[#d10024] hover:!border-[#d10024] hover:!bg-red-50'
+                    className='!text-gray-800 gap-2 !font-medium !text-sm !border-primary hover:!border-primary hover:!bg-red-50'
                     onClick={Categories}
-                    startIcon={<RiMenu2Fill className='text-[#d10024]' />}
-                    endIcon={<LiaAngleDownSolid className='text-[#d10024]'/>}
+                    startIcon={<RiMenu2Fill className='text-primary' />}
+                    endIcon={<LiaAngleDownSolid className='text-primary'/>}
                 >
                     Explore Our Collections
                 </Button>
@@ -129,8 +129,8 @@ const Navigation = () => {
                                                 fullWidth
                                                 className={`!justify-start !text-left !font-medium !normal-case ${
                                                     isCategoryActive(item.path) 
-                                                        ? '!text-[#d10024]' 
-                                                        : '!text-gray-800 hover:!text-[#d10024]'
+                                                        ? '!text-primary' 
+                                                        : '!text-gray-800 hover:!text-primary'
                                                 }`}
                                             >
                                                 {item.name}
@@ -138,7 +138,7 @@ const Navigation = () => {
                                         </Link>
                                         <IconButton 
                                             onClick={() => toggleSubmenu(index)}
-                                            className="!text-gray-600 hover:!text-[#d10024]"
+                                            className="!text-gray-600 hover:!text-primary"
                                         >
                                             {activeSubmenu === index ? (
                                                 <LiaAngleDownSolid className="transform rotate-180" />
@@ -167,8 +167,8 @@ const Navigation = () => {
                                                                 fullWidth
                                                                 className={`!justify-start !text-left !font-normal !normal-case ${
                                                                     isCategoryActive(item.path, subItem.path)
-                                                                        ? '!text-[#d10024]' 
-                                                                        : '!text-gray-600 hover:!text-[#d10024]'
+                                                                        ? '!text-primary' 
+                                                                        : '!text-gray-600 hover:!text-primary'
                                                                 }`}
                                                             >
                                                                 {subItem.name}
@@ -190,8 +190,8 @@ const Navigation = () => {
                                         fullWidth
                                         className={`!justify-start !text-left !font-medium !normal-case ${
                                             isCategoryActive(item.path) 
-                                                ? '!text-[#d10024]' 
-                                                : '!text-gray-800 hover:!text-[#d10024]'
+                                                ? '!text-primary' 
+                                                : '!text-gray-800 hover:!text-primary'
                                         }`}
                                     >
                                         {item.name}
@@ -202,7 +202,7 @@ const Navigation = () => {
                     ))}
                 </ul>
             )}
-            <div className="mt-6 pt-4 border-t flex items-center gap-2 text-[#d10024]">
+            <div className="mt-6 pt-4 border-t flex items-center gap-2 text-primary">
                 <motion.div
                     animate={{ x: [0, 2, 0] }}
                     transition={{ repeat: Infinity, duration: 2 }}
@@ -216,7 +216,7 @@ const Navigation = () => {
 
     return (
         <>
-            <div className='bg-white w-full sticky top-0 z-50 shadow-sm border-b border-gray-100'>
+            <div className='bg-white w-full sticky top-0 z-40 shadow-sm border-b border-gray-100'>
                 <nav className='py-2 px-4'>
                     <div className='container mx-auto flex items-center justify-between lg:justify-end gap-4 lg:gap-8'>
                         {isMobile && (
@@ -225,7 +225,7 @@ const Navigation = () => {
                                 aria-label="open drawer"
                                 edge="start"
                                 onClick={handleDrawerToggle}
-                                className="lg:hidden !mr-2 !text-gray-700 hover:!bg-red-50 hover:!text-[#d10024]"
+                                className="lg:hidden !mr-2 !text-gray-700 hover:!bg-red-50 hover:!text-primary"
                             >
                                 <FiMenu />
                             </IconButton>
@@ -248,15 +248,15 @@ const Navigation = () => {
                                                         <Button 
                                                             className={`!font-medium !text-sm !normal-case ${
                                                                 isCategoryActive(item.path) 
-                                                                    ? '!text-[#d10024]' 
-                                                                    : '!text-gray-800 hover:!text-[#d10024]'
+                                                                    ? '!text-primary' 
+                                                                    : '!text-gray-800 hover:!text-primary'
                                                             }`}
                                                         >
                                                             {item.name}
                                                         </Button>
                                                     </Link>
                                                     <motion.div
-                                                        className='submenu absolute top-full left-0 min-w-[200px] z-10 bg-white shadow-lg rounded-b-md opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 border-t-2 border-[#d10024]'
+                                                        className='submenu absolute top-full left-0 min-w-[200px] z-10 bg-white shadow-lg rounded-b-md opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 border-t-2 border-primary'
                                                         initial={{ y: 10 }}
                                                         whileHover={{ y: 0 }}
                                                     >
@@ -271,8 +271,8 @@ const Navigation = () => {
                                                                             fullWidth
                                                                             className={`!text-gray-700 !justify-start !rounded-none !text-sm !normal-case ${
                                                                                 isCategoryActive(item.path, subItem.path)
-                                                                                    ? '!text-[#d10024]' 
-                                                                                    : 'hover:!text-[#d10024]'
+                                                                                    ? '!text-primary' 
+                                                                                    : 'hover:!text-primary'
                                                                             }`}
                                                                         >
                                                                             {subItem.name}
@@ -288,8 +288,8 @@ const Navigation = () => {
                                                     <Button 
                                                         className={`!font-medium !text-sm !normal-case ${
                                                             isCategoryActive(item.path) 
-                                                                ? '!text-[#d10024]' 
-                                                                : '!text-gray-800 hover:!text-[#d10024]'
+                                                                ? '!text-primary' 
+                                                                : '!text-gray-800 hover:!text-primary'
                                                         }`}
                                                     >
                                                         {item.name}
@@ -304,7 +304,7 @@ const Navigation = () => {
                         
                         <div className='lg:w-[20%] hidden lg:flex items-center justify-end'>
                             <motion.p 
-                                className='text-sm font-medium flex items-center gap-2 text-[#d10024]'
+                                className='text-sm font-medium flex items-center gap-2 text-primary'
                                 whileHover={{ scale: 1.02 }}
                             > 
                                 <motion.span
