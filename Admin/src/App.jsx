@@ -34,6 +34,7 @@ import { Cloudinary } from '@cloudinary/url-gen';
 import { auto } from '@cloudinary/url-gen/actions/resize';
 import { autoGravity } from '@cloudinary/url-gen/qualifiers/gravity';
 import { AdvancedImage } from '@cloudinary/react';
+import Logo from './configuration/Logo';
 
 function AppContent() {
   const [sidebarOpen, setSidebarOpen] = useState(true);
@@ -227,6 +228,13 @@ function AppContent() {
                 <ProductReviews />
               </ProtectedRoute>
             } />
+
+            <Route path="/logo" element={
+              <ProtectedRoute requiredPermission="Suplier">
+                <Logo />
+              </ProtectedRoute>
+            } />
+
             {/* Catch-all route */}
             <Route path="*" element={<NotFoundPage />} />
           </Routes>
