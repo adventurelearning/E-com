@@ -8,8 +8,8 @@ import { useWishlist } from '../../context/WishlistContext';
 import { toast } from 'react-toastify';
 
 const CategoryProduct = () => {
-  const { category } = useParams();
-    const { state } = useLocation();
+  const { category, subcategory } = useParams();
+  const { state } = useLocation();
   const { product, loading, error } = useContext(ProductContext);
   const navigate = useNavigate();
 
@@ -39,6 +39,12 @@ const CategoryProduct = () => {
     wishlistItems
   } = useWishlist();
 
+  // Helper function to normalize strings for comparison
+  const normalizeString = (str) => {
+    if (!str) return '';
+    return str.toLowerCase().replace(/[-\s]+/g, ' ').trim();
+  };
+
   useEffect(() => {
     if (Array.isArray(product)) {
       // Extract unique brands
@@ -47,12 +53,40 @@ const CategoryProduct = () => {
 
       // Extract unique subcategories for the current category
       const categoryProducts = product.filter(
-        item => item.category && item.category.toString().toLowerCase() === category.toLowerCase()
+        item => item.category && normalizeString(item.category) === normalizeString(category)
       );
       const uniqueSubcategories = [...new Set(categoryProducts.map(item => item.subcategory))].filter(Boolean);
       setSubcategories(uniqueSubcategories);
+      
+      // If a subcategory is provided in the URL, find the matching subcategory
+      if (subcategory) {
+        const normalizedUrlSubcategory = normalizeString(subcategory);
+        const matchingSubcategory = uniqueSubcategories.find(
+          sub => normalizeString(sub) === normalizedUrlSubcategory
+        );
+        
+        if (matchingSubcategory) {
+          setSelectedSubcategory(matchingSubcategory);
+        }
+      }
     }
-  }, [product, category]);
+  }, [product, category, subcategory]);
+
+  // Update selected subcategory when URL changes
+  useEffect(() => {
+    if (subcategory) {
+      const normalizedUrlSubcategory = normalizeString(subcategory);
+      const matchingSubcategory = subcategories.find(
+        sub => normalizeString(sub) === normalizedUrlSubcategory
+      );
+      
+      if (matchingSubcategory) {
+        setSelectedSubcategory(matchingSubcategory);
+      }
+    } else {
+      setSelectedSubcategory('');
+    }
+  }, [subcategory, subcategories]);
 
   const handleClick = (productId) => {
     navigate(`/productpage/${productId}`);
@@ -61,7 +95,7 @@ const CategoryProduct = () => {
   // Filter products by category first
   const categoryProducts = Array.isArray(product)
     ? product.filter(
-      (item) => item.category && item.category.toString().toLowerCase() === category.toLowerCase()
+      (item) => item.category && normalizeString(item.category) === normalizeString(category)
     )
     : [];
 
@@ -71,14 +105,15 @@ const CategoryProduct = () => {
   // Apply subcategory filter
   if (selectedSubcategory) {
     filteredProducts = filteredProducts.filter(
-      item => item.subcategory && item.subcategory.toLowerCase() === selectedSubcategory.toLowerCase()
+      item => item.subcategory && 
+      normalizeString(item.subcategory) === normalizeString(selectedSubcategory)
     );
   }
 
   // Apply brand filter
   if (brandFilter) {
     filteredProducts = filteredProducts.filter(
-      item => item.brand && item.brand.toLowerCase() === brandFilter.toLowerCase()
+      item => item.brand && normalizeString(item.brand) === normalizeString(brandFilter)
     );
   }
 
@@ -99,9 +134,10 @@ const CategoryProduct = () => {
 
   // Apply search filter
   if (searchQuery) {
+    const normalizedSearch = normalizeString(searchQuery);
     filteredProducts = filteredProducts.filter(item =>
-      item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      (item.brand && item.brand.toLowerCase().includes(searchQuery.toLowerCase()))
+      normalizeString(item.name).includes(normalizedSearch) ||
+      (item.brand && normalizeString(item.brand).includes(normalizedSearch))
     );
   }
 
@@ -156,6 +192,10 @@ const CategoryProduct = () => {
     setBrandFilter('');
     setSelectedSubcategory('');
     setSearchQuery('');
+    // If we're on a subcategory page, navigate back to the main category
+    if (subcategory) {
+      navigate(`/category/${category}`);
+    }
   };
 
   const activeFiltersCount = [priceFilter, brandFilter, selectedSubcategory, searchQuery].filter(Boolean).length;
@@ -166,7 +206,7 @@ const CategoryProduct = () => {
         <div className="mb-8 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
           <div>
             <h1 className="text-3xl md:text-4xl font-bold text-gray-800 capitalize mb-2">
-              {category}
+              {category} {selectedSubcategory && `- ${selectedSubcategory}`}
             </h1>
             <p className="text-gray-600">
               {filteredProducts.length} {filteredProducts.length === 1 ? 'product' : 'products'} found
@@ -214,7 +254,12 @@ const CategoryProduct = () => {
             {selectedSubcategory && (
               <span className="bg-white px-3 py-1 rounded-full text-sm flex items-center gap-1 shadow-sm">
                 Subcategory: {selectedSubcategory}
-                <button onClick={() => setSelectedSubcategory('')} className="text-gray-500 hover:text-gray-700">
+                <button onClick={() => {
+                  setSelectedSubcategory('');
+                  if (subcategory) {
+                    navigate(`/category/${category}`);
+                  }
+                }} className="text-gray-500 hover:text-gray-700">
                   <FaTimes size={12} />
                 </button>
               </span>
@@ -301,7 +346,7 @@ const CategoryProduct = () => {
                                 type="radio"
                                 id={`subcat-${subcat}`}
                                 name="subcategory"
-                                checked={selectedSubcategory === subcat}
+                                checked={normalizeString(selectedSubcategory) === normalizeString(subcat)}
                                 onChange={() => setSelectedSubcategory(subcat)}
                                 className="mr-2"
                               />
@@ -395,7 +440,7 @@ const CategoryProduct = () => {
                                 type="radio"
                                 id={`brand-${brand}`}
                                 name="brand"
-                                checked={brandFilter === brand}
+                                checked={normalizeString(brandFilter) === normalizeString(brand)}
                                 onChange={() => setBrandFilter(brand)}
                                 className="mr-2"
                               />
@@ -488,7 +533,7 @@ const CategoryProduct = () => {
                             type="radio"
                             id={`subcat-${subcat}`}
                             name="subcategory"
-                            checked={selectedSubcategory === subcat}
+                            checked={normalizeString(selectedSubcategory) === normalizeString(subcat)}
                             onChange={() => setSelectedSubcategory(subcat)}
                             className="mr-2"
                           />
@@ -554,7 +599,7 @@ const CategoryProduct = () => {
                       />
                       <label htmlFor="price-discount" className="cursor-pointer">
                         Discounted Items
-                      </label>
+                        </label>
                     </div>
                   </div>
                 )}
@@ -582,7 +627,7 @@ const CategoryProduct = () => {
                             type="radio"
                             id={`brand-${brand}`}
                             name="brand"
-                            checked={brandFilter === brand}
+                            checked={normalizeString(brandFilter) === normalizeString(brand)}
                             onChange={() => setBrandFilter(brand)}
                             className="mr-2"
                           />

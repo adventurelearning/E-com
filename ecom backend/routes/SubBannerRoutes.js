@@ -1,35 +1,15 @@
 const express = require('express');
 const router = express.Router();
-const multer = require('multer');
-const path = require('path');
-const SubBanner = require('../models/SubBanner'); // Assuming you have a Product model
-
-// Multer configuration
-const storage = multer.diskStorage({
-    destination: (req, file, cb) => {
-        cb(null, path.join(__dirname, '../uploads'));
-    },
-    filename: (req, file, cb) => {
-        cb(null, Date.now() + path.extname(file.originalname));
-    }
-});
-
-const upload = multer({ storage });
-
-const getFullImageUrl = (filename) => {
-    return `${process.env.BASE_URL}/uploads/${filename}`;
-};
+const SubBanner = require('../models/SubBanner');
 
 // Create Product
-router.post('/', upload.single('image'), async (req, res) => {
+router.post('/', async (req, res) => {
     try {
-        const { title, subtitle, price, buttonText, isFeatured, link } = req.body;
+        const { title, subtitle, price, buttonText, isFeatured, link, imageUrl } = req.body;
         
-        if (!req.file) {
-            return res.status(400).json({ error: 'Image is required' });
+        if (!imageUrl) {
+            return res.status(400).json({ error: 'Image URL is required' });
         }
-
-        const imageUrl = getFullImageUrl(req.file.filename);
 
         const product = new SubBanner({
             title,
@@ -38,7 +18,7 @@ router.post('/', upload.single('image'), async (req, res) => {
             imageUrl,
             buttonText: buttonText || 'SHOP NOW',
             isFeatured: isFeatured === 'true',
-            link: link || '' // Add link field
+            link: link || ''
         });
 
         await product.save();
@@ -74,20 +54,22 @@ router.get('/:id', async (req, res) => {
 });
 
 // Update Product
-router.put('/:id', upload.single('image'), async (req, res) => {
+router.put('/:id', async (req, res) => {
     try {
-        const { title, subtitle, price, buttonText, isFeatured, link } = req.body;
+        const { title, subtitle, price, buttonText, isFeatured, link, imageUrl } = req.body;
+        
         let updateData = { 
             title, 
             subtitle, 
             price, 
             buttonText, 
-            isFeatured,
-            link: link || '' // Add link field
+            isFeatured: isFeatured === 'true',
+            link: link || ''
         };
 
-        if (req.file) {
-            updateData.imageUrl = `/uploads/${req.file.filename}`;
+        // Only update imageUrl if a new one was provided
+        if (imageUrl) {
+            updateData.imageUrl = imageUrl;
         }
 
         const product = await SubBanner.findByIdAndUpdate(
