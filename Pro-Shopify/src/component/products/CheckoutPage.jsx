@@ -197,12 +197,12 @@ const CheckoutPage = () => {
                 <div className="p-6">
                   <div className="flex justify-between items-center mb-4">
                     <h2 className="text-xl font-semibold flex items-center">
-                      <FiTruck className="mr-2 text-[#d10024]" />
+                      <FiTruck className="mr-2 text-primary" />
                       Delivery Address
                     </h2>
                     <button
                       onClick={() => setShowAddressForm(true)}
-                      className="text-[#d10024] hover:text-[#b10024] font-medium flex items-center gap-1 px-3 py-1.5 rounded-md hover:bg-red-50 transition-colors"
+                      className="text-primary hover:text-[#b10024] font-medium flex items-center gap-1 px-3 py-1.5 rounded-md hover:bg-red-50 transition-colors"
                     >
                       <FiPlus className="text-sm" />
                       Add New Address
@@ -216,7 +216,7 @@ const CheckoutPage = () => {
                         <motion.div
                           whileTap={{ scale: 0.98 }}
                           className={`border rounded-lg p-4 cursor-pointer transition-all ${selectedAddress === defaultAddress._id
-                              ? 'border-[#d10024] bg-red-50 shadow-md'
+                              ? 'border-primary bg-red-50 shadow-md'
                               : 'border-gray-200 hover:border-gray-300'
                             }`}
                           onClick={() => setSelectedAddress(defaultAddress._id)}
@@ -229,7 +229,7 @@ const CheckoutPage = () => {
                               </span>
                             </div>
                             {selectedAddress === defaultAddress._id && (
-                              <span className="bg-purple-100 text-[#d10024] p-1 rounded-full">
+                              <span className="bg-purple-100 text-primary p-1 rounded-full">
                                 <FiCheck className="text-sm" />
                               </span>
                             )}
@@ -246,7 +246,7 @@ const CheckoutPage = () => {
                         <div className="border-t border-gray-100 pt-4">
                           <button
                             onClick={() => setShowAllAddresses(!showAllAddresses)}
-                            className="text-[#d10024] hover:text-[#b10024] font-medium flex items-center gap-1"
+                            className="text-primary hover:text-[#b10024] font-medium flex items-center gap-1"
                           >
                             {showAllAddresses ? (
                               <>
@@ -276,7 +276,7 @@ const CheckoutPage = () => {
                               key={address._id}
                               whileTap={{ scale: 0.98 }}
                               className={`border rounded-lg p-4 cursor-pointer transition-all ${selectedAddress === address._id
-                                  ? 'border-[#d10024] bg-red-50 shadow-md'
+                                  ? 'border-primary bg-red-50 shadow-md'
                                   : 'border-gray-200 hover:border-gray-300'
                                 }`}
                               onClick={() => setSelectedAddress(address._id)}
@@ -284,7 +284,7 @@ const CheckoutPage = () => {
                               <div className="flex justify-between items-start">
                                 <h3 className="font-medium text-gray-800">{address.label}</h3>
                                 {selectedAddress === address._id && (
-                                  <span className="bg-purple-100 text-[#d10024] p-1 rounded-full">
+                                  <span className="bg-purple-100 text-primary p-1 rounded-full">
                                     <FiCheck className="text-sm" />
                                   </span>
                                 )}
@@ -301,12 +301,12 @@ const CheckoutPage = () => {
                   ) : (
                     <div className="text-center py-8 bg-gray-50 rounded-lg">
                       <div className="w-16 h-16 bg-purple-50 rounded-full flex items-center justify-center mx-auto mb-4">
-                        <FiMapPin className="text-2xl text-[#d10024]" />
+                        <FiMapPin className="text-2xl text-primary" />
                       </div>
                       <p className="text-gray-500 mb-4">No addresses found</p>
                       <button
                         onClick={() => setShowAddressForm(true)}
-                        className="text-[#d10024] hover:text-[#b10024] font-medium px-4 py-2 rounded-md bg-purple-50 hover:bg-purple-100 transition-colors"
+                        className="text-primary hover:text-[#b10024] font-medium px-4 py-2 rounded-md bg-purple-50 hover:bg-purple-100 transition-colors"
                       >
                         Add your first address
                       </button>
@@ -322,20 +322,20 @@ const CheckoutPage = () => {
               >
                 <div className="p-6">
                   <h2 className="text-xl font-semibold mb-4 flex items-center">
-                    <FiCreditCard className="mr-2 text-[#d10024]" />
+                    <FiCreditCard className="mr-2 text-primary" />
                     Payment Method
                   </h2>
                   <div className="space-y-3">
                     <motion.div
                       whileTap={{ scale: 0.98 }}
                       className={`border rounded-xl p-4 cursor-pointer transition-all ${paymentMethod === 'cod'
-                          ? 'border-[#d10024] bg-red-50 shadow-md'
+                          ? 'border-primary bg-red-50 shadow-md'
                           : 'border-gray-200 hover:border-gray-300'
                         }`}
                       onClick={() => setPaymentMethod('cod')}
                     >
                       <div className="flex items-center">
-                        <div className={`h-5 w-5 rounded-full border flex items-center justify-center mr-3 ${paymentMethod === 'cod' ? 'border-[#d10024] bg-[#d10024]' : 'border-gray-300'
+                        <div className={`h-5 w-5 rounded-full border flex items-center justify-center mr-3 ${paymentMethod === 'cod' ? 'border-primary bg-primary' : 'border-gray-300'
                           }`}>
                           {paymentMethod === 'cod' && <div className="h-2 w-2 rounded-full bg-white"></div>}
                         </div>
@@ -349,13 +349,13 @@ const CheckoutPage = () => {
                     <motion.div
                       whileTap={{ scale: 0.98 }}
                       className={`border rounded-xl p-4 cursor-pointer transition-all ${paymentMethod === 'card'
-                          ? 'border-[#d10024] bg-red-50 shadow-md'
+                          ? 'border-primary bg-red-50 shadow-md'
                           : 'border-gray-200 hover:border-gray-300'
                         }`}
                       onClick={() => setPaymentMethod('card')}
                     >
                       <div className="flex items-center">
-                        <div className={`h-5 w-5 rounded-full border flex items-center justify-center mr-3 ${paymentMethod === 'card' ? 'border-[#d10024] bg-[#d10024]' : 'border-gray-300'
+                        <div className={`h-5 w-5 rounded-full border flex items-center justify-center mr-3 ${paymentMethod === 'card' ? 'border-primary bg-primary' : 'border-gray-300'
                           }`}>
                           {paymentMethod === 'card' && <div className="h-2 w-2 rounded-full bg-white"></div>}
                         </div>
@@ -380,7 +380,7 @@ const CheckoutPage = () => {
               >
                 <div className="p-6">
                   <h2 className="text-xl font-semibold mb-4 flex items-center">
-                    <FiPackage className="mr-2 text-[#d10024]" />
+                    <FiPackage className="mr-2 text-primary" />
                     Order Summary
                   </h2>
 
@@ -446,7 +446,7 @@ const CheckoutPage = () => {
                     onClick={placeOrder}
                     disabled={!selectedAddress}
                     className={`w-full py-3 rounded-lg font-medium transition-colors flex items-center justify-center ${selectedAddress
-                        ? 'bg-gradient-to-r from-[#d10024] to-[#b10024] text-white hover:from-[#b10024] hover:to-[#b10024] shadow-md'
+                        ? 'bg-gradient-to-r from-primary to-[#b10024] text-white hover:from-[#b10024] hover:to-[#b10024] shadow-md'
                         : 'bg-gray-200 text-gray-500 cursor-not-allowed'
                       }`}
                   >

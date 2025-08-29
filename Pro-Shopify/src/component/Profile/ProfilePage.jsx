@@ -174,7 +174,7 @@ const ProfilePage = () => {
                         sx={{ 
                             width: 80, 
                             height: 80, 
-                            bgcolor: '#d10024', 
+                            bgcolor: 'primary', 
                             fontSize: '2.5rem',
                             mr: { xs: 0, sm: 2 },
                             mb: { xs: 2, sm: 0 }

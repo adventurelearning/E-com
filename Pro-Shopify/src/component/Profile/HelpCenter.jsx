@@ -131,7 +131,7 @@ const HelpCenter = () => {
           borderRadius: 2,
           mb: 4,
           textAlign: 'center',
-          backgroundImage: 'linear-gradient(135deg, #d10024 0%, #b10024 100%)',
+          backgroundImage: 'linear-gradient(135deg, primary 0%, #b10024 100%)',
           boxShadow: 3
         }}>
           <Typography variant={isMobile ? 'h4' : 'h3'} component="h1" gutterBottom sx={{ fontWeight: 'bold' }}>

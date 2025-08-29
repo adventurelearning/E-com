@@ -209,7 +209,7 @@ const Division = () => {
                 </div>
                 <div className="absolute inset-0 bg-gradient-to-t from-black/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
               </div>
-              <h3 className="text-center mt-3 font-medium text-gray-800 text-sm md:text-base line-clamp-2 group-hover:text-[#d10024] transition-colors">
+              <h3 className="text-center mt-3 font-medium text-gray-800 text-sm md:text-base line-clamp-2 group-hover:text-primary transition-colors">
                 {category.name}
               </h3>
             </motion.div>

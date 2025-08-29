@@ -295,7 +295,7 @@ useEffect(() => {
   if (loading) {
     return (
       <div className="flex justify-center items-center min-h-screen">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#d10024]"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
       </div>
     );
   }
@@ -316,7 +316,7 @@ useEffect(() => {
     return (
       <div className="text-center py-16">
         <h2 className="text-2xl font-bold text-gray-700 mb-4">Product not found</h2>
-        <Link to="/products" className="text-[#d10024] hover:underline">
+        <Link to="/products" className="text-primary hover:underline">
           Browse our products
         </Link>
       </div>
@@ -357,7 +357,7 @@ useEffect(() => {
           styles={{
             container: { backgroundColor: 'rgba(0, 0, 0, 0.92)' },
             thumbnail: { borderRadius: '4px', border: '2px solid transparent' },
-            thumbnailActive: { borderColor: '#d10024' }
+            thumbnailActive: { borderColor: 'primary' }
           }}
           render={{
             buttonPrev: lightboxIndex <= 0 ? null : undefined,
@@ -419,7 +419,7 @@ useEffect(() => {
         <nav className="flex mb-6" aria-label="Breadcrumb">
           <ol className="inline-flex items-center space-x-1 md:space-x-2">
             <li className="inline-flex items-center">
-              <Link to="/" className="inline-flex items-center text-sm font-medium text-gray-700 hover:text-[#d10024]">
+              <Link to="/" className="inline-flex items-center text-sm font-medium text-gray-700 hover:text-primary">
                 <svg className="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
                   <path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z"></path>
                 </svg>
@@ -431,7 +431,7 @@ useEffect(() => {
                 <svg className="w-6 h-6 text-gray-400" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
                   <path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clipRule="evenodd"></path>
                 </svg>
-                <Link to={`/category/${product.category}`} className="ml-1 text-sm font-medium text-gray-700 hover:text-[#d10024] md:ml-2">
+                <Link to={`/category/${product.category}`} className="ml-1 text-sm font-medium text-gray-700 hover:text-primary md:ml-2">
                   Products
                 </Link>
               </div>
@@ -491,7 +491,7 @@ useEffect(() => {
 
               {/* Discount Badge */}
               {product.discountPercent > 0 && (
-                <div className="absolute top-4 left-4 bg-gradient-to-r from-[#d10024] to-[#ff5252] text-white text-sm font-bold px-3 py-1 rounded-full shadow-md">
+                <div className="absolute top-4 left-4 bg-gradient-to-r from-primary to-[#ff5252] text-white text-sm font-bold px-3 py-1 rounded-full shadow-md">
                   {product.discountPercent}% OFF
                 </div>
               )}
@@ -505,7 +505,7 @@ useEffect(() => {
                 whileTap={{ scale: 0.9 }}
               >
                 {isFavorite ? (
-                  <FaHeart className="text-[#d10024] text-xl" />
+                  <FaHeart className="text-primary text-xl" />
                 ) : (
                   <FaRegHeart className="text-xl text-gray-700" />
                 )}
@@ -539,7 +539,7 @@ useEffect(() => {
                     key={index}
                     onClick={() => setCurrentImageIndex(index)}
                     className={`flex-shrink-0 h-16 w-16 border-2 rounded-md overflow-hidden transition-all ${index === currentImageIndex
-                      ? 'border-[#d10024] scale-105 shadow-md'
+                      ? 'border-primary scale-105 shadow-md'
                       : 'border-gray-200 hover:border-gray-300'}`}
                   >
                     <img
@@ -576,7 +576,7 @@ useEffect(() => {
               <div className="flex flex-col sm:flex-row gap-3">
                 <motion.button
                   onClick={handleAddToCart}
-                  className="flex-1 bg-gradient-to-r from-[#d10024] to-[#ff5252] hover:from-[#d10024] hover:to-[#d10024] text-white px-6 py-3 rounded-xl transition-all flex items-center justify-center gap-2 font-medium shadow-lg hover:shadow-xl"
+                  className="flex-1 bg-gradient-to-r from-primary to-[#ff5252] hover:from-primary hover:to-primary text-white px-6 py-3 rounded-xl transition-all flex items-center justify-center gap-2 font-medium shadow-lg hover:shadow-xl"
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
                 >
@@ -641,7 +641,7 @@ useEffect(() => {
                   </span>
                 )}
                 {product.discountPercent > 0 && (
-                  <span className="text-[#d10024] text-lg font-medium">
+                  <span className="text-primary text-lg font-medium">
                     Save {product.discountPercent}%
                   </span>
                 )}
@@ -658,7 +658,7 @@ useEffect(() => {
                     key={color}
                     onClick={() => setSelectedColor(color)}
                     className={`px-4 py-2 border rounded-full text-sm font-medium transition-all flex items-center gap-2 ${selectedColor === color
-                      ? 'border-[#d10024] bg-[#d10024] text-white'
+                      ? 'border-primary bg-primary text-white'
                       : 'border-gray-200 hover:border-gray-300'}`}
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
@@ -677,7 +677,7 @@ useEffect(() => {
 
                 {loadingVariants ? (
                   <div className="flex justify-center py-8">
-                    <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-[#d10024]"></div>
+                    <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-primary"></div>
                   </div>
                 ) : colorVariants.length > 0 ? (
                   <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
@@ -689,7 +689,7 @@ useEffect(() => {
                         whileTap={{ scale: 0.98 }}
                         onClick={() => navigateToVariant(variant._id)}
                       >
-                        <div className="relative w-full aspect-square bg-gray-100 rounded-lg overflow-hidden border-2 border-transparent group-hover:border-[#d10024] transition-all">
+                        <div className="relative w-full aspect-square bg-gray-100 rounded-lg overflow-hidden border-2 border-transparent group-hover:border-primary transition-all">
                           {variant.images?.[0] ? (
                             <img
                               src={variant.images[0]}
@@ -703,7 +703,7 @@ useEffect(() => {
                           )}
 
                           {variant.colors?.[0] === selectedColor && (
-                            <div className="absolute top-2 right-2 bg-[#d10024] text-white text-xs px-2 py-1 rounded-full">
+                            <div className="absolute top-2 right-2 bg-primary text-white text-xs px-2 py-1 rounded-full">
                               Current
                             </div>
                           )}
@@ -714,7 +714,7 @@ useEffect(() => {
                             {variant.colors?.map((color, idx) => (
                               <div
                                 key={idx}
-                                className={`w-4 h-4 rounded-full border ${color === selectedColor ? 'border-[#d10024]' : 'border-gray-300'}`}
+                                className={`w-4 h-4 rounded-full border ${color === selectedColor ? 'border-primary' : 'border-gray-300'}`}
                                 style={{ backgroundColor: color.toLowerCase() }}
                                 title={color}
                               />
@@ -724,7 +724,7 @@ useEffect(() => {
                             {variant.colors?.[0] || 'Color variant'}
                           </span>
                           <div className="flex items-center justify-center mt-1">
-                            <span className="text-sm font-bold text-[#d10024]">
+                            <span className="text-sm font-bold text-primary">
                               ₹{(variant.discountPrice || variant.originalPrice || 0).toLocaleString()}
                             </span>
                           </div>
@@ -750,7 +750,7 @@ useEffect(() => {
                       onClick={() => setSelectedSize(sizeObj.label)}
                       disabled={sizeObj.stock <= 0}
                       className={`w-12 h-10 flex items-center justify-center border rounded-md text-sm font-medium transition-all relative ${selectedSize === sizeObj.label
-                        ? 'border-[#d10024] bg-[#d10024] text-white'
+                        ? 'border-primary bg-primary text-white'
                         : sizeObj.stock <= 0
                           ? 'border-gray-200 text-gray-400 cursor-not-allowed'
                           : 'border-gray-200 hover:border-gray-300'}`}
@@ -776,7 +776,7 @@ useEffect(() => {
             <div className="mt-6 space-y-4">
               <div className="p-4 bg-gradient-to-r from-gray-50 to-gray-100 rounded-xl border border-gray-200">
                 <div className="flex items-start gap-3">
-                  <div className="bg-[#d10024] p-2 rounded-full text-white">
+                  <div className="bg-primary p-2 rounded-full text-white">
                     <FaTruck className="text-xl" />
                   </div>
                   <div>
@@ -839,7 +839,7 @@ useEffect(() => {
               <button
                 key={tab}
                 className={`px-6 py-4 font-medium text-lg ${activeTab === tab
-                  ? 'text-[#d10024] border-b-2 border-[#d10024]'
+                  ? 'text-primary border-b-2 border-primary'
                   : 'text-gray-600'}`}
                 onClick={() => setActiveTab(tab)}
               >
@@ -874,7 +874,7 @@ useEffect(() => {
                           <div className="flex-1">
                             <div className="flex items-center mb-2">
                               <div className="bg-gray-100 p-2 rounded-full mr-2">
-                                <FaCheck className="text-[#d10024]" />
+                                <FaCheck className="text-primary" />
                               </div>
                               {feature.title && (
                                 <h4 className="font-medium text-gray-900 text-base md:text-lg">{feature.title}</h4>
@@ -953,7 +953,7 @@ useEffect(() => {
                 <div className="md:w-2/3 lg:w-3/4">
                   {reviewsLoading ? (
                     <div className="flex justify-center py-12">
-                      <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-[#d10024]"></div>
+                      <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-primary"></div>
                     </div>
                   ) : reviews.length > 0 ? (
                     <div className="space-y-6">
@@ -1031,7 +1031,7 @@ useEffect(() => {
 
                   {reviews.length > 0 && (
                     <button
-                      className="mt-6 text-[#d10024] font-medium hover:underline flex items-center"
+                      className="mt-6 text-primary font-medium hover:underline flex items-center"
                       onClick={() => navigate(`/productpage/${id}/reviews`)}
                     >
                       See all {reviews.length} reviews
@@ -1051,7 +1051,7 @@ useEffect(() => {
 
           {similarLoading ? (
             <div className="flex justify-center py-12">
-              <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-[#d10024]"></div>
+              <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-primary"></div>
             </div>
           ) : similarProducts.length > 0 ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
@@ -1070,7 +1070,7 @@ useEffect(() => {
                         className="h-full w-full object-contain transition-transform duration-300 group-hover:scale-105"
                       />
                       {item.discountPercent > 0 && (
-                        <div className="absolute top-3 left-3 bg-[#d10024] text-white text-xs font-bold px-2 py-1 rounded">
+                        <div className="absolute top-3 left-3 bg-primary text-white text-xs font-bold px-2 py-1 rounded">
                           {item.discountPercent}% OFF
                         </div>
                       )}
@@ -1097,7 +1097,7 @@ useEffect(() => {
                               ₹{item.originalPrice.toLocaleString()}
                             </span>
                             {item.discountPercent > 0 && (
-                              <span className="text-[#d10024] text-sm">
+                              <span className="text-primary text-sm">
                                 {item.discountPercent}% off
                               </span>
                             )}
@@ -1114,7 +1114,7 @@ useEffect(() => {
               <p className="text-gray-500 mb-4">No similar products found</p>
               <Link
                 to="/products"
-                className="text-[#d10024] hover:underline font-medium"
+                className="text-primary hover:underline font-medium"
               >
                 Browse all products
               </Link>

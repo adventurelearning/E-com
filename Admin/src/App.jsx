@@ -3,7 +3,6 @@ import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'r
 import Sidebar from './components/Sidebar';
 import Topbar from './components/Topbar';
 import Dashboard from './pages/Dashboard';
-import Settings from './pages/Settings';
 // import Users from './pages/User';
 import Products from './pages/Product/Products';
 import ProductList from './pages/Product/ProductList';
@@ -34,6 +33,8 @@ import { Cloudinary } from '@cloudinary/url-gen';
 import { auto } from '@cloudinary/url-gen/actions/resize';
 import { autoGravity } from '@cloudinary/url-gen/qualifiers/gravity';
 import { AdvancedImage } from '@cloudinary/react';
+import Settings from './pages/Settings/Settings';
+import ThemePage from './pages/Settings/Theme';
 import Logo from './configuration/Logo';
 import AdminFooter from './components/AdminFooter';
 
@@ -147,12 +148,6 @@ function AppContent() {
               </ProtectedRoute>
             } />
 
-            <Route path="/settings" element={
-              <ProtectedRoute requiredPermission="settings">
-                <Settings />
-              </ProtectedRoute>
-            } />
-
             <Route path="/banner" element={
               <ProtectedRoute requiredPermission="Banners">
                 <Banner />
@@ -227,6 +222,18 @@ function AppContent() {
             <Route path="/product/:id/reviews" element={
               <ProtectedRoute requiredPermission="Reviews">
                 <ProductReviews />
+              </ProtectedRoute>
+            } />
+
+             <Route path="/Settings" element={
+              <ProtectedRoute requiredPermission="Settings">
+                <Settings />
+              </ProtectedRoute>
+            } />
+
+              <Route path="/Theme" element={
+              <ProtectedRoute requiredPermission="Theme">
+                <ThemePage />
               </ProtectedRoute>
             } />
 

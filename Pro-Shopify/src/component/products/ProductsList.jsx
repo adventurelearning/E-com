@@ -354,7 +354,7 @@ const ProductList = () => {
         <div className="mt-8 flex justify-center">
           <button 
             onClick={handleLoadMore}
-            className="border border-[#d10024] text-[#d10024] px-4 py-2 rounded-md hover:bg-red-50 transition-colors"
+            className="border border-primary text-primary px-4 py-2 rounded-md hover:bg-red-50 transition-colors"
           >
             Load More Products
           </button>

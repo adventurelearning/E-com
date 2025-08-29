@@ -72,7 +72,7 @@ const AddressForm = ({ onSave, onClose, initialData = {} }) => {
           {/* Header */}
           <div className="flex justify-between items-center mb-6 pb-2 border-b border-gray-100">
             <h2 className="text-2xl font-bold text-gray-800 flex items-center">
-              <FiMapPin className="mr-2 text-[#d10024]" />
+              <FiMapPin className="mr-2 text-primary" />
               {initialData._id ? 'Edit Address' : 'Add New Address'}
             </h2>
             <button onClick={onClose} className="text-gray-400 hover:text-gray-600 p-1">
@@ -91,7 +91,7 @@ const AddressForm = ({ onSave, onClose, initialData = {} }) => {
                   onClick={() => setFieldValue('label', label)}
                   className={`flex items-center justify-center py-2 px-3 rounded-lg border transition-colors ${
                     values.label === label
-                      ? 'border-[#d10024] bg-purple-50 text-[#d10024]'
+                      ? 'border-primary bg-purple-50 text-primary'
                       : 'border-gray-200 hover:border-gray-300'
                   }`}
                 >
@@ -221,7 +221,7 @@ const AddressForm = ({ onSave, onClose, initialData = {} }) => {
                 name="isDefault"
                 checked={values.isDefault}
                 onChange={() => setFieldValue('isDefault', !values.isDefault)}
-                className="h-4 w-4 text-[#d10024] focus:ring-[#d10024] border-gray-300 rounded"
+                className="h-4 w-4 text-primary focus:ring-primary border-gray-300 rounded"
               />
               <div className="ml-3 text-sm">
                 <label className="font-medium text-gray-700">Set as default address</label>
@@ -241,7 +241,7 @@ const AddressForm = ({ onSave, onClose, initialData = {} }) => {
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className="px-5 py-2.5 bg-gradient-to-r from-[#d10024] to-[#b10024] text-white rounded-lg text-sm font-medium hover:opacity-90 transition-colors flex items-center justify-center min-w-24"
+                className="px-5 py-2.5 bg-gradient-to-r from-primary to-[#b10024] text-white rounded-lg text-sm font-medium hover:opacity-90 transition-colors flex items-center justify-center min-w-24"
               >
                 {isSubmitting ? (
                   <>

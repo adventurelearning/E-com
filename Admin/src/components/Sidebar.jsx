@@ -5,9 +5,12 @@ import {
   FiTruck, FiImage, FiUser, FiX, FiMenu,
   FiUsers,
   FiShoppingCart,
-  FiStar
+  FiStar,
+  FiCamera,
+  FiSettings
 } from 'react-icons/fi';
 import { TbTransitionBottom } from "react-icons/tb";
+import { GrConfigure } from "react-icons/gr";
 import { getAdminInfo } from '../utils/auth';
 
 const SidebarItem = ({ title, icon, children, path, toggleSidebar }) => {
@@ -190,7 +193,7 @@ const Sidebar = ({ open, toggleSidebar }) => {
         // },
       ],
     },
-        {
+    {
       title: 'Orders',
       icon: <FiShoppingCart />,
       visible: hasRole('Orders'),
@@ -218,6 +221,25 @@ const Sidebar = ({ open, toggleSidebar }) => {
           visible: true,
         }
       ],
+    },
+
+    {
+      title: 'Configuration',
+      icon: <GrConfigure />,
+      visible: hasRole('Suplier'),
+      subItems: [
+        {
+          title: 'Logo_Images',
+          path: '/logo',
+          visible: true,
+        },
+      ],
+    },
+        {
+      title: 'Settings',
+      icon: <FiSettings />,
+      path: '/Settings',
+      visible: hasRole('Settings'),
     },
     // {
     //   title: 'Products-S',
