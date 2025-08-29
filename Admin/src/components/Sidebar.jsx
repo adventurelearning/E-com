@@ -7,6 +7,7 @@ import {
   FiShoppingCart,
   FiStar
 } from 'react-icons/fi';
+import { TbTransitionBottom } from "react-icons/tb";
 import { getAdminInfo } from '../utils/auth';
 
 const SidebarItem = ({ title, icon, children, path, toggleSidebar }) => {
@@ -235,6 +236,12 @@ const Sidebar = ({ open, toggleSidebar }) => {
     //     },
     //   ],
     // },
+       {
+      title: 'Footer',
+      icon: <TbTransitionBottom />,
+      path: '/footer',
+      visible: hasRole('Footer'),
+    },
   ];
 
   return (
