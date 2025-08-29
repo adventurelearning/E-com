@@ -9,6 +9,7 @@ import {
   FiCamera,
   FiSettings
 } from 'react-icons/fi';
+import { TbTransitionBottom } from "react-icons/tb";
 import { GrConfigure } from "react-icons/gr";
 import { getAdminInfo } from '../utils/auth';
 
@@ -262,6 +263,12 @@ const Sidebar = ({ open, toggleSidebar }) => {
     //     },
     //   ],
     // },
+       {
+      title: 'Footer',
+      icon: <TbTransitionBottom />,
+      path: '/footer',
+      visible: hasRole('Footer'),
+    },
   ];
 
   return (

@@ -17,6 +17,7 @@ const userRoutes = require("./routes/userRoute.js");
 const wishlistRoutes = require("./routes/wishlistRoute.js");
 const offerRoutes = require("./routes/offerRoutes.js");
 const reviewRoutes = require("./routes/reviewRoutes.js");
+const footerRoutes = require('./routes/footer.js');
 const logoroutes=require('./routes/logoRoutes.js')
 // const uploadRoute = require("./routes/uploadRoute.js");
 const themeRoutes = require("./routes/themeRoute.js");
@@ -71,6 +72,8 @@ app.use("/api/users", userRoutes);
 app.use("/api/wishlist", wishlistRoutes);
 app.use("/api", offerRoutes);
 app.use("/api/reviews", reviewRoutes);
+app.use('/api/footer', footerRoutes);
+
 app.use("/api/theme", themeRoutes);
 
 

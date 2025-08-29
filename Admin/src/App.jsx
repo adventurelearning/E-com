@@ -36,6 +36,7 @@ import { AdvancedImage } from '@cloudinary/react';
 import Settings from './pages/Settings/Settings';
 import ThemePage from './configuration/Theme';
 import Logo from './configuration/Logo';
+import AdminFooter from './components/AdminFooter';
 
 function AppContent() {
   const [sidebarOpen, setSidebarOpen] = useState(true);
@@ -239,6 +240,12 @@ function AppContent() {
             <Route path="/logo" element={
               <ProtectedRoute requiredPermission="Suplier">
                 <Logo />
+              </ProtectedRoute>
+            } />
+
+             <Route path="/footer" element={
+              <ProtectedRoute requiredPermission="Footer">
+                <AdminFooter />
               </ProtectedRoute>
             } />
 
