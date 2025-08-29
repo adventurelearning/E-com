@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import Api from "../../Services/Api";
+import Api from "../Services/Api";
 
 const ThemePage = () => {
   const [themeData, setThemeData] = useState({

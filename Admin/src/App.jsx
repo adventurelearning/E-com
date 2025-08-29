@@ -34,7 +34,7 @@ import { auto } from '@cloudinary/url-gen/actions/resize';
 import { autoGravity } from '@cloudinary/url-gen/qualifiers/gravity';
 import { AdvancedImage } from '@cloudinary/react';
 import Settings from './pages/Settings/Settings';
-import ThemePage from './pages/Settings/Theme';
+import ThemePage from './configuration/Theme';
 import Logo from './configuration/Logo';
 
 function AppContent() {

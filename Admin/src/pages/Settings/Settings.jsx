@@ -4,13 +4,13 @@ import { Link } from 'react-router-dom';
 const Settings = () => {
   // Sample settings data - can be extended in the future
   const settingsSections = [
-    {
-      title: "Appearance",
-      description: "Customize how your application looks and feels",
-      icon: "🎨",
-      link: "/theme",
-      color: "bg-blue-100 text-blue-800"
-    },
+    // {
+    //   title: "Appearance",
+    //   description: "Customize how your application looks and feels",
+    //   icon: "🎨",
+    //   link: "/theme",
+    //   color: "bg-blue-100 text-blue-800"
+    // },
     {
       title: "Notifications",
       description: "Manage how you receive alerts and updates",
