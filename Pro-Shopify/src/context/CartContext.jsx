@@ -16,7 +16,9 @@ export const CartProvider = ({ children }) => {
       }
 
       const response = await Api.get('/cart');
-      const count = response.data?.items?.reduce((total, item) => total + item.quantity, 0) || 0;
+      // const count = response.data?.items?.reduce((total, item) => total + item.quantity, 0) || 0;
+      const count = response.data?.items?.length || 0;
+
       setCartCount(count);
       setCartError(null);
     } catch (error) {

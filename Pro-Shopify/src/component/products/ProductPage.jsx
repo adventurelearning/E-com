@@ -17,6 +17,7 @@ import Zoom from 'yet-another-react-lightbox/plugins/zoom';
 import 'yet-another-react-lightbox/styles.css';
 import 'yet-another-react-lightbox/plugins/thumbnails.css';
 import { useLocation } from 'react-router-dom';
+import { FiUser } from "react-icons/fi";
 
 const ProductPage = () => {
   const { id } = useParams();
@@ -61,6 +62,8 @@ const [loadingVariants, setLoadingVariants] = useState(false);
 
         // Fetch reviews for this product
         const reviewsResponse = await Api.get(`/reviews/product/${id}`);
+        console.log('reviewsResponse', reviewsResponse);
+        
         setReviews(reviewsResponse.data);
         setReviewsLoading(false);
 
@@ -961,17 +964,29 @@ useEffect(() => {
                         <div key={review._id} className="border-b border-gray-100 pb-6 last:border-0">
                           <div className="flex items-start mb-3">
                             <div className="w-10 h-10 rounded-full bg-gray-200 mr-4 overflow-hidden">
-                              {review.user?.photoURL ? (
-                                <img
-                                  src={review.user.photoURL}
-                                  alt={review.user.name}
-                                  className="w-full h-full object-cover"
-                                />
-                              ) : (
-                                <div className="flex items-center justify-center w-full h-full text-gray-500 font-medium">
-                                  {review.user?.name?.charAt(0) || 'U'}
-                                </div>
-                              )}
+{review.user?.photoURL && review.user.photoURL.trim() !== "" ? (
+  <img
+    src={review.user.photoURL}
+    alt={review.user?.name || "User Avatar"}
+    className="w-full h-full object-cover"
+    onError={(e) => {
+      e.currentTarget.style.display = "none"; // hide broken img
+      e.currentTarget.parentElement.innerHTML = 
+        `<div class="flex items-center justify-center w-full h-full text-gray-50  bg-blue-400 font-medium">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" class="w-6 h-6">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 12c2.28 0 4-1.72 4-4s-1.72-4-4-4-4 1.72-4 4 1.72 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
+          </svg>
+        </div>`;
+    }}
+  />
+) : (
+  <div className="flex items-center justify-center w-full h-full text-gray-50 bg-blue-400 rounded-full">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" class="w-6 h-6">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 12c2.28 0 4-1.72 4-4s-1.72-4-4-4-4 1.72-4 4 1.72 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
+          </svg>  </div>
+)}
+
+
                             </div>
                             <div>
                               <p className="font-medium">{review.user?.name || 'Anonymous'}</p>

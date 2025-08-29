@@ -17,6 +17,7 @@ import {
 import { motion } from 'framer-motion';
 import AddressForm from './AdressForm';
 import { useCart } from '../../context/CartContext';
+import { useRef } from 'react';
 
 const BuyNow = () => {
   const location = useLocation();
@@ -30,6 +31,7 @@ const BuyNow = () => {
   const [showAddressForm, setShowAddressForm] = useState(false);
   const [showAllAddresses, setShowAllAddresses] = useState(false);
   const { resetCart } = useCart();
+  const addressSectionRef = useRef(null);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -190,6 +192,8 @@ console.log('Placing order with data:', orderData);
             {/* Left Column - Delivery Address */}
             <div className="lg:col-span-2 space-y-6">
               {/* Delivery Address Section */}
+            <div ref={addressSectionRef}>
+
               <motion.div
                 className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden"
                 whileHover={{ y: -2 }}
@@ -314,7 +318,7 @@ console.log('Placing order with data:', orderData);
                   )}
                 </div>
               </motion.div>
-
+            </div>
               {/* Payment Method Section */}
               <motion.div
                 className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden"
@@ -442,12 +446,30 @@ console.log('Placing order with data:', orderData);
                     </div>
                   </div>
 
-                  <button
-                    onClick={placeOrder}
-                    disabled={!selectedAddress}
+                  
+                 <button
+                    onClick={() => {
+                          if (!selectedAddress) {
+
+                      if (addressSectionRef.current) {
+                        const elementPosition = addressSectionRef.current.getBoundingClientRect().top + window.scrollY;
+                        const offset = 80; // height of your navbar in px
+                        window.scrollTo({
+                          top: elementPosition - offset,
+                          behavior: "smooth",
+                        });
+                        addressSectionRef.current.classList.add("ring-2", "ring-red-500", "ring-offset-2"); // 👈 highlight
+                        setTimeout(() => {
+                          addressSectionRef.current.classList.remove("ring-2", "ring-red-500", "ring-offset-2");
+                        }, 2000);
+                      }}
+                      else {
+                        placeOrder();
+                      }
+                    }}
                     className={`w-full py-3 rounded-lg font-medium transition-colors flex items-center justify-center ${selectedAddress
-                        ? 'bg-gradient-to-r from-purple-600 to-purple-700 text-white hover:from-purple-700 hover:to-purple-800 shadow-md'
-                        : 'bg-gray-200 text-gray-500 cursor-not-allowed'
+                        ? 'bg-gradient-to-r from-primary to-[#b10024] text-white hover:from-[#b10024] hover:to-[#b10024] shadow-md'
+                        : 'bg-gray-200 text-gray-500'
                       }`}
                   >
                     {!selectedAddress ? (
