@@ -226,11 +226,16 @@ const Sidebar = ({ open, toggleSidebar }) => {
     {
       title: 'Configuration',
       icon: <GrConfigure />,
-      visible: hasRole('Suplier'),
+      visible: hasRole('Configuration'),
       subItems: [
         {
           title: 'Logo_Images',
           path: '/logo',
+          visible: true,
+        },
+         {
+          title: 'Theme',
+          path: '/theme',
           visible: true,
         },
       ],
