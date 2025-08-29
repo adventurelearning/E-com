@@ -46,11 +46,53 @@ const ProductPage = () => {
     isInWishlist,
     fetchWishlistCount
   } = useWishlist();
-const location = useLocation();
-const [colorVariants, setColorVariants] = useState([]);
-const [loadingVariants, setLoadingVariants] = useState(false);
+  const location = useLocation();
+  const [colorVariants, setColorVariants] = useState([]);
+  const [loadingVariants, setLoadingVariants] = useState(false);
 
+  // Function to safely render HTML content
+  const createMarkup = (htmlContent) => {
+    return { __html: htmlContent || '' };
+  };
 
+  // Function to check if special price is active
+  const isSpecialPriceActive = (product) => {
+    if (!product || !product.specialPrice || product.specialPrice <= 0) {
+      return false;
+    }
+    
+    const now = new Date();
+    const startDate = new Date(product.specialPriceStart);
+    const endDate = new Date(product.specialPriceEnd);
+    
+    return now >= startDate && now <= endDate;
+  };
+
+  // Function to get the display price
+  const getDisplayPrice = (product) => {
+    if (isSpecialPriceActive(product)) {
+      return {
+        price: product.specialPrice,
+        originalPrice: product.originalPrice,
+        discountPercent: Math.round(((product.originalPrice - product.specialPrice) / product.originalPrice) * 100),
+        isSpecial: true
+      };
+    } else if (product.discountPrice > 0 && product.discountPrice < product.originalPrice) {
+      return {
+        price: product.discountPrice,
+        originalPrice: product.originalPrice,
+        discountPercent: product.discountPercent,
+        isSpecial: false
+      };
+    } else {
+      return {
+        price: product.originalPrice,
+        originalPrice: null,
+        discountPercent: 0,
+        isSpecial: false
+      };
+    }
+  };
 
   useEffect(() => {
     const fetchProduct = async () => {
@@ -66,22 +108,23 @@ const [loadingVariants, setLoadingVariants] = useState(false);
 
         const enhancedProduct = {
           ...productData,
-          images: productData.images || [
-            'https://images.unsplash.com/photo-1546868871-7041f2a55e12?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=800&q=80',
-            'https://images.unsplash.com/photo-1523275335684-37898b6baf30?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=800&q=80',
-            'https://images.unsplash.com/photo-1571781926291-c477ebfd024b?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=800&q=80'
-          ],
-          colors: productData.colors || ['Black', 'White', 'Blue', 'Red'],
+          images: productData.images,
+          colors: productData.colors,
           sizeChart: productData.sizeChart || [
             { label: 'S', stock: 10 },
             { label: 'M', stock: 15 },
             { label: 'L', stock: 8 },
             { label: 'XL', stock: 5 }
           ],
-          discountPercent: productData.discountPercent || Math.floor(Math.random() * 30) + 5,
-          discountPrice: productData.discountPrice ||
-            Math.round(productData.originalPrice * 0.9),
+          // Calculate discount percent if not provided
+          discountPercent: productData.discountPercent || 
+            (productData.discountPrice > 0 && productData.originalPrice > productData.discountPrice ? 
+              Math.round(((productData.originalPrice - productData.discountPrice) / productData.originalPrice) * 100) : 0),
+          discountPrice: productData.discountPrice || 0,
           originalPrice: productData.originalPrice,
+          specialPrice: productData.specialPrice || 0,
+          specialPriceStart: productData.specialPriceStart || null,
+          specialPriceEnd: productData.specialPriceEnd || null,
           offers: productData.offers || [
             'Bank offer 10% off',
             'No cost EMI available',
@@ -95,7 +138,8 @@ const [loadingVariants, setLoadingVariants] = useState(false);
           warranty: productData.warranty || '1 Year Manufacturer Warranty',
           returnPolicy: productData.returnPolicy || '30 Days Return Policy',
           category: productData.category,
-          description: productData.description || 'This premium product features high-quality materials and craftsmanship. Designed for comfort and durability, it offers excellent value for money. Perfect for everyday use or special occasions.',
+          // Keep the description as is - we'll handle HTML rendering in the component
+          description: productData.description,
           specifications: productData.specifications || [
             { key: 'Material', value: 'Premium Cotton Blend' },
             { key: 'Dimensions', value: '30 x 20 x 5 cm' },
@@ -139,15 +183,18 @@ const [loadingVariants, setLoadingVariants] = useState(false);
             p.id !== currentProductId &&
             p.name !== currentProductName)
           .slice(0, 4)
-          .map(p => ({
-            ...p,
-            images: p.images || ['https://via.placeholder.com/300'],
-            rating: p.averageRating || (Math.random() * 1 + 3.5).toFixed(1),
-            reviews: p.reviews?.length || Math.floor(Math.random() * 200),
-            discountPercent: p.discountPercent || Math.floor(Math.random() * 30) + 5,
-            discountPrice: p.discountPrice || Math.round(p.originalPrice * 0.9),
-            originalPrice: p.originalPrice
-          }));
+          .map(p => {
+            const displayPrice = getDisplayPrice(p);
+            return {
+              ...p,
+              images: p.images || ['https://via.placeholder.com/300'],
+              rating: p.averageRating || (Math.random() * 1 + 3.5).toFixed(1),
+              reviews: p.reviews?.length || Math.floor(Math.random() * 200),
+              discountPercent: displayPrice.discountPercent,
+              discountPrice: displayPrice.price,
+              originalPrice: displayPrice.originalPrice
+            };
+          });
 
         setSimilarProducts(filteredProducts);
       } catch (err) {
@@ -165,43 +212,44 @@ const [loadingVariants, setLoadingVariants] = useState(false);
       setIsFavorite(isInWishlist(id));
     }
   }, [id, isInWishlist]);
-// Add this useEffect for fetching color variants
-useEffect(() => {
-  if (product?.groupId) {
-    const fetchColorVariants = async () => {
-      setLoadingVariants(true);
-      try {
-        const response = await Api.get(`/products/group/${product.groupId}`);
-        // Filter out current product and products without colors
-        const variants = response.data.filter(
-          p => p._id !== id && p.colors && p.colors.length > 0
-        );
-        setColorVariants(variants);
-      } catch (error) {
-        console.error('Failed to fetch color variants', error);
-      } finally {
-        setLoadingVariants(false);
-      }
-    };
-    fetchColorVariants();
-  }
-}, [id, product?.groupId]);
 
-// Add this function to handle variant navigation
-const navigateToVariant = (variantId) => {
-  // Preserve scroll position when navigating to variant
-  navigate(`/productpage/${variantId}`, {
-    state: { scrollPosition: window.scrollY },
-    replace: true
-  });
-};
+  // Add this useEffect for fetching color variants
+  useEffect(() => {
+    if (product?.groupId) {
+      const fetchColorVariants = async () => {
+        setLoadingVariants(true);
+        try {
+          const response = await Api.get(`/products/group/${product.groupId}`);
+          // Filter out current product and products without colors
+          const variants = response.data.filter(
+            p => p._id !== id && p.colors && p.colors.length > 0
+          );
+          setColorVariants(variants);
+        } catch (error) {
+          console.error('Failed to fetch color variants', error);
+        } finally {
+          setLoadingVariants(false);
+        }
+      };
+      fetchColorVariants();
+    }
+  }, [id, product?.groupId]);
 
-// Add this effect to restore scroll position when navigating between variants
-useEffect(() => {
-  if (location.state?.scrollPosition) {
-    window.scrollTo(0, location.state.scrollPosition);
-  }
-}, [location]);
+  // Add this function to handle variant navigation
+  const navigateToVariant = (variantId) => {
+    // Preserve scroll position when navigating to variant
+    navigate(`/productpage/${variantId}`, {
+      state: { scrollPosition: window.scrollY },
+      replace: true
+    });
+  };
+
+  // Add this effect to restore scroll position when navigating between variants
+  useEffect(() => {
+    if (location.state?.scrollPosition) {
+      window.scrollTo(0, location.state.scrollPosition);
+    }
+  }, [location]);
 
   const handleAddToCart = async () => {
     try {
@@ -233,6 +281,7 @@ useEffect(() => {
     try {
       if (isFavorite) {
         // Find the wishlist item ID to remove
+        const wishlistItems = []; // You need to get wishlist items from context
         const itemToRemove = wishlistItems.find(item => item.product._id === id);
         if (itemToRemove) {
           await removeFromWishlist(itemToRemove._id);
@@ -322,6 +371,10 @@ useEffect(() => {
       </div>
     );
   }
+
+  // Get the display price information
+  const displayPrice = getDisplayPrice(product);
+  const isSpecialActive = isSpecialPriceActive(product);
 
   return (
     <div className="bg-gray-50 min-h-screen">
@@ -490,9 +543,14 @@ useEffect(() => {
               )}
 
               {/* Discount Badge */}
-              {product.discountPercent > 0 && (
-                <div className="absolute top-4 left-4 bg-gradient-to-r from-primary to-[#ff5252] text-white text-sm font-bold px-3 py-1 rounded-full shadow-md">
-                  {product.discountPercent}% OFF
+              {displayPrice.discountPercent > 0 && (
+                <div className={`absolute top-4 left-4 text-white text-sm font-bold px-3 py-1 rounded-full shadow-md ${
+                  isSpecialActive 
+                    ? 'bg-gradient-to-r from-orange-500 to-red-500' 
+                    : 'bg-gradient-to-r from-primary to-[#ff5252]'
+                }`}>
+                  {displayPrice.discountPercent}% OFF
+                  {isSpecialActive && <span className="ml-1">(Special)</span>}
                 </div>
               )}
 
@@ -552,6 +610,36 @@ useEffect(() => {
               </div>
             )}
 
+            {/* Special Price Timer (if active) */}
+            {isSpecialActive && product.specialPriceEnd && (
+              <div className="mt-4 p-3 bg-orange-50 border border-orange-200 rounded-lg">
+                <p className="text-orange-800 font-medium text-sm mb-2">
+                  🕒 Special offer ends in:
+                </p>
+                <div className="flex gap-2">
+                  {(() => {
+                    const now = new Date();
+                    const endDate = new Date(product.specialPriceEnd);
+                    const timeLeft = endDate - now;
+                    
+                    if (timeLeft <= 0) return null;
+                    
+                    const days = Math.floor(timeLeft / (1000 * 60 * 60 * 24));
+                    const hours = Math.floor((timeLeft % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                    const minutes = Math.floor((timeLeft % (1000 * 60 * 60)) / (1000 * 60));
+                    
+                    return (
+                      <>
+                        {days > 0 && <span className="bg-orange-500 text-white px-2 py-1 rounded text-xs font-bold">{days}d</span>}
+                        <span className="bg-orange-500 text-white px-2 py-1 rounded text-xs font-bold">{hours}h</span>
+                        <span className="bg-orange-500 text-white px-2 py-1 rounded text-xs font-bold">{minutes}m</span>
+                      </>
+                    );
+                  })()}
+                </div>
+              </div>
+            )}
+
             {/* Quantity Selector and Action Buttons */}
             <div className="mt-8 space-y-4">
               <div className="flex items-center justify-between max-w-xs mx-auto">
@@ -594,8 +682,9 @@ useEffect(() => {
                           name: product.name,
                           images: product.images,
                           originalPrice: product.originalPrice,
-                          discountPrice: product.discountPrice,
-                          discountPercent: product.discountPercent
+                          discountPrice: displayPrice.price,
+                          discountPercent: displayPrice.discountPercent,
+                          isSpecial: displayPrice.isSpecial
                         },
                         quantity
                       }
@@ -633,20 +722,30 @@ useEffect(() => {
             <div className="mt-4 space-y-2">
               <div className="flex items-center flex-wrap gap-2">
                 <span className="text-2xl md:text-3xl font-bold text-gray-900">
-                  ₹{product.discountPrice.toLocaleString()}
+                  ₹{displayPrice.price.toLocaleString()}
                 </span>
-                {product.originalPrice && (
+                {displayPrice.originalPrice && (
                   <span className="text-gray-500 line-through text-lg">
-                    ₹{product.originalPrice.toLocaleString()}
+                    ₹{displayPrice.originalPrice.toLocaleString()}
                   </span>
                 )}
-                {product.discountPercent > 0 && (
-                  <span className="text-primary text-lg font-medium">
-                    Save {product.discountPercent}%
+                {displayPrice.discountPercent > 0 && (
+                  <span className={`text-lg font-medium ${isSpecialActive ? 'text-orange-600' : 'text-primary'}`}>
+                    Save {displayPrice.discountPercent}%
+                    {isSpecialActive && <span className="ml-1">(Special)</span>}
                   </span>
                 )}
               </div>
               <p className="text-sm text-gray-500">Inclusive of all taxes</p>
+              
+              {/* Special Price Info */}
+              {isSpecialActive && (
+                <div className="mt-2 p-2 bg-orange-50 border border-orange-100 rounded-md">
+                  <p className="text-orange-700 text-sm">
+                    🎉 Special price valid until {new Date(product.specialPriceEnd).toLocaleDateString()}
+                  </p>
+                </div>
+              )}
             </div>
 
             {/* Color Selection */}
@@ -681,56 +780,75 @@ useEffect(() => {
                   </div>
                 ) : colorVariants.length > 0 ? (
                   <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
-                    {colorVariants.map(variant => (
-                      <motion.div
-                        key={variant._id}
-                        className="flex flex-col items-center cursor-pointer group"
-                        whileHover={{ scale: 1.03 }}
-                        whileTap={{ scale: 0.98 }}
-                        onClick={() => navigateToVariant(variant._id)}
-                      >
-                        <div className="relative w-full aspect-square bg-gray-100 rounded-lg overflow-hidden border-2 border-transparent group-hover:border-primary transition-all">
-                          {variant.images?.[0] ? (
-                            <img
-                              src={variant.images[0]}
-                              alt={variant.name}
-                              className="w-full h-full object-contain"
-                            />
-                          ) : (
-                            <div className="flex items-center justify-center h-full text-gray-400">
-                              No Image
-                            </div>
-                          )}
-
-                          {variant.colors?.[0] === selectedColor && (
-                            <div className="absolute top-2 right-2 bg-primary text-white text-xs px-2 py-1 rounded-full">
-                              Current
-                            </div>
-                          )}
-                        </div>
-
-                        <div className="mt-2 text-center">
-                          <div className="flex justify-center items-center gap-1">
-                            {variant.colors?.map((color, idx) => (
-                              <div
-                                key={idx}
-                                className={`w-4 h-4 rounded-full border ${color === selectedColor ? 'border-primary' : 'border-gray-300'}`}
-                                style={{ backgroundColor: color.toLowerCase() }}
-                                title={color}
+                    {colorVariants.map(variant => {
+                      const variantDisplayPrice = getDisplayPrice(variant);
+                      return (
+                        <motion.div
+                          key={variant._id}
+                          className="flex flex-col items-center cursor-pointer group"
+                          whileHover={{ scale: 1.03 }}
+                          whileTap={{ scale: 0.98 }}
+                          onClick={() => navigateToVariant(variant._id)}
+                        >
+                          <div className="relative w-full aspect-square bg-gray-100 rounded-lg overflow-hidden border-2 border-transparent group-hover:border-primary transition-all">
+                            {variant.images?.[0] ? (
+                              <img
+                                src={variant.images[0]}
+                                alt={variant.name}
+                                className="w-full h-full object-contain"
                               />
-                            ))}
+                            ) : (
+                              <div className="flex items-center justify-center h-full text-gray-400">
+                                No Image
+                              </div>
+                            )}
+
+                            {variant.colors?.[0] === selectedColor && (
+                              <div className="absolute top-2 right-2 bg-primary text-white text-xs px-2 py-1 rounded-full">
+                                Current
+                              </div>
+                            )}
+                            
+                            {/* Discount badge for variant */}
+                            {variantDisplayPrice.discountPercent > 0 && (
+                              <div className={`absolute top-2 left-2 text-white text-xs font-bold px-2 py-1 rounded ${
+                                isSpecialPriceActive(variant) 
+                                  ? 'bg-orange-500' 
+                                  : 'bg-primary'
+                              }`}>
+                                {variantDisplayPrice.discountPercent}% OFF
+                              </div>
+                            )}
                           </div>
-                          <span className="text-sm font-medium mt-1">
-                            {variant.colors?.[0] || 'Color variant'}
-                          </span>
-                          <div className="flex items-center justify-center mt-1">
-                            <span className="text-sm font-bold text-primary">
-                              ₹{(variant.discountPrice || variant.originalPrice || 0).toLocaleString()}
+
+                          <div className="mt-2 text-center">
+                            <div className="flex justify-center items-center gap-1">
+                              {variant.colors?.map((color, idx) => (
+                                <div
+                                  key={idx}
+                                  className={`w-4 h-4 rounded-full border ${color === selectedColor ? 'border-primary' : 'border-gray-300'}`}
+                                  style={{ backgroundColor: color.toLowerCase() }}
+                                  title={color}
+                                />
+                              ))}
+                            </div>
+                            <span className="text-sm font-medium mt-1">
+                              {variant.colors?.[0] || 'Color variant'}
                             </span>
+                            <div className="flex items-center justify-center mt-1">
+                              <span className="text-sm font-bold text-primary">
+                                ₹{(variantDisplayPrice.price || 0).toLocaleString()}
+                              </span>
+                              {variantDisplayPrice.originalPrice && (
+                                <span className="text-gray-500 line-through text-xs ml-1">
+                                  ₹{variantDisplayPrice.originalPrice.toLocaleString()}
+                                </span>
+                              )}
+                            </div>
                           </div>
-                        </div>
-                      </motion.div>
-                    ))}
+                        </motion.div>
+                      );
+                    })}
                   </div>
                 ) : (
                   <div className="text-center py-8 text-gray-500">
@@ -853,7 +971,11 @@ useEffect(() => {
             {activeTab === 'description' && (
               <div>
                 <h3 className="font-medium text-lg mb-4 text-gray-800">Product Details</h3>
-                <p className="text-gray-700 mb-6">{product.description}</p>
+                {/* Use dangerouslySetInnerHTML to render HTML content */}
+                <div 
+                  className="text-gray-700 mb-6 product-description"
+                  dangerouslySetInnerHTML={createMarkup(product.description)}
+                />
 
                 {product.featureDescriptions?.length > 0 && (
                   <div className="mt-6">
@@ -1055,59 +1177,69 @@ useEffect(() => {
             </div>
           ) : similarProducts.length > 0 ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-              {similarProducts.map((item) => (
-                <motion.div
-                  key={item.id}
-                  className="relative border rounded-xl overflow-hidden hover:shadow-lg transition-shadow bg-white group"
-                  whileHover={{ y: -5 }}
-                  transition={{ duration: 0.2 }}
-                >
-                  <Link to={`/productpage/${item._id}`} className="block">
-                    <div className="relative h-48 bg-gray-100 flex items-center justify-center p-4">
-                      <img
-                        src={item.images[0]}
-                        alt={item.name}
-                        className="h-full w-full object-contain transition-transform duration-300 group-hover:scale-105"
-                      />
-                      {item.discountPercent > 0 && (
-                        <div className="absolute top-3 left-3 bg-primary text-white text-xs font-bold px-2 py-1 rounded">
-                          {item.discountPercent}% OFF
-                        </div>
-                      )}
-                    </div>
-                    <div className="p-4">
-                      <h3 className="font-medium text-gray-900 line-clamp-2 h-12 mb-2">{item.name}</h3>
-                      <div className="flex items-center mb-2">
-                        <Rating
-                          initialValue={item.averageRating}
-                          readonly
-                          size={15}
-                          className="mr-2"
-                          SVGstyle={{ display: 'inline-block' }}
+              {similarProducts.map((item) => {
+                const itemDisplayPrice = getDisplayPrice(item);
+                const isItemSpecialActive = isSpecialPriceActive(item);
+                
+                return (
+                  <motion.div
+                    key={item.id}
+                    className="relative border rounded-xl overflow-hidden hover:shadow-lg transition-shadow bg-white group"
+                    whileHover={{ y: -5 }}
+                    transition={{ duration: 0.2 }}
+                  >
+                    <Link to={`/productpage/${item._id}`} className="block">
+                      <div className="relative h-48 bg-gray-100 flex items-center justify-center p-4">
+                        <img
+                          src={item.images[0]}
+                          alt={item.name}
+                          className="h-full w-full object-contain transition-transform duration-300 group-hover:scale-105"
                         />
-                        <span className="text-gray-600 text-sm">({item.reviews?.length || 0})</span>
-                      </div>
-                      <div className="space-y-1">
-                        <span className="text-lg font-bold text-gray-900">
-                          ₹{(item.discountPrice || 0).toLocaleString()}
-                        </span>
-                        {item.originalPrice && (
-                          <div className="flex items-center gap-2">
-                            <span className="text-gray-500 line-through text-sm">
-                              ₹{item.originalPrice.toLocaleString()}
-                            </span>
-                            {item.discountPercent > 0 && (
-                              <span className="text-primary text-sm">
-                                {item.discountPercent}% off
-                              </span>
-                            )}
+                        {itemDisplayPrice.discountPercent > 0 && (
+                          <div className={`absolute top-3 left-3 text-white text-xs font-bold px-2 py-1 rounded ${
+                            isItemSpecialActive 
+                              ? 'bg-orange-500' 
+                              : 'bg-primary'
+                          }`}>
+                            {itemDisplayPrice.discountPercent}% OFF
+                            {isItemSpecialActive && <span className="ml-1 text-xs">Special</span>}
                           </div>
                         )}
                       </div>
-                    </div>
-                  </Link>
-                </motion.div>
-              ))}
+                      <div className="p-4">
+                        <h3 className="font-medium text-gray-900 line-clamp-2 h-12 mb-2">{item.name}</h3>
+                        <div className="flex items-center mb-2">
+                          <Rating
+                            initialValue={item.averageRating}
+                            readonly
+                            size={15}
+                            className="mr-2"
+                            SVGstyle={{ display: 'inline-block' }}
+                          />
+                          <span className="text-gray-600 text-sm">({item.reviews?.length || 0})</span>
+                        </div>
+                        <div className="space-y-1">
+                          <span className="text-lg font-bold text-gray-900">
+                            ₹{(itemDisplayPrice.price || 0).toLocaleString()}
+                          </span>
+                          {itemDisplayPrice.originalPrice && (
+                            <div className="flex items-center gap-2">
+                              <span className="text-gray-500 line-through text-sm">
+                                ₹{itemDisplayPrice.originalPrice.toLocaleString()}
+                              </span>
+                              {itemDisplayPrice.discountPercent > 0 && (
+                                <span className={`text-sm ${isItemSpecialActive ? 'text-orange-600' : 'text-primary'}`}>
+                                  {itemDisplayPrice.discountPercent}% off
+                                </span>
+                              )}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </Link>
+                  </motion.div>
+                );
+              })}
             </div>
           ) : (
             <div className="text-center py-12">

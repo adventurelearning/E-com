@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import Api from '../../Services/Api';
-import { FaChevronLeft, FaChevronRight, FaHeart, FaRegHeart, FaStar, FaShoppingCart } from 'react-icons/fa';
+import { FaChevronLeft, FaChevronRight, FaHeart, FaRegHeart, FaStar, FaShoppingCart, FaChevronDown, FaChevronUp } from 'react-icons/fa';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 
@@ -8,6 +8,7 @@ const ProductCard = ({ product }) => {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [isHovered, setIsHovered] = useState(false);
   const [isFavorite, setIsFavorite] = useState(false);
+  const [showAllOffers, setShowAllOffers] = useState(false);
   const navigate = useNavigate();
 
   const nextImage = () => {
@@ -40,6 +41,11 @@ const ProductCard = ({ product }) => {
     handleClick()
   };
 
+  const toggleShowOffers = (e) => {
+    e.stopPropagation();
+    setShowAllOffers(!showAllOffers);
+  };
+
   return (
     <motion.div 
       className="border rounded-lg p-4 hover:shadow-lg transition-shadow bg-white flex flex-col h-full"
@@ -57,11 +63,13 @@ const ProductCard = ({ product }) => {
           <h2 className="text-lg font-semibold line-clamp-1">
             {product.name} ({product.colors})
           </h2>
-          <div className="flex items-center gap-2">
-            <span className="bg-green-100 text-green-800 text-xs px-2 py-1 rounded">
-              Assured
-            </span>
-          </div>
+          <button 
+            onClick={toggleFavorite}
+            className="text-red-500 hover:text-red-700 transition-colors"
+            aria-label={isFavorite ? "Remove from favorites" : "Add to favorites"}
+          >
+            {isFavorite ? <FaHeart /> : <FaRegHeart />}
+          </button>
         </div>
         
         {/* Image Carousel */}
@@ -142,14 +150,41 @@ const ProductCard = ({ product }) => {
             <span className="text-green-600 text-sm font-medium ml-2">{product.discountPercent}% off</span>
           </div>
           
-          {product.offers && (
+          {product.offers && product.offers.length > 0 && (
             <div className="mt-2 text-xs text-green-700">
-              {product.offers.map((offer, i) => (
-                <div key={i} className="flex items-start mb-1">
+              {/* Show first offer always */}
+              <div className="flex items-start mb-1">
+                <span className="mr-1">•</span>
+                <span>{product.offers[0]}</span>
+              </div>
+              
+              {/* Show additional offers if expanded */}
+              {showAllOffers && product.offers.slice(1).map((offer, i) => (
+                <div key={i+1} className="flex items-start mb-1">
                   <span className="mr-1">•</span>
                   <span>{offer}</span>
                 </div>
               ))}
+              
+              {/* Show toggle button if there are more offers */}
+              {product.offers.length > 1 && (
+                <button 
+                  onClick={toggleShowOffers}
+                  className="text-primary flex items-center mt-1"
+                >
+                  {showAllOffers ? (
+                    <>
+                      <span>Show less</span>
+                      <FaChevronUp className="ml-1 text-xs" />
+                    </>
+                  ) : (
+                    <>
+                      <span>+{product.offers.length - 1} more offers</span>
+                      <FaChevronDown className="ml-1 text-xs" />
+                    </>
+                  )}
+                </button>
+              )}
             </div>
           )}
         </div>
@@ -164,6 +199,14 @@ const ProductCard = ({ product }) => {
           </div>
           <span className="text-gray-500 text-sm ml-2">({product.reviews || 124} reviews)</span>
         </div>
+        
+        <button 
+          onClick={handleAddToCart}
+          className="p-2 text-gray-600 hover:text-primary transition-colors"
+          aria-label="Add to cart"
+        >
+          <FaShoppingCart />
+        </button>
       </div>
     </motion.div>
   );
@@ -176,7 +219,7 @@ const ProductList = () => {
   const [filter, setFilter] = useState('all');
   const [sortBy, setSortBy] = useState('featured');
   const [visibleCount, setVisibleCount] = useState(5); // Initial count per category
-  const [loadMoreCount, setLoadMoreCount] = useState(10); // Count to load more
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchProducts = async () => {
@@ -204,18 +247,6 @@ const ProductList = () => {
     fetchProducts();
   }, []);
 
-  // Group products by category
-  const groupProductsByCategory = () => {
-    const grouped = {};
-    products.forEach(product => {
-      if (!grouped[product.category]) {
-        grouped[product.category] = [];
-      }
-      grouped[product.category].push(product);
-    });
-    return grouped;
-  };
-
   const filteredProducts = () => {
     let result = [...products];
     
@@ -233,35 +264,66 @@ const ProductList = () => {
     } else if (sortBy === 'price-high') {
       result.sort((a, b) => b.discountPrice - a.discountPrice);
     } else if (sortBy === 'rating') {
-      result.sort((a, b) => b.rating - a.rating);
+      result.sort((a, b) => (b.rating || 0) - (a.rating || 0));
     }
     
     return result;
   };
 
-  const getVisibleProducts = () => {
-    const grouped = groupProductsByCategory();
-    let visibleProducts = [];
-    
-    // For each category, take only the first 'visibleCount' products
-    Object.keys(grouped).forEach(category => {
-      visibleProducts = [
-        ...visibleProducts,
-        ...grouped[category].slice(0, visibleCount)
-      ];
+  // Group products by category AFTER filtering and sorting
+  const groupProductsByCategory = (productsToGroup) => {
+    const grouped = {};
+    productsToGroup.forEach(product => {
+      if (!grouped[product.category]) {
+        grouped[product.category] = [];
+      }
+      grouped[product.category].push(product);
     });
-    
-    return visibleProducts;
+    return grouped;
   };
 
+  // Get the filtered and sorted products
+  const filteredAndSortedProducts = filteredProducts();
+  
+  // Group the filtered products by category
+  const groupedProducts = groupProductsByCategory(filteredAndSortedProducts);
+
+  // Get visible products for each category
+  const getVisibleProductsByCategory = () => {
+    const result = {};
+    
+    // For each category, take only the first 'visibleCount' products
+    Object.keys(groupedProducts).forEach(category => {
+      result[category] = groupedProducts[category].slice(0, visibleCount);
+    });
+    
+    return result;
+  };
+
+  const visibleProductsByCategory = getVisibleProductsByCategory();
+
   const handleLoadMore = () => {
-    setVisibleCount(prev => prev + loadMoreCount);
+    setVisibleCount(prev => prev + 5); // Load 5 more products per category
+  };
+
+  // Check if there are more products to load in any category
+  const hasMoreProducts = () => {
+    return Object.keys(groupedProducts).some(
+      category => groupedProducts[category].length > visibleProductsByCategory[category].length
+    );
+  };
+
+  // Function to navigate to category page
+  const navigateToCategory = (category) => {
+    // Convert category name to URL-friendly format
+    const categorySlug = category.toLowerCase().replace(/\s+/g, '-');
+    navigate(`/category/${categorySlug}`);
   };
 
   if (loading) {
     return (
       <div className="flex justify-center items-center h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-secondary"></div>
       </div>
     );
   }
@@ -273,7 +335,7 @@ const ProductList = () => {
         <p>{error}</p>
         <button 
           onClick={() => window.location.reload()} 
-          className="mt-4 bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition-colors"
+          className="mt-4 bg-secondary text-white px-4 py-2 rounded hover:bg-primary transition-colors"
         >
           Try Again
         </button>
@@ -293,7 +355,7 @@ const ProductList = () => {
               id="filter"
               value={filter}
               onChange={(e) => setFilter(e.target.value)}
-              className="border rounded-md px-3 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="border rounded-md px-3 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-secondary"
             >
               <option value="all">All Products</option>
               <option value="discount">Big Discounts</option>
@@ -307,7 +369,7 @@ const ProductList = () => {
               id="sort"
               value={sortBy}
               onChange={(e) => setSortBy(e.target.value)}
-              className="border rounded-md px-3 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="border rounded-md px-3 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-secondary"
             >
               <option value="featured">Featured</option>
               <option value="price-low">Price: Low to High</option>
@@ -318,7 +380,7 @@ const ProductList = () => {
         </div>
       </div>
       
-      {filteredProducts().length === 0 ? (
+      {filteredAndSortedProducts.length === 0 ? (
         <div className="text-center py-12">
           <h3 className="text-lg font-medium text-gray-700">No products match your filters</h3>
           <button 
@@ -326,7 +388,7 @@ const ProductList = () => {
               setFilter('all');
               setSortBy('featured');
             }}
-            className="mt-4 text-blue-600 hover:underline"
+            className="mt-4 text-primary hover:underline"
           >
             Clear filters
           </button>
@@ -334,15 +396,24 @@ const ProductList = () => {
       ) : (
         <>
           {/* Display products grouped by category */}
-          {Object.entries(groupProductsByCategory()).map(([category, categoryProducts]) => (
+          {Object.entries(visibleProductsByCategory).map(([category, categoryProducts]) => (
             <div key={category}>
-              <h2 className="text-xl font-semibold mb-4 mt-8">{category}</h2>
+              <div className="flex justify-between items-center mb-4 mt-8">
+                <h2 className="text-xl font-semibold">{category}</h2>
+                {groupedProducts[category].length > visibleCount && (
+                  <button 
+                    onClick={() => navigateToCategory(category)}
+                    className="text-primary hover:underline flex items-center"
+                  >
+                    See More
+                    <FaChevronRight className="ml-1 text-xs" />
+                  </button>
+                )}
+              </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 gap-3">
-                {categoryProducts
-                  .slice(0, visibleCount) // Only show visibleCount products per category
-                  .map((product) => (
-                    <ProductCard key={product.id} product={product} />
-                  ))}
+                {categoryProducts.map((product) => (
+                  <ProductCard key={product.id} product={product} />
+                ))}
               </div>
             </div>
           ))}
@@ -350,7 +421,7 @@ const ProductList = () => {
       )}
       
       {/* Show Load More button if there are more products to show */}
-      {products.length > getVisibleProducts().length && (
+      {/* {hasMoreProducts() && (
         <div className="mt-8 flex justify-center">
           <button 
             onClick={handleLoadMore}
@@ -359,7 +430,7 @@ const ProductList = () => {
             Load More Products
           </button>
         </div>
-      )}
+      )} */}
     </div>
   );
 };
