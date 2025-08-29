@@ -121,6 +121,39 @@ const Sidebar = ({ open, toggleSidebar }) => {
       ],
     },
     {
+      title: 'Sales',
+      icon: <GrConfigure />,
+      visible: hasRole('Sales'),
+      subItems: [
+        {
+          title: 'Orders',
+          path: '/orders',
+          visible: true,
+        },
+         {
+          title: 'Shipments',
+          path: '/shipments',
+          visible: true,
+        },
+         {
+          title: 'Invoices',
+          path: '/invoices',
+          visible: true,
+        },
+         {
+          title: 'Refunds',
+          path: '/refunds',
+          visible: true,
+        },
+         {
+          title: 'Transactions',
+          path: '/transactions',
+          visible: true,
+        },
+
+      ],
+    },
+    {
       title: 'Banners',
       icon: <FiImage />,
       visible: hasRole('Banners'),
