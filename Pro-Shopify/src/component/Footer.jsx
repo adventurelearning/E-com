@@ -58,12 +58,12 @@ const Footer = () => {
           {/* Contact Us Section */}
           <div className="space-y-4">
             <h2 className="text-2xl font-bold text-black mb-4 relative pb-2 after:content-[''] 
-            after:absolute after:bottom-0 after:left-0 after:w-16 after:h-1 after:bg-[#d10024]">
+            after:absolute after:bottom-0 after:left-0 after:w-16 after:h-1 after:bg-primary">
               Contact Us
             </h2>
             <div className="space-y-3">
               <div className="flex items-start">
-                <div className="mt-1 mr-3 text-[#d10024]">
+                <div className="mt-1 mr-3 text-primary">
                   <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" 
                   fill="currentColor">
                     <path fillRule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 
@@ -78,20 +78,20 @@ const Footer = () => {
               </div>
               
               <div className="flex items-center">
-                <FaEnvelope className="text-[#d10024] mr-3" />
-                <a href={`mailto:${footerData.email}`} className="hover:text-[#d10024] transition-colors">
+                <FaEnvelope className="text-primary mr-3" />
+                <a href={`mailto:${footerData.email}`} className="hover:text-primary transition-colors">
                   {footerData.email}
                 </a>
               </div>
               
               <div className="flex items-center">
-                <FaPhoneAlt className="text-[#d10024] mr-3" />
-                <a href={`tel:${footerData.phone}`} className="hover:text-[#d10024] transition-colors">
+                <FaPhoneAlt className="text-primary mr-3" />
+                <a href={`tel:${footerData.phone}`} className="hover:text-primary transition-colors">
                   {footerData.phone}
                 </a>
               </div>
               
-              <button className="flex items-center mt-4 bg-[#d10024] hover:bg-[#d10024] text-white 
+              <button className="flex items-center mt-4 bg-primary hover:bg-primary text-white 
               px-2 py-3 rounded-lg transition-all transform hover:-translate-y-1">
                 <FaCommentAlt className="mr-2" />
                 <span>{footerData.chatButtonText}</span>
@@ -103,7 +103,7 @@ const Footer = () => {
           {footerData.productsSections.map((section, sectionIndex) => (
             <div key={sectionIndex}>
               <h3 className="text-xl font-bold text-black mb-4 relative pb-2 after:content-[''] 
-              after:absolute after:bottom-0 after:left-0 after:w-16 after:h-1 after:bg-[#d10024]">
+              after:absolute after:bottom-0 after:left-0 after:w-16 after:h-1 after:bg-primary">
                 {section.title}
               </h3>
               <div className="space-y-3">
@@ -111,9 +111,9 @@ const Footer = () => {
                   <a 
                     key={linkIndex} 
                     href={link.url} 
-                    className="hover:text-[#d10024] transition-colors flex items-center group block"
+                    className="hover:text-primary transition-colors flex items-center group block"
                   >
-                    <FaArrowRight className="mr-2 text-xs text-[#d10024] opacity-0 group-hover:opacity-100 transition-opacity" />
+                    <FaArrowRight className="mr-2 text-xs text-primary opacity-0 group-hover:opacity-100 transition-opacity" />
                     {link.text}
                   </a>
                 ))}
@@ -133,7 +133,7 @@ const Footer = () => {
               <a 
                 key={index} 
                 href={social.url} 
-                className="text-black-400 hover:text-[#d10024] transition-colors"
+                className="text-black-400 hover:text-primary transition-colors"
                 target="_blank"
                 rel="noopener noreferrer"
               >

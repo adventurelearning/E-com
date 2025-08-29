@@ -44,6 +44,7 @@ const Wishlist = () => {
 
       toast.success('Product added to cart!');
       fetchCartCount(); // Update cart count in the UI
+      navigate('/addtocart'); // Navigate to cart page
       // Optionally, you might want to remove the item from wishlist after adding to cart
       // This depends on your business logic. If so, call handleRemoveItem here as well:
       // handleRemoveItem(wishlistItemId); // You would need to pass the wishlist item _id

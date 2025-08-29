@@ -12,6 +12,12 @@ router.post('/', protect, async (req, res) => {
   try {
     const { productId, rating, comment, images, detailedRatings } = req.body;
     
+    // Get user details
+    const user = await User.findById(req.user.id);
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+    
     // Convert detailedRatings object to Map
     const ratingsMap = new Map();
     if (detailedRatings) {
@@ -23,6 +29,12 @@ router.post('/', protect, async (req, res) => {
     const review = new Review({
       product: productId,
       user: req.user.id,
+      userDetails: {
+        name: user.name,
+        photoURL: user.photoURL || "",
+        email: user.email,
+        phone: user.phone || ""
+      },
       rating,
       comment,
       images,
@@ -43,48 +55,64 @@ router.post('/', protect, async (req, res) => {
 // @access  Public
 router.get('/product/:productId', async (req, res) => {
   try {
-    const reviews = await Review.find({ product: req.params.productId })
-      .populate('user', 'name photoURL')
-      .sort({ createdAt: -1 });
-      
+    let reviews = await Review.find({ product: req.params.productId })
+      .populate('user', 'name photoURL') // try to populate
+      .sort({ createdAt: -1 })
+      .lean(); // return plain objects (so we can modify them easily)
+
+    // Replace missing user with stored userDetails
+    reviews = reviews.map(r => {
+      if (!r.user) {
+        r.user = { ...r.userDetails }; // fallback
+      }
+      return r;
+    });
+
     res.json(reviews);
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: 'Server Error' });
   }
 });
+
 
 // @desc    Get all reviews (Admin)
 // @route   GET /api/reviews/admin
 // @access  Private/Admin
-router.get('/admin', protect,requireRole('admin'), async (req, res) => {
-  try {
-    const reviews = await Review.find()
-      .populate('user', 'name')
-      .populate('product', 'name')
-      .sort({ createdAt: -1 });
-      
-    res.json(reviews);
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: 'Server Error' });
+router.get('/admin', protect,requireRole('admin'),async (req, res) => {
+    try {
+      let reviews = await Review.find()
+        .populate('user', 'name')       // try to populate
+        .populate('product', 'name')    // populate product
+        .sort({ createdAt: -1 })
+        .lean(); // plain objects so we can safely modify
+
+      // fallback user if deleted
+      reviews = reviews.map(r => {
+        if (!r.user) {
+          r.user = { ...r.userDetails }; // fallback details
+        }
+        return r;
+      });
+
+      res.json(reviews);
+    } catch (err) {
+      console.error(err);
+      res.status(500).json({ message: 'Server Error' });
+    }
   }
-});
+);
 
-// Add this to your review routes
-router.put('/admin-comment/:id', protect,requireRole('admin'), async (req, res) => {
+// @desc    Add admin comment to review
+// @route   PUT /api/reviews/admin-comment/:id
+// @access  Private/Admin
+router.put('/admin-comment/:id', protect, requireRole('admin'), async (req, res) => {
   try {
-    console.log(`Current admin comment: ${req.body}`);
-
-    console.log(`Updating admin comment for review ID: ${req.params.id}`);
-    
     const review = await Review.findById(req.params.id);
-    console.log(`Found review: ${review ? 'Yes' : 'No'}`);
     
     if (!review) {
       return res.status(404).json({ message: 'Review not found' });
     }
-console.log(`Current admin comment: ${req.body.adminComment}`);
 
     review.adminComment = req.body.adminComment;
     await review.save();
@@ -106,7 +134,7 @@ router.delete('/:id', protect, requireRole('admin'), async (req, res) => {
       return res.status(404).json({ message: 'Review not found' });
     }
 
-    await review.deleteOne(); // OR use findByIdAndDelete directly
+    await review.deleteOne();
     res.json({ message: 'Review removed' });
 
   } catch (err) {
@@ -114,6 +142,5 @@ router.delete('/:id', protect, requireRole('admin'), async (req, res) => {
     res.status(500).json({ message: 'Server Error' });
   }
 });
-
 
 module.exports = router;
