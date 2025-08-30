@@ -114,7 +114,7 @@ const Search = () => {
                 )}
                 
                 <Button 
-                    className='!absolute top-[8px] right-[5px] z-[100] !w-[35px] !min-w-[35px] h-[35px] !rounded-full !text-black hover:!bg-gray-200'
+                    className='!absolute top-[8px] right-[5px] z-50 !w-[35px] !min-w-[35px] h-[35px] !rounded-full !text-black hover:!bg-gray-200'
                     onClick={handleSearch}
                     disabled={!searchTerm.trim()}
                     sx={{

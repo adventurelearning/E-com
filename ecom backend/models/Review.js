@@ -11,6 +11,25 @@ const reviewSchema = new mongoose.Schema({
         ref: 'User',
         required: true
     },
+    // Store user details directly in case user account is deleted
+    userDetails: {
+        name: {
+            type: String,
+            required: true
+        },
+        photoURL: {
+            type: String,
+            default: ""
+        },
+        email: {
+            type: String,
+            required: true
+        },
+        phone: {
+            type: String,
+            default: ""
+        }
+    },
     rating: {
         type: Number,
         required: true,

@@ -72,7 +72,6 @@ const AddReview = ({ open, onClose, product, onSubmit }) => {
           'Authorization': `Bearer ${localStorage.getItem('token')}`
         }
       });
-console.log(response.data);
 
       // Update with server URL and filename
       setImages(prev =>
@@ -123,6 +122,11 @@ console.log(response.data);
       return;
     }
     
+    if (comment.length > 500) {
+      setError('Comment must be 500 characters or less');
+      return;
+    }
+    
     // Check if any images are still uploading
     if (images.some(img => img.status === 'uploading' || img.status === 'pending')) {
       setError('Please wait for all images to finish uploading');
@@ -130,6 +134,8 @@ console.log(response.data);
     }
     
     setLoading(true);
+    setError('');
+    
     try {
       const reviewData = {
         productId: product._id,
@@ -140,23 +146,46 @@ console.log(response.data);
           .filter(img => img.status === 'uploaded')
           .map(img => img.serverFilename)
       };
-      console.log('reviewData:', reviewData);
       
       await onSubmit(reviewData);
+      // Reset form on successful submission
+      setRating(0);
+      setDetailedRatings({});
+      setComment('');
+      setImages([]);
     } catch (err) {
       setError(err.message || 'Failed to submit review');
+      // enqueueSnackbar('Failed to submit review', { variant: 'error' });
     } finally {
       setLoading(false);
     }
   };
-console.log(images);
+
+  const handleClose = () => {
+    // Clean up any blob URLs before closing
+    images.forEach(img => {
+      if (img.url.startsWith('blob:')) {
+        URL.revokeObjectURL(img.url);
+      }
+    });
+    
+    // Reset form state
+    setRating(0);
+    setDetailedRatings({});
+    setComment('');
+    setImages([]);
+    setError('');
+    
+    // Call parent's onClose
+    onClose();
+  };
 
   return (
-    <Dialog open={open} onClose={onClose} fullWidth maxWidth="sm">
+    <Dialog open={open} onClose={handleClose} fullWidth maxWidth="sm">
       <DialogTitle>
         <Box display="flex" justifyContent="space-between" alignItems="center">
           <Typography variant="h6">Review {product?.name}</Typography>
-          <IconButton onClick={onClose}>
+          <IconButton onClick={handleClose} disabled={loading}>
             <Close />
           </IconButton>
         </Box>
@@ -208,6 +237,9 @@ console.log(images);
             value={comment}
             onChange={(e) => setComment(e.target.value)}
             sx={{ mt: 3 }}
+            inputProps={{ maxLength: 500 }}
+            helperText={`${comment.length}/500 characters`}
+            error={comment.length > 500}
           />
           
           <Box sx={{ mt: 3, p: 2, bgcolor: 'background.paper', borderRadius: 2, border: '1px solid', borderColor: 'divider' }}>
@@ -220,7 +252,7 @@ console.log(images);
                 variant="outlined"
                 component="label"
                 startIcon={<PhotoCamera />}
-                disabled={images.length >= 5}
+                disabled={images.length >= 5 || loading}
                 sx={{ 
                   bgcolor: images.length >= 5 ? 'action.disabledBackground' : '',
                   '&:hover': {
@@ -235,7 +267,7 @@ console.log(images);
                   multiple
                   accept="image/*"
                   onChange={handleImageSelect}
-                  disabled={images.length >= 5}
+                  disabled={images.length >= 5 || loading}
                 />
               </Button>
               
@@ -250,93 +282,93 @@ console.log(images);
               </Typography>
             )}
             
-<Grid container  spacing={2} sx={{ mt: 1 }}>
-  {images.map((image, index) => (
-    <Grid item key={index}>
-      <Box
-        sx={{
-          position: 'relative',
-          width: 150, // or any fixed width you like
-          height: 150,
-          bgcolor: 'grey.100',
-          borderRadius: 1,
-          overflow: 'hidden',
-          border: '1px solid',
-          borderColor: image.status === 'error' ? 'error.main' : 'divider'
-        }}
-      >
-        <img
-          src={image.url}
-          alt={`Preview ${index}`}
-          style={{
-            width: '100%',
-            height: '100%',
-            objectFit: 'contain'
-          }}
-        />
+            <Grid container spacing={2} sx={{ mt: 1 }}>
+              {images.map((image, index) => (
+                <Grid item key={index}>
+                  <Box
+                    sx={{
+                      position: 'relative',
+                      width: 150,
+                      height: 150,
+                      bgcolor: 'grey.100',
+                      borderRadius: 1,
+                      overflow: 'hidden',
+                      border: '1px solid',
+                      borderColor: image.status === 'error' ? 'error.main' : 'divider'
+                    }}
+                  >
+                    <img
+                      src={image.url}
+                      alt={`Preview ${index}`}
+                      style={{
+                        width: '100%',
+                        height: '100%',
+                        objectFit: 'contain'
+                      }}
+                    />
 
-        {/* Delete Button */}
-        <IconButton
-          size="small"
-          onClick={() => removeImage(index)}
-          sx={{
-            position: 'absolute',
-            top: 4,
-            right: 4,
-            bgcolor: 'error.main',
-            color: 'white',
-            '&:hover': {
-              bgcolor: 'error.dark'
-            }
-          }}
-        >
-          <Delete fontSize="small" />
-        </IconButton>
+                    {/* Delete Button */}
+                    <IconButton
+                      size="small"
+                      onClick={() => removeImage(index)}
+                      disabled={loading}
+                      sx={{
+                        position: 'absolute',
+                        top: 4,
+                        right: 4,
+                        bgcolor: 'error.main',
+                        color: 'white',
+                        '&:hover': {
+                          bgcolor: 'error.dark'
+                        }
+                      }}
+                    >
+                      <Delete fontSize="small" />
+                    </IconButton>
 
-        {/* Uploading Overlay */}
-        {image.status === 'uploading' && (
-          <Box
-            sx={{
-              position: 'absolute',
-              top: 0,
-              left: 0,
-              right: 0,
-              bottom: 0,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              bgcolor: 'rgba(255,255,255,0.7)'
-            }}
-          >
-            <CircularProgress size={24} />
-          </Box>
-        )}
+                    {/* Uploading Overlay */}
+                    {image.status === 'uploading' && (
+                      <Box
+                        sx={{
+                          position: 'absolute',
+                          top: 0,
+                          left: 0,
+                          right: 0,
+                          bottom: 0,
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          bgcolor: 'rgba(255,255,255,0.7)'
+                        }}
+                      >
+                        <CircularProgress size={24} />
+                      </Box>
+                    )}
 
-        {/* Error Overlay */}
-        {image.status === 'error' && (
-          <Box
-            sx={{
-              position: 'absolute',
-              top: 0,
-              left: 0,
-              right: 0,
-              bottom: 0,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              bgcolor: 'rgba(255,0,0,0.1)'
-            }}
-          >
-            <Typography variant="caption" color="error">
-              Upload Failed
-            </Typography>
-          </Box>
-        )}
-      </Box>
-    </Grid>
-  ))}
-</Grid>
-
+                    {/* Error Overlay */}
+                    {image.status === 'error' && (
+                      <Box
+                        sx={{
+                          position: 'absolute',
+                          top: 0,
+                          left: 0,
+                          right: 0,
+                          bottom: 0,
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          bgcolor: 'rgba(255,0,0,0.1)'
+                        }}
+                      >
+                        <Typography variant="caption" color="error">
+                          Upload Failed
+                        </Typography>
+                      </Box>
+                    )}
+                  </Box>
+                </Grid>
+              ))}
+            </Grid>
             
             <Typography variant="caption" sx={{ mt: 1, display: 'block', color: 'text.secondary' }}>
               Max 5 images. Recommended size: 800x800px. Formats: JPG, PNG, WEBP.
@@ -345,13 +377,13 @@ console.log(images);
         </Box>
       </DialogContent>
       <DialogActions sx={{ p: 3 }}>
-        <Button onClick={onClose} disabled={loading} variant="outlined">
+        <Button onClick={handleClose} disabled={loading} variant="outlined">
           Cancel
         </Button>
         <Button
           variant="contained"
           onClick={handleSubmit}
-          disabled={loading || images.some(img => img.status === 'uploading')}
+          disabled={loading || images.some(img => img.status === 'uploading') || comment.length > 500}
           startIcon={loading ? <CircularProgress size={20} /> : null}
         >
           Submit Review

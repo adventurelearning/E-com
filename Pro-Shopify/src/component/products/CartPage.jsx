@@ -207,8 +207,9 @@ const CartPage = () => {
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             {/* Cart Items */}
             <div className="lg:col-span-2">
-              <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-                {cart.items.map((item, index) => (
+            <div className="bg-white rounded-xl shadow-sm border border-gray-100 
+                  overflow-y-auto h-[500px]">           
+                       {cart.items.map((item, index) => (
                   <motion.div
                     key={item._id}
                     initial={{ opacity: 0, y: 20 }}
@@ -299,7 +300,7 @@ const CartPage = () => {
                       </div>
                     </div>
                   </motion.div>
-                ))}
+                ))} 
 
                 <div className="p-4 border-t border-gray-100">
                   <button
