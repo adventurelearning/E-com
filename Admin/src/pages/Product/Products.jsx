@@ -697,7 +697,7 @@ const Product = () => {
             </div>
 
             {/* Colors */}
-            <div className="bg-white p-6 rounded-xl border border-purple-100 shadow-sm">
+            {/* <div className="bg-white p-6 rounded-xl border border-purple-100 shadow-sm">
               <h3 className="text-lg font-semibold text-purple-800 border-b border-purple-200 pb-3 mb-4">Colors</h3>
               <div className="mb-4">
                 <label className="block text-sm font-medium text-gray-700 mb-2">Available Colors</label>
@@ -744,7 +744,7 @@ const Product = () => {
                   <FiPlus size={18} /> Add
                 </button>
               </div>
-            </div>
+            </div> */}
 
             {/* Specifications */}
             <div className="bg-white p-6 rounded-xl border border-purple-100 shadow-sm">

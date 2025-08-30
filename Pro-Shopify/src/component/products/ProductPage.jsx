@@ -749,7 +749,7 @@ const ProductPage = () => {
             </div>
 
             {/* Color Selection */}
-            <div className="mt-6">
+            {/* <div className="mt-6">
               <h3 className="font-medium text-lg mb-3">Color: <span className="font-normal text-gray-700">{selectedColor}</span></h3>
               <div className="flex flex-wrap gap-2">
                 {product.colors.map((color) => (
@@ -767,12 +767,12 @@ const ProductPage = () => {
                   </motion.button>
                 ))}
               </div>
-            </div>
+            </div> */}
             {product?.groupId && (
               <div className="mt-8 bg-white p-6 rounded-2xl shadow-lg border border-gray-200">
-                <h2 className="text-2xl font-bold mb-6 pb-2 border-b border-gray-200">
+                {/* <h2 className="text-2xl font-bold mb-6 pb-2 border-b border-gray-200">
                   Color Variants
-                </h2>
+                </h2> */}
 
                 {loadingVariants ? (
                   <div className="flex justify-center py-8">
@@ -810,7 +810,7 @@ const ProductPage = () => {
                             )}
                             
                             {/* Discount badge for variant */}
-                            {variantDisplayPrice.discountPercent > 0 && (
+                            {/* {variantDisplayPrice.discountPercent > 0 && (
                               <div className={`absolute top-2 left-2 text-white text-xs font-bold px-2 py-1 rounded ${
                                 isSpecialPriceActive(variant) 
                                   ? 'bg-orange-500' 
@@ -818,7 +818,7 @@ const ProductPage = () => {
                               }`}>
                                 {variantDisplayPrice.discountPercent}% OFF
                               </div>
-                            )}
+                            )} */}
                           </div>
 
                           <div className="mt-2 text-center">
@@ -835,7 +835,7 @@ const ProductPage = () => {
                             <span className="text-sm font-medium mt-1">
                               {variant.colors?.[0] || 'Color variant'}
                             </span>
-                            <div className="flex items-center justify-center mt-1">
+                            {/* <div className="flex items-center justify-center mt-1">
                               <span className="text-sm font-bold text-primary">
                                 ₹{(variantDisplayPrice.price || 0).toLocaleString()}
                               </span>
@@ -844,7 +844,7 @@ const ProductPage = () => {
                                   ₹{variantDisplayPrice.originalPrice.toLocaleString()}
                                 </span>
                               )}
-                            </div>
+                            </div> */}
                           </div>
                         </motion.div>
                       );
