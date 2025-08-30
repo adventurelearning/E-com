@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import {
   Paper, Table, TableBody, TableCell, TableContainer,
-  TableHead, TablePagination, TableRow, TableSortLabel,
+  TableHead, TableRow, TableSortLabel,
   Select, MenuItem, FormControl, InputLabel, Chip,
   IconButton, Tooltip, Typography, Box,
-  LinearProgress, Snackbar, Alert, Avatar, Badge,Button
+  LinearProgress, Snackbar, Alert, Avatar, Badge, Button,
+  TextField, useMediaQuery, useTheme
 } from '@mui/material';
 import {
   CheckCircle, Cancel, LocalShipping,
@@ -12,7 +13,6 @@ import {
   HourglassEmpty, Payment, LocationOn, ArrowUpward, ArrowDownward,
   ArrowBackIosNew,
   ArrowForwardIos,
-  FileUploadOff,
   Download
 } from '@mui/icons-material';
 import { styled } from '@mui/material/styles';
@@ -66,6 +66,10 @@ const StyledTableRow = styled(TableRow)(({ theme }) => ({
 }));
 
 const Orders = () => {
+  const theme = useTheme();
+  const isSmallScreen = useMediaQuery(theme.breakpoints.down('md'));
+  const isExtraSmallScreen = useMediaQuery(theme.breakpoints.down('sm'));
+  
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(0);
@@ -78,6 +82,8 @@ const Orders = () => {
     message: '',
     severity: 'success'
   });
+  const [searchEmail, setSearchEmail] = useState('');
+  const [showFilters, setShowFilters] = useState(false);
 
   // Fetch orders from API
   useEffect(() => {
@@ -85,15 +91,6 @@ const Orders = () => {
       setLoading(true);
       try {
         const response = await Api.get('/orders/userOrders/all');
-        console.log(response.data);
-
-        // Calculate total for each order
-        // const ordersWithTotal = response.data.map(order => {
-        //   const total = order.items.reduce((sum, item) =>
-        //     sum + (item.quantity * (item.productId?.price || 0)), 0);
-        //   return { ...order, total };
-        // });
-
         setOrders(response.data);
       } catch (error) {
         console.error('Error fetching orders:', error);
@@ -132,13 +129,11 @@ const Orders = () => {
 
   const handleStatusChange = async (orderId, newStatus) => {
     try {
-      // Update order in backend
       await Api.put(
         `/orders/admin/${orderId}`,
         { status: newStatus },
       );
 
-      // Update local state
       setOrders(prevOrders =>
         prevOrders.map(order =>
           order._id === orderId ? { ...order, status: newStatus } : order
@@ -164,9 +159,12 @@ const Orders = () => {
     setSnackbar({ ...snackbar, open: false });
   };
 
-  const filteredOrders = orders.filter(order =>
-    statusFilter === 'all' || order.status === statusFilter
-  );
+  // Filter orders based on status and email search
+  const filteredOrders = orders.filter(order => {
+    const matchesStatus = statusFilter === 'all' || order.status === statusFilter;
+    const matchesEmail = order.user?.email?.toLowerCase().includes(searchEmail.toLowerCase());
+    return matchesStatus && matchesEmail;
+  });
 
   const sortedOrders = [...filteredOrders].sort((a, b) => {
     const isAsc = sortDirection === 'asc';
@@ -178,8 +176,6 @@ const Orders = () => {
     }
 
     if (sortField === 'total') {
-      console.log(a);
-
       return isAsc ? a.total - b.total : b.total - a.total;
     }
 
@@ -194,7 +190,6 @@ const Orders = () => {
     page * rowsPerPage,
     page * rowsPerPage + rowsPerPage
   );
-  console.log(paginatedOrders);
 
   // Function to get item count
   const getItemCount = (items) => {
@@ -217,7 +212,6 @@ const Orders = () => {
         },
       });
 
-      // Create download link
       const url = window.URL.createObjectURL(new Blob([response.data]));
       const link = document.createElement('a');
       link.href = url;
@@ -225,7 +219,6 @@ const Orders = () => {
       document.body.appendChild(link);
       link.click();
 
-      // Cleanup
       link.parentNode.removeChild(link);
       window.URL.revokeObjectURL(url);
     } catch (error) {
@@ -234,28 +227,23 @@ const Orders = () => {
     }
   };
 
+  // Responsive table cell rendering
+  const renderTableCell = (content, align = 'left', sx = {}) => (
+    <TableCell align={align} sx={{ ...sx, py: isSmallScreen ? 1 : 2 }}>
+      {content}
+    </TableCell>
+  );
+
   return (
     <div
       style={{
-        padding: '14px',
+        padding: isExtraSmallScreen ? '8px' : '14px',
         width: '100%',
         maxWidth: '1050px',
         margin: '0 auto',
         boxSizing: 'border-box'
       }}
     >
-      {/* <Box display="flex" alignItems="center" mb={3} sx={{
-        background: `linear-gradient(135deg, ${purpleTheme.primary} 0%, ${purpleTheme.primaryDark} 100%)`,
-        padding: '16px 24px',
-        borderRadius: 3,
-        color: 'white'
-      }}>
-        <LocalShipping fontSize="large" sx={{ mr: 2, color: 'white' }} />
-        <Typography variant="h4" sx={{ fontWeight: 'bold' }}>
-          Orders Dashboard
-        </Typography>
-      </Box> */}
-
       <Paper sx={{
         mb: 3,
         p: 2,
@@ -263,97 +251,137 @@ const Orders = () => {
         boxShadow: 3,
         borderLeft: `4px solid ${purpleTheme.primary}`
       }}>
-        <Box display="flex" justifyContent="space-between" alignItems="center" flexWrap="wrap">
-          <Box display="flex" alignItems="center" mb={{ xs: 2, sm: 0 }}>
-            <FilterList sx={{ mr: 1, color: purpleTheme.primary }} />
-            <FormControl size="small" sx={{ minWidth: 180, mr: 2 }}>
-              <InputLabel>Filter by Status</InputLabel>
-              <Select
-                value={statusFilter}
-                onChange={handleStatusFilterChange}
-                label="Filter by Status"
+        <Box display="flex" justifyContent="space-between" alignItems="flex-start" flexWrap="wrap">
+          <Box display="flex" alignItems="center" mb={{ xs: 2, sm: 0 }} flexWrap="wrap">
+            {isSmallScreen ? (
+              <IconButton 
+                onClick={() => setShowFilters(!showFilters)}
+                sx={{ mr: 1, color: purpleTheme.primary }}
+              >
+                <FilterList />
+              </IconButton>
+            ) : (
+              <FilterList sx={{ mr: 1, color: purpleTheme.primary }} />
+            )}
+            
+            <Box display={isSmallScreen && !showFilters ? 'none' : 'flex'} 
+                 flexDirection={isSmallScreen ? 'column' : 'row'} 
+                 alignItems={isSmallScreen ? 'flex-start' : 'center'}
+                 width={isSmallScreen ? '100%' : 'auto'}
+                 gap={isSmallScreen ? 2 : 0}>
+              
+              <FormControl size="small" sx={{ minWidth: 180, mr: isSmallScreen ? 0 : 2, mb: isSmallScreen ? 2 : 0, width: isSmallScreen ? '100%' : 'auto' }}>
+                <InputLabel>Filter by Status</InputLabel>
+                <Select
+                  value={statusFilter}
+                  onChange={handleStatusFilterChange}
+                  label="Filter by Status"
+                  sx={{
+                    '& .MuiSelect-select': {
+                      color: purpleTheme.primaryDark,
+                      fontWeight: 500
+                    }
+                  }}
+                >
+                  <MenuItem value="all">All Statuses</MenuItem>
+                  <MenuItem value="pending">Pending</MenuItem>
+                  <MenuItem value="processing">Processing</MenuItem>
+                  <MenuItem value="shipped">Shipped</MenuItem>
+                  <MenuItem value="delivered">Delivered</MenuItem>
+                  <MenuItem value="cancelled">Cancelled</MenuItem>
+                </Select>
+              </FormControl>
+
+              <TextField
+                size="small"
+                variant="outlined"
+                placeholder="Search by email"
+                value={searchEmail}
+                onChange={(e) => setSearchEmail(e.target.value)}
                 sx={{
-                  '& .MuiSelect-select': {
-                    color: purpleTheme.primaryDark,
-                    fontWeight: 500
+                  ml: isSmallScreen ? 0 : 2,
+                  width: isSmallScreen ? '100%' : 220,
+                  '& .MuiOutlinedInput-root': {
+                    borderRadius: 2,
+                    fontSize: '0.9rem',
+                    backgroundColor: 'white'
                   }
                 }}
-              >
-                <MenuItem value="all">All Statuses</MenuItem>
-                <MenuItem value="pending">Pending</MenuItem>
-                <MenuItem value="processing">Processing</MenuItem>
-                <MenuItem value="shipped">Shipped</MenuItem>
-                <MenuItem value="delivered">Delivered</MenuItem>
-                <MenuItem value="cancelled">Cancelled</MenuItem>
-              </Select>
-            </FormControl>
+              />
 
-            <Box display="flex" alignItems="center" ml={2}>
-              <Typography variant="body2" sx={{ mr: 1, color: 'text.secondary' }}>
-                Sort by:
-              </Typography>
-              <Chip
-                label="Date"
-                onClick={() => handleSort('createdAt')}
-                variant={sortField === 'createdAt' ? 'filled' : 'outlined'}
-                color="primary"
-                size="small"
-                icon={getSortIcon('createdAt')}
-                sx={{ mr: 1 }}
-              />
-              <Chip
-                label="Total"
-                onClick={() => handleSort('total')}
-                variant={sortField === 'total' ? 'filled' : 'outlined'}
-                color="primary"
-                size="small"
-                icon={getSortIcon('total')}
-                sx={{ mr: 1 }}
-              />
-              <Chip
-                label="Items"
-                onClick={() => handleSort('items')}
-                variant={sortField === 'items' ? 'filled' : 'outlined'}
-                color="primary"
-                size="small"
-                icon={getSortIcon('items')}
-              />
+              {!isExtraSmallScreen && (
+                <Box display="flex" alignItems="center" ml={isSmallScreen ? 0 : 2} mt={isSmallScreen ? 2 : 0}>
+                  <Typography variant="body2" sx={{ mr: 1, color: 'text.secondary' }}>
+                    Sort by:
+                  </Typography>
+                  <Chip
+                    label="Date"
+                    onClick={() => handleSort('createdAt')}
+                    variant={sortField === 'createdAt' ? 'filled' : 'outlined'}
+                    color="primary"
+                    size="small"
+                    icon={getSortIcon('createdAt')}
+                    sx={{ mr: 1 }}
+                  />
+                  <Chip
+                    label="Total"
+                    onClick={() => handleSort('total')}
+                    variant={sortField === 'total' ? 'filled' : 'outlined'}
+                    color="primary"
+                    size="small"
+                    icon={getSortIcon('total')}
+                    sx={{ mr: 1 }}
+                  />
+                  <Chip
+                    label="Items"
+                    onClick={() => handleSort('items')}
+                    variant={sortField === 'items' ? 'filled' : 'outlined'}
+                    color="primary"
+                    size="small"
+                    icon={getSortIcon('items')}
+                  />
+                </Box>
+              )}
             </Box>
           </Box>
 
-          <Box display="flex" alignItems="center">
-            <Box display="flex" alignItems="center" sx={{ ml: 'auto' }}>
-              <Typography variant="body2" sx={{ mr: 1, color: purpleTheme.primaryDark }}>
-                Rows:
-              </Typography>
-              <Select
-                value={rowsPerPage}
-                onChange={handleChangeRowsPerPage}
-                size="small"
-                sx={{
-                  width: 80,
-                  mr: 2,
-                  '& .MuiSelect-select': {
-                    padding: '6px 32px 6px 12px',
-                    fontSize: '0.875rem',
-                    color: purpleTheme.primaryDark,
-                    fontWeight: 500
-                  }
-                }}
-                MenuProps={{
-                  PaperProps: {
-                    sx: {
-                      '& .MuiMenuItem-root': {
-                        fontSize: '0.875rem'
+          <Box display="flex" alignItems="center" flexWrap="wrap" justifyContent={isSmallScreen ? 'space-between' : 'flex-end'} width={isSmallScreen ? '100%' : 'auto'}>
+            <Box display="flex" alignItems="center" sx={{ ml: isSmallScreen ? 0 : 'auto' }} mt={isSmallScreen ? 2 : 0}>
+              {!isExtraSmallScreen && (
+                <>
+                  <Typography variant="body2" sx={{ mr: 1, color: purpleTheme.primaryDark }}>
+                    Rows:
+                  </Typography>
+                  <Select
+                    value={rowsPerPage}
+                    onChange={handleChangeRowsPerPage}
+                    size="small"
+                    sx={{
+                      width: 80,
+                      mr: 2,
+                      '& .MuiSelect-select': {
+                        padding: '6px 32px 6px 12px',
+                        fontSize: '0.875rem',
+                        color: purpleTheme.primaryDark,
+                        fontWeight: 500
                       }
-                    }
-                  }
-                }}
-              >
-                <MenuItem value={5}>5</MenuItem>
-                <MenuItem value={10}>10</MenuItem>
-                <MenuItem value={25}>25</MenuItem>
-              </Select>
+                    }}
+                    MenuProps={{
+                      PaperProps: {
+                        sx: {
+                          '& .MuiMenuItem-root': {
+                            fontSize: '0.875rem'
+                          }
+                        }
+                      }
+                    }}
+                  >
+                    <MenuItem value={5}>5</MenuItem>
+                    <MenuItem value={10}>10</MenuItem>
+                    <MenuItem value={25}>25</MenuItem>
+                  </Select>
+                </>
+              )}
 
               <Typography variant="body2" sx={{ mr: 2, color: purpleTheme.primaryDark }}>
                 {`${page * rowsPerPage + 1}-${Math.min(page * rowsPerPage + rowsPerPage, filteredOrders.length)} of ${filteredOrders.length}`}
@@ -403,6 +431,40 @@ const Orders = () => {
             </Tooltip>
           </Box>
         </Box>
+        
+        {isExtraSmallScreen && (
+          <Box mt={2}>
+            <Typography variant="body2" sx={{ mr: 1, color: 'text.secondary', mb: 1 }}>
+              Sort by:
+            </Typography>
+            <Box display="flex" flexWrap="wrap" gap={1}>
+              <Chip
+                label="Date"
+                onClick={() => handleSort('createdAt')}
+                variant={sortField === 'createdAt' ? 'filled' : 'outlined'}
+                color="primary"
+                size="small"
+                icon={getSortIcon('createdAt')}
+              />
+              <Chip
+                label="Total"
+                onClick={() => handleSort('total')}
+                variant={sortField === 'total' ? 'filled' : 'outlined'}
+                color="primary"
+                size="small"
+                icon={getSortIcon('total')}
+              />
+              <Chip
+                label="Items"
+                onClick={() => handleSort('items')}
+                variant={sortField === 'items' ? 'filled' : 'outlined'}
+                color="primary"
+                size="small"
+                icon={getSortIcon('items')}
+              />
+            </Box>
+          </Box>
+        )}
       </Paper>
 
       {loading ? (
@@ -412,64 +474,56 @@ const Orders = () => {
           <Paper sx={{
             borderRadius: 3,
             boxShadow: 3,
-            overflow: 'hidden',
+            overflow: 'auto',
             border: `1px solid ${purpleTheme.secondary}`
           }}>
-            <TableContainer sx={{ overflowX: 'auto' }}>
-              <Table>
+            <TableContainer sx={{ overflowX: 'auto', maxWidth: '100%' }}>
+              <Table sx={{ minWidth: isSmallScreen ? 800 : 'auto' }}>
                 <TableHead sx={{
                   bgcolor: purpleTheme.primary,
                   '& th': {
                     fontWeight: 'bold !important',
-                    fontSize: '1rem'
+                    fontSize: isSmallScreen ? '0.875rem' : '1rem',
+                    py: isSmallScreen ? 1 : 2,
+                    whiteSpace: 'nowrap'
                   }
                 }}>
                   <TableRow>
-                    <TableCell sx={{ color: 'common.white' }}>
-                      S.no
-                    </TableCell>
-                    <TableCell sx={{ color: 'common.white' }}>
-                      Order ID
-                    </TableCell>
-                    <TableCell sx={{ color: 'common.white' }}>Customer</TableCell>
-                    <TableCell sx={{ color: 'common.white' }}>
-                      Date
-                    </TableCell>
-                    <TableCell sx={{ color: 'common.white' }}>Payment</TableCell>
-                    <TableCell align="center" sx={{ color: 'common.white' }}>
-                      Items
-                    </TableCell>
-                    <TableCell align="right" sx={{ color: 'common.white' }}>
-                      Total
-                    </TableCell>
-                    <TableCell sx={{ color: 'common.white' }}>Status</TableCell>
-                    <TableCell align="center" sx={{ color: 'common.white' }}>Actions</TableCell>
-                   <TableCell align="center" sx={{ color: 'common.white' }}>Invoice</TableCell>
-
+                    {renderTableCell('S.no', 'left', { color: 'common.white' })}
+                    {renderTableCell('Order ID', 'left', { color: 'common.white' })}
+                    {renderTableCell('Customer', 'left', { color: 'common.white' })}
+                    {renderTableCell('Date', 'left', { color: 'common.white' })}
+                    {renderTableCell('Payment', 'left', { color: 'common.white' })}
+                    {renderTableCell('Items', 'center', { color: 'common.white' })}
+                    {renderTableCell('Total', 'right', { color: 'common.white' })}
+                    {renderTableCell('Status', 'left', { color: 'common.white' })}
+                    {renderTableCell('Actions', 'center', { color: 'common.white' })}
+                    {renderTableCell('Invoice', 'center', { color: 'common.white' })}
                   </TableRow>
                 </TableHead>
                 <TableBody>
                   {paginatedOrders.length > 0 ? (
                     paginatedOrders.map((order, index) => (
                       <StyledTableRow key={order._id}>
-                        <TableCell sx={{ fontWeight: 'bold' }}>
+                        {renderTableCell(
                           <Typography variant="body2" sx={{
                             fontFamily: 'monospace',
                             color: purpleTheme.primaryDark
                           }}>
-                            {/* Serial number + Order ID suffix */}
                             {index + 1}
                           </Typography>
-                        </TableCell>
-                        <TableCell sx={{ fontWeight: 'bold' }}>
+                        )}
+                        
+                        {renderTableCell(
                           <Typography variant="body2" sx={{
                             fontFamily: 'monospace',
                             color: purpleTheme.primaryDark
                           }}>
                             #{order._id.substring(order._id.length - 6).toUpperCase()}
                           </Typography>
-                        </TableCell>
-                        <TableCell>
+                        )}
+                        
+                        {renderTableCell(
                           <Box display="flex" alignItems="center">
                             <Avatar sx={{
                               bgcolor: purpleTheme.primary,
@@ -481,8 +535,10 @@ const Orders = () => {
                               {order.user?.name?.charAt(0) || 'C'}
                             </Avatar>
                             <Box>
-                              <Typography fontWeight="600">{order.user?.name || 'Unknown'}</Typography>
-                              <Typography variant="body2" color="textSecondary">
+                              <Typography fontWeight="600" fontSize={isSmallScreen ? '0.875rem' : '1rem'}>
+                                {order.user?.name || 'Unknown'}
+                              </Typography>
+                              <Typography variant="body2" color="textSecondary" fontSize={isSmallScreen ? '0.75rem' : '0.875rem'}>
                                 {order.user?.email || 'No email'}
                               </Typography>
                               <Box display="flex" alignItems="center" mt={0.5}>
@@ -493,27 +549,29 @@ const Orders = () => {
                               </Box>
                             </Box>
                           </Box>
-                        </TableCell>
-                        <TableCell>
+                        )}
+                        
+                        {renderTableCell(
                           <Box display="flex" flexDirection="column">
-                            <Typography fontWeight="500">
+                            <Typography fontWeight="500" fontSize={isSmallScreen ? '0.875rem' : '1rem'}>
                               {dayjs(order.createdAt).format('MMMD,YYYY')}
                             </Typography>
-                            <Typography variant="body2" color="textSecondary">
+                            <Typography variant="body2" color="textSecondary" fontSize={isSmallScreen ? '0.75rem' : '0.875rem'}>
                               {dayjs(order.createdAt).fromNow()}
                             </Typography>
                           </Box>
-                        </TableCell>
-
-                        <TableCell>
+                        )}
+                        
+                        {renderTableCell(
                           <Box display="flex" alignItems="center">
                             <Payment fontSize="small" sx={{ mr: 1, color: purpleTheme.primary }} />
-                            <Typography variant="body2" fontWeight="500">
+                            <Typography variant="body2" fontWeight="500" fontSize={isSmallScreen ? '0.875rem' : '1rem'}>
                               {paymentMethods[order.paymentMethod] || order.paymentMethod}
                             </Typography>
                           </Box>
-                        </TableCell>
-                        <TableCell align="center">
+                        )}
+                        
+                        {renderTableCell(
                           <Badge
                             badgeContent={getItemCount(order.items)}
                             color="primary"
@@ -528,25 +586,28 @@ const Orders = () => {
                                 backgroundColor: purpleTheme.primary
                               }
                             }}
-                          >
-                            {/* <Typography fontWeight="500">{getItemCount(order.items)}</Typography> */}
-                          </Badge>
-                        </TableCell>
-                        <TableCell align="right">
-                          <Typography fontWeight="bold" color="primary" sx={{ fontSize: '1.1rem' }}>
+                          />,
+                          'center'
+                        )}
+                        
+                        {renderTableCell(
+                          <Typography fontWeight="bold" color="primary" sx={{ fontSize: isSmallScreen ? '0.875rem' : '1.1rem' }}>
                             ${order.total}
-                          </Typography>
-                        </TableCell>
-                        <TableCell>
+                          </Typography>,
+                          'right'
+                        )}
+                        
+                        {renderTableCell(
                           <Chip
                             icon={statusIcons[order.status]}
                             label={order.status.charAt(0).toUpperCase() + order.status.slice(1)}
                             color={statusColors[order.status]}
                             size="small"
-
+                            sx={{ fontSize: isSmallScreen ? '0.75rem' : '0.875rem' }}
                           />
-                        </TableCell>
-                        <TableCell align="center">
+                        )}
+                        
+                        {renderTableCell(
                           <FormControl size="small" variant="outlined">
                             <Select
                               value={order.status}
@@ -555,27 +616,29 @@ const Orders = () => {
                                 minWidth: 120,
                                 fontWeight: '500',
                                 '& .MuiSelect-select': {
-                                  color: purpleTheme.primaryDark
+                                  color: purpleTheme.primaryDark,
+                                  fontSize: isSmallScreen ? '0.75rem' : '0.875rem'
                                 }
                               }}
                               IconComponent={MoreVert}
                               renderValue={(selected) => (
                                 <Box display="flex" alignItems="center">
                                   <Edit fontSize="small" sx={{ mr: 1, color: purpleTheme.primary }} />
-                                  <span>Update</span>
+                                  <span style={{ fontSize: isSmallScreen ? '0.75rem' : '0.875rem' }}>Update</span>
                                 </Box>
                               )}
                             >
-                              <MenuItem value="pending">Pending</MenuItem>
-                              <MenuItem value="processing">Processing</MenuItem>
-                              <MenuItem value="shipped">Shipped</MenuItem>
-                              <MenuItem value="delivered">Delivered</MenuItem>
-                              <MenuItem value="cancelled">Cancelled</MenuItem>
+                              <MenuItem value="pending" sx={{ fontSize: isSmallScreen ? '0.75rem' : '0.875rem' }}>Pending</MenuItem>
+                              <MenuItem value="processing" sx={{ fontSize: isSmallScreen ? '0.75rem' : '0.875rem' }}>Processing</MenuItem>
+                              <MenuItem value="shipped" sx={{ fontSize: isSmallScreen ? '0.75rem' : '0.875rem' }}>Shipped</MenuItem>
+                              <MenuItem value="delivered" sx={{ fontSize: isSmallScreen ? '0.75rem' : '0.875rem' }}>Delivered</MenuItem>
+                              <MenuItem value="cancelled" sx={{ fontSize: isSmallScreen ? '0.75rem' : '0.875rem' }}>Cancelled</MenuItem>
                             </Select>
-                          </FormControl>
-                           </TableCell>
-                           <TableCell>
-                          {/* Download Invoice Button */}
+                          </FormControl>,
+                          'center'
+                        )}
+                        
+                        {renderTableCell(
                           <Button
                             variant="contained"
                             onClick={() => downloadInvoice(order._id)}
@@ -585,9 +648,10 @@ const Orders = () => {
                               color: '#fff',
                               borderRadius: '8px',
                               fontWeight: 600,
-                              px: 2.5,
-                              py: 1,
+                              px: isSmallScreen ? 1.5 : 2.5,
+                              py: isSmallScreen ? 0.5 : 1,
                               textTransform: 'none',
+                              fontSize: isSmallScreen ? '0.75rem' : '0.875rem',
                               boxShadow: '0 4px 6px rgba(0,0,0,0.1)',
                               transition: 'all 0.3s ease',
                               '&:hover': {
@@ -598,13 +662,14 @@ const Orders = () => {
                             }}
                           >
                             Invoice
-                          </Button>
-                       </TableCell>
+                          </Button>,
+                          'center'
+                        )}
                       </StyledTableRow>
                     ))
                   ) : (
                     <TableRow>
-                      <TableCell colSpan={8} align="center" sx={{ py: 6 }}>
+                      <TableCell colSpan={10} align="center" sx={{ py: 6 }}>
                         <Box textAlign="center" p={2}>
                           <LocalShipping sx={{ fontSize: 80, color: 'text.disabled', mb: 2 }} />
                           <Typography variant="h6" color="textSecondary">
@@ -622,12 +687,11 @@ const Orders = () => {
             </TableContainer>
           </Paper>
 
-          <Box mt={3} display="flex" justifyContent="space-between" flexWrap="wrap">
-            <Box display="flex" flexWrap="wrap">
+          <Box mt={3} display="flex" justifyContent="space-between" flexWrap="wrap" gap={1}>
+            <Box display="flex" flexWrap="wrap" gap={1}>
               <Chip
                 label={`Total: ${orders.length}`}
                 sx={{
-                  mb: 1,
                   fontWeight: 'bold',
                   backgroundColor: purpleTheme.primary,
                   color: 'white'
@@ -637,19 +701,17 @@ const Orders = () => {
                 label={`Pending: ${orders.filter(o => o.status === 'pending').length}`}
                 color="warning"
                 variant="outlined"
-                sx={{ ml: 1, mb: 1, fontWeight: '500' }}
+                sx={{ fontWeight: '500' }}
               />
               <Chip
                 label={`Processing: ${orders.filter(o => o.status === 'processing').length}`}
                 color="info"
                 variant="outlined"
-                sx={{ ml: 1, mb: 1, fontWeight: '500' }}
+                sx={{ fontWeight: '500' }}
               />
               <Chip
                 label={`Shipped: ${orders.filter(o => o.status === 'shipped').length}`}
                 sx={{
-                  ml: 1,
-                  mb: 1,
                   fontWeight: '500',
                   backgroundColor: purpleTheme.secondary,
                   color: purpleTheme.primaryDark
@@ -659,13 +721,13 @@ const Orders = () => {
                 label={`Delivered: ${orders.filter(o => o.status === 'delivered').length}`}
                 color="success"
                 variant="outlined"
-                sx={{ ml: 1, mb: 1, fontWeight: '500' }}
+                sx={{ fontWeight: '500' }}
               />
               <Chip
                 label={`Cancelled: ${orders.filter(o => o.status === 'cancelled').length}`}
                 color="error"
                 variant="outlined"
-                sx={{ ml: 1, mb: 1, fontWeight: '500' }}
+                sx={{ fontWeight: '500' }}
               />
             </Box>
 
