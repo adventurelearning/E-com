@@ -5,15 +5,18 @@ import {
   Select, MenuItem, FormControl, InputLabel, Chip,
   IconButton, Tooltip, Typography, Box,
   LinearProgress, Snackbar, Alert, Avatar, Badge, Button,
-  TextField, useMediaQuery, useTheme
+  TextField, useMediaQuery, useTheme, Dialog, DialogTitle,
+  DialogContent, DialogActions, Collapse, Card, CardContent,
+  Accordion, AccordionSummary, AccordionDetails,
+  CircularProgress, Grid
 } from '@mui/material';
 import {
   CheckCircle, Cancel, LocalShipping,
   Refresh, FilterList, MoreVert, Edit,
   HourglassEmpty, Payment, LocationOn, ArrowUpward, ArrowDownward,
-  ArrowBackIosNew,
-  ArrowForwardIos,
-  Download
+  ArrowBackIosNew, ArrowForwardIos, Download, ExpandMore, ExpandLess,
+  History, Person, Info, CalendarToday, Schedule,
+  Place, Assignment, Warning
 } from '@mui/icons-material';
 import { styled } from '@mui/material/styles';
 import dayjs from 'dayjs';
@@ -84,6 +87,16 @@ const Orders = () => {
   });
   const [searchEmail, setSearchEmail] = useState('');
   const [showFilters, setShowFilters] = useState(false);
+  const [trackingDialog, setTrackingDialog] = useState({
+    open: false,
+    order: null,
+    trackingId: '',
+    trackingCourier: '',
+    note: ''
+  });
+  const [expandedOrders, setExpandedOrders] = useState({});
+  const [trackingData, setTrackingData] = useState({});
+  const [trackingLoading, setTrackingLoading] = useState({});
 
   // Fetch orders from API
   useEffect(() => {
@@ -107,6 +120,33 @@ const Orders = () => {
     fetchOrders();
   }, []);
 
+  // Function to fetch tracking details
+  const fetchTrackingDetails = async (orderId, trackingCourier, trackingId) => {
+    setTrackingLoading(prev => ({ ...prev, [orderId]: true }));
+    
+    try {
+      const response = await Api.post('/tracking', {
+        courier: trackingCourier,
+        trackingNumber: trackingId,
+        orderId: orderId,
+      });
+      
+      setTrackingData(prev => ({ 
+        ...prev, 
+        [orderId]: response.data 
+      }));
+    } catch (err) {
+      console.error('Error fetching tracking details:', err);
+      setSnackbar({
+        open: true,
+        message: 'Failed to load tracking information',
+        severity: 'error'
+      });
+    } finally {
+      setTrackingLoading(prev => ({ ...prev, [orderId]: false }));
+    }
+  };
+
   const handleChangePage = (event, newPage) => {
     setPage(newPage);
   };
@@ -127,16 +167,24 @@ const Orders = () => {
     setSortDirection(isAsc ? 'desc' : 'asc');
   };
 
-  const handleStatusChange = async (orderId, newStatus) => {
+  const handleStatusChange = async (orderId, newStatus, trackingInfo = null, note = '') => {
     try {
-      await Api.put(
-        `/orders/admin/${orderId}`,
-        { status: newStatus },
-      );
+      const payload = { 
+        status: newStatus,
+        note: note || `Status changed to ${newStatus}`
+      };
+      
+      // Include tracking info if provided
+      if (trackingInfo) {
+        payload.trackingId = trackingInfo.trackingId;
+        payload.trackingCourier = trackingInfo.trackingCourier;
+      }
+
+      const response = await Api.put(`/orders/admin/${orderId}`, payload);
 
       setOrders(prevOrders =>
         prevOrders.map(order =>
-          order._id === orderId ? { ...order, status: newStatus } : order
+          order._id === orderId ? response.data : order
         )
       );
 
@@ -145,11 +193,20 @@ const Orders = () => {
         message: `Order status updated to ${newStatus}`,
         severity: 'success'
       });
+
+      // Close the tracking dialog if it was open
+      setTrackingDialog({
+        open: false,
+        order: null,
+        trackingId: '',
+        trackingCourier: '',
+        note: ''
+      });
     } catch (error) {
       console.error('Error updating order status:', error);
       setSnackbar({
         open: true,
-        message: 'Failed to update order status',
+        message: error.response?.data?.message || 'Failed to update order status',
         severity: 'error'
       });
     }
@@ -157,6 +214,37 @@ const Orders = () => {
 
   const handleCloseSnackbar = () => {
     setSnackbar({ ...snackbar, open: false });
+  };
+
+  // Open tracking dialog when changing status to shipped
+  const handleStatusSelect = (order, newStatus) =>{
+    if (newStatus === 'shipped') {
+      setTrackingDialog({
+        open: true,
+        order: order,
+        trackingId: order.trackingId || '',
+        trackingCourier: order.trackingCourier || '',
+        note: ''
+      });
+    } else {
+      handleStatusChange(order._id, newStatus);
+    }
+  };
+
+  // Toggle order expansion for status history and tracking
+  const toggleOrderExpansion = async (order) => {
+    const orderId = order._id;
+    const isExpanding = !expandedOrders[orderId];
+    
+    setExpandedOrders(prev => ({
+      ...prev,
+      [orderId]: isExpanding
+    }));
+    
+    // If expanding and order has tracking info, fetch tracking details
+    if (isExpanding && order.trackingId && order.trackingCourier && !trackingData[orderId]) {
+      await fetchTrackingDetails(orderId, order.trackingCourier, order.trackingId);
+    }
   };
 
   // Filter orders based on status and email search
@@ -225,6 +313,207 @@ const Orders = () => {
       console.error('Invoice download failed:', error);
       alert('Failed to download invoice. Please try again.');
     }
+  };
+
+  // Get status icon for timeline
+  const getStatusIcon = (status) => {
+    switch (status?.toLowerCase()) {
+      case 'pending':
+        return <HourglassEmpty sx={{ fontSize: 16 }} />;
+      case 'processing':
+        return <Refresh sx={{ fontSize: 16 }} />;
+      case 'shipped':
+        return <LocalShipping sx={{ fontSize: 16 }} />;
+      case 'delivered':
+        return <CheckCircle sx={{ fontSize: 16 }} />;
+      case 'cancelled':
+        return <Cancel sx={{ fontSize: 16 }} />;
+      default:
+        return <Info sx={{ fontSize: 16 }} />;
+    }
+  };
+
+  // Format tracking status
+  const formatTrackingStatus = (status) => {
+    if (!status) return 'Unknown';
+    return status
+      .split('_')
+      .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(' ');
+  };
+
+  // Format date for display
+  const formatDate = (dateString) => {
+    if (!dateString) return 'N/A';
+    
+    try {
+      const date = new Date(dateString);
+      return date.toLocaleString(undefined, {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+      });
+    } catch (error) {
+      return 'Invalid date';
+    }
+  };
+
+  // Create unified timeline for an order
+  const createUnifiedTimeline = (order) => {
+    const timeline = [];
+    
+    // Add order creation
+    timeline.push({
+      type: 'system',
+      title: 'Order Created',
+      description: 'Order was placed successfully.',
+      date: order.createdAt,
+      status: 'created',
+      icon: <CalendarToday sx={{ fontSize: 16 }} />
+    });
+    
+    // Add status history from database
+    if (order.statusHistory && order.statusHistory.length > 0) {
+      order.statusHistory.forEach(item => {
+        timeline.push({
+          type: 'status',
+          title: `Order ${item.status.charAt(0).toUpperCase() + item.status.slice(1)}`,
+          description: item.note || `Order status changed to ${item.status}`,
+          date: item.changedAt,
+          status: item.status,
+          changedBy: item.changedBy?.name || 'System',
+          trackingId: item.trackingId,
+          trackingCourier: item.trackingCourier,
+          icon: getStatusIcon(item.status)
+        });
+      });
+    }
+    
+    // Add tracking events if available
+    const orderTrackingData = trackingData[order._id];
+    if (orderTrackingData && orderTrackingData.data && orderTrackingData.data.tracking.checkpoints) {
+      orderTrackingData.data.tracking.checkpoints.forEach((checkpoint, index) => {
+        timeline.push({
+          type: 'tracking',
+          title: checkpoint.message,
+          description: checkpoint.location || 'Tracking update',
+          date: checkpoint.checkpoint_time,
+          status: checkpoint.tag,
+          icon: getTrackingIcon(checkpoint.tag),
+          isTracking: true
+        });
+      });
+    }
+    
+    // Sort timeline by date
+    timeline.sort((a, b) => new Date(a.date) - new Date(b.date));
+    return timeline;
+  };
+
+  const getTrackingIcon = (tag) => {
+    switch (tag?.toLowerCase()) {
+      case 'delivered':
+        return <CheckCircle sx={{ fontSize: 16 }} />;
+      case 'intransit':
+        return <LocalShipping sx={{ fontSize: 16 }} />;
+      case 'outfordelivery':
+        return <LocalShipping sx={{ fontSize: 16 }} />;
+      case 'exception':
+        return <Info sx={{ fontSize: 16 }} />;
+      case 'inforeceived':
+        return <Info sx={{ fontSize: 16 }} />;
+      default:
+        return <Info sx={{ fontSize: 16 }} />;
+    }
+  };
+
+
+  // Render unified timeline for an order
+  const renderUnifiedTimeline = (order) => {
+    const timeline = createUnifiedTimeline(order);
+    
+    return (
+      <Box sx={{ 
+        position: 'relative',
+        pl: 2,
+        ml: 1,
+        borderLeft: '2px dashed',
+        borderColor: 'primary.light'
+      }}>
+        {timeline.map((event, index) => (
+          <Box 
+            key={index} 
+            sx={{ 
+              position: 'relative',
+              mb: 2,
+              '&::before': {
+                content: '""',
+                position: 'absolute',
+                left: -21,
+                top: 4,
+                width: 12,
+                height: 12,
+                borderRadius: '50%',
+                backgroundColor: index === timeline.length - 1 ? 'success.main' : 'primary.main',
+                border: '2px solid',
+                borderColor: 'white',
+                boxShadow: '0 0 0 1px primary.main',
+                zIndex: 2
+              }
+            }}
+          >
+            <Card sx={{ 
+              borderRadius: '8px',
+              boxShadow: index === timeline.length - 1 ? '0 2px 8px rgba(0,0,0,0.1)' : '0 1px 4px rgba(0,0,0,0.05)',
+              border: index === timeline.length - 1 ? '1px solid' : '1px solid',
+              borderColor: index === timeline.length - 1 ? 'success.light' : 'grey.200',
+              backgroundColor: index === timeline.length - 1 ? 'success.10' : 'background.paper'
+            }}>
+              <CardContent sx={{ py: 1, '&:last-child': { pb: 1 } }}>
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap' }}>
+                  <Box sx={{ flex: 1 }}>
+                    <Typography variant="body2" color="text.secondary" sx={{ display: 'flex', alignItems: 'center', mb: 0.5 }}>
+                      {event.icon}
+                      <Box component="span" sx={{ ml: 0.5 }}>
+                        {dayjs(event.date).format('MMM D, YYYY h:mm A')}
+                      </Box>
+                    </Typography>
+                    <Typography variant="body2" fontWeight="600" gutterBottom>
+                      {event.title}
+                    </Typography>
+                    <Typography variant="body2" color="text.secondary">
+                      {event.description}
+                    </Typography>
+                    {event.changedBy && (
+                      <Typography variant="caption" color="text.secondary" sx={{ display: 'flex', alignItems: 'center', mt: 0.5 }}>
+                        <Person sx={{ fontSize: 14, mr: 0.5 }} />
+                        Updated by: {event.changedBy}
+                      </Typography>
+                    )}
+                    {event.trackingId && (
+                      <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 0.5 }}>
+                        Tracking: {event.trackingCourier} - {event.trackingId}
+                      </Typography>
+                    )}
+                  </Box>
+                  {event.isTracking && (
+                    <Chip 
+                      label="Tracking" 
+                      size="small" 
+                      color="info" 
+                      variant="outlined"
+                      sx={{ fontWeight: 500, ml: 1 }}
+                    />
+                  )}
+                </Box>
+              </CardContent>
+            </Card>
+          </Box>
+        ))}
+      </Box>
+    );
   };
 
   // Responsive table cell rendering
@@ -497,179 +786,238 @@ const Orders = () => {
                     {renderTableCell('Items', 'center', { color: 'common.white' })}
                     {renderTableCell('Total', 'right', { color: 'common.white' })}
                     {renderTableCell('Status', 'left', { color: 'common.white' })}
+                    {renderTableCell('Tracking', 'left', { color: 'common.white' })}
                     {renderTableCell('Actions', 'center', { color: 'common.white' })}
                     {renderTableCell('Invoice', 'center', { color: 'common.white' })}
+                    {renderTableCell('History', 'center', { color: 'common.white' })}
                   </TableRow>
                 </TableHead>
                 <TableBody>
                   {paginatedOrders.length > 0 ? (
                     paginatedOrders.map((order, index) => (
-                      <StyledTableRow key={order._id}>
-                        {renderTableCell(
-                          <Typography variant="body2" sx={{
-                            fontFamily: 'monospace',
-                            color: purpleTheme.primaryDark
-                          }}>
-                            {index + 1}
-                          </Typography>
-                        )}
-                        
-                        {renderTableCell(
-                          <Typography variant="body2" sx={{
-                            fontFamily: 'monospace',
-                            color: purpleTheme.primaryDark
-                          }}>
-                            #{order._id.substring(order._id.length - 6).toUpperCase()}
-                          </Typography>
-                        )}
-                        
-                        {renderTableCell(
-                          <Box display="flex" alignItems="center">
-                            <Avatar sx={{
-                              bgcolor: purpleTheme.primary,
-                              width: 36,
-                              height: 36,
-                              mr: 2,
-                              fontSize: '1rem'
+                      <React.Fragment key={order._id}>
+                        <StyledTableRow>
+                          {renderTableCell(
+                            <Typography variant="body2" sx={{
+                              fontFamily: 'monospace',
+                              color: purpleTheme.primaryDark
                             }}>
-                              {order.user?.name?.charAt(0) || 'C'}
-                            </Avatar>
-                            <Box>
-                              <Typography fontWeight="600" fontSize={isSmallScreen ? '0.875rem' : '1rem'}>
-                                {order.user?.name || 'Unknown'}
-                              </Typography>
-                              <Typography variant="body2" color="textSecondary" fontSize={isSmallScreen ? '0.75rem' : '0.875rem'}>
-                                {order.user?.email || 'No email'}
-                              </Typography>
-                              <Box display="flex" alignItems="center" mt={0.5}>
-                                <LocationOn fontSize="small" color="action" sx={{ mr: 0.5 }} />
-                                <Typography variant="caption" color="textSecondary">
-                                  {order.shippingAddress?.city || 'Unknown city'}
+                              {index + 1}
+                            </Typography>
+                          )}
+                          
+                          {renderTableCell(
+                            <Typography variant="body2" sx={{
+                              fontFamily: 'monospace',
+                              color: purpleTheme.primaryDark
+                            }}>
+                              #{order._id.substring(order._id.length - 6).toUpperCase()}
+                            </Typography>
+                          )}
+                          
+                          {renderTableCell(
+                            <Box display="flex" alignItems="center">
+                              <Avatar sx={{
+                                bgcolor: purpleTheme.primary,
+                                width: 36,
+                                height: 36,
+                                mr: 2,
+                                fontSize: '1rem'
+                              }}>
+                                {order.user?.name?.charAt(0) || 'C'}
+                              </Avatar>
+                              <Box>
+                                <Typography fontWeight="600" fontSize={isSmallScreen ? '0.875rem' : '1rem'}>
+                                  {order.user?.name || 'Unknown'}
                                 </Typography>
+                                <Typography variant="body2" color="textSecondary" fontSize={isSmallScreen ? '0.75rem' : '0.875rem'}>
+                                  {order.user?.email || 'No email'}
+                                </Typography>
+                                <Box display="flex" alignItems="center" mt={0.5}>
+                                  <LocationOn fontSize="small" color="action" sx={{ mr: 0.5 }} />
+                                  <Typography variant="caption" color="textSecondary">
+                                    {order.shippingAddress?.city || 'Unknown city'}
+                                  </Typography>
+                                </Box>
                               </Box>
                             </Box>
-                          </Box>
-                        )}
-                        
-                        {renderTableCell(
-                          <Box display="flex" flexDirection="column">
-                            <Typography fontWeight="500" fontSize={isSmallScreen ? '0.875rem' : '1rem'}>
-                              {dayjs(order.createdAt).format('MMMD,YYYY')}
-                            </Typography>
-                            <Typography variant="body2" color="textSecondary" fontSize={isSmallScreen ? '0.75rem' : '0.875rem'}>
-                              {dayjs(order.createdAt).fromNow()}
-                            </Typography>
-                          </Box>
-                        )}
-                        
-                        {renderTableCell(
-                          <Box display="flex" alignItems="center">
-                            <Payment fontSize="small" sx={{ mr: 1, color: purpleTheme.primary }} />
-                            <Typography variant="body2" fontWeight="500" fontSize={isSmallScreen ? '0.875rem' : '1rem'}>
-                              {paymentMethods[order.paymentMethod] || order.paymentMethod}
-                            </Typography>
-                          </Box>
-                        )}
-                        
-                        {renderTableCell(
-                          <Badge
-                            badgeContent={getItemCount(order.items)}
-                            color="primary"
-                            anchorOrigin={{
-                              vertical: 'top',
-                              horizontal: 'left',
-                            }}
-                            sx={{
-                              '& .MuiBadge-badge': {
-                                fontWeight: 'bold',
-                                fontSize: '0.75rem',
-                                backgroundColor: purpleTheme.primary
-                              }
-                            }}
-                          />,
-                          'center'
-                        )}
-                        
-                        {renderTableCell(
-                          <Typography fontWeight="bold" color="primary" sx={{ fontSize: isSmallScreen ? '0.875rem' : '1.1rem' }}>
-                            ${order.total}
-                          </Typography>,
-                          'right'
-                        )}
-                        
-                        {renderTableCell(
-                          <Chip
-                            icon={statusIcons[order.status]}
-                            label={order.status.charAt(0).toUpperCase() + order.status.slice(1)}
-                            color={statusColors[order.status]}
-                            size="small"
-                            sx={{ fontSize: isSmallScreen ? '0.75rem' : '0.875rem' }}
-                          />
-                        )}
-                        
-                        {renderTableCell(
-                          <FormControl size="small" variant="outlined">
-                            <Select
-                              value={order.status}
-                              onChange={(e) => handleStatusChange(order._id, e.target.value)}
+                          )}
+                          
+                          {renderTableCell(
+                            <Box display="flex" flexDirection="column">
+                              <Typography fontWeight="500" fontSize={isSmallScreen ? '0.875rem' : '1rem'}>
+                                {dayjs(order.createdAt).format('MMMD,YYYY')}
+                              </Typography>
+                              <Typography variant="body2" color="textSecondary" fontSize={isSmallScreen ? '0.75rem' : '0.875rem'}>
+                                {dayjs(order.createdAt).fromNow()}
+                              </Typography>
+                            </Box>
+                          )}
+                          
+                          {renderTableCell(
+                            <Box display="flex" alignItems="center">
+                              <Payment fontSize="small" sx={{ mr: 1, color: purpleTheme.primary }} />
+                              <Typography variant="body2" fontWeight="500" fontSize={isSmallScreen ? '0.875rem' : '1rem'}>
+                                {paymentMethods[order.paymentMethod] || order.paymentMethod}
+                              </Typography>
+                            </Box>
+                          )}
+                          
+                          {renderTableCell(
+                            <Badge
+                              badgeContent={getItemCount(order.items)}
+                              color="primary"
+                              anchorOrigin={{
+                                vertical: 'top',
+                                horizontal: 'left',
+                              }}
                               sx={{
-                                minWidth: 120,
-                                fontWeight: '500',
-                                '& .MuiSelect-select': {
-                                  color: purpleTheme.primaryDark,
-                                  fontSize: isSmallScreen ? '0.75rem' : '0.875rem'
+                                '& .MuiBadge-badge': {
+                                  fontWeight: 'bold',
+                                  fontSize: '0.75rem',
+                                  backgroundColor: purpleTheme.primary
                                 }
                               }}
-                              IconComponent={MoreVert}
-                              renderValue={(selected) => (
-                                <Box display="flex" alignItems="center">
-                                  <Edit fontSize="small" sx={{ mr: 1, color: purpleTheme.primary }} />
-                                  <span style={{ fontSize: isSmallScreen ? '0.75rem' : '0.875rem' }}>Update</span>
-                                </Box>
-                              )}
+                            />,
+                            'center'
+                          )}
+                          
+                          {renderTableCell(
+                            <Typography fontWeight="bold" color="primary" sx={{ fontSize: isSmallScreen ? '0.875rem' : '1.1rem' }}>
+                              ${order.total}
+                            </Typography>,
+                            'right'
+                          )}
+                          
+                          {renderTableCell(
+                            <Chip
+                              icon={statusIcons[order.status]}
+                              label={order.status.charAt(0).toUpperCase() + order.status.slice(1)}
+                              color={statusColors[order.status]}
+                              size="small"
+                              sx={{ fontSize: isSmallScreen ? '0.75rem' : '0.875rem' }}
+                            />
+                          )}
+                          
+                          {renderTableCell(
+                            order.trackingId ? (
+                              <Box>
+                                <Typography variant="body2" fontWeight="500">
+                                  {order.trackingCourier}
+                                </Typography>
+                                <Typography variant="caption" color="textSecondary">
+                                  {order.trackingId}
+                                </Typography>
+                              </Box>
+                            ) : (
+                              <Typography variant="caption" color="textSecondary">
+                                Not shipped yet
+                              </Typography>
+                            )
+                          )}
+                          
+                          {renderTableCell(
+                            <FormControl size="small" variant="outlined">
+                              <Select
+                                value={order.status}
+                                onChange={(e) => handleStatusSelect(order, e.target.value)}
+                                sx={{
+                                  minWidth: 120,
+                                  fontWeight: '500',
+                                  '& .MuiSelect-select': {
+                                    color: purpleTheme.primaryDark,
+                                    fontSize: isSmallScreen ? '0.75rem' : '0.875rem'
+                                  }
+                                }}
+                                // IconComponent={MoreVert}
+                                renderValue={(selected) => (
+                                  <Box display="flex" alignItems="center">
+                                    <Edit fontSize="small" sx={{ mr: 1, color: purpleTheme.primary }} />
+                                    <span style={{ fontSize: isSmallScreen ? '0.75rem' : '0.875rem' }}>Update</span>
+                                  </Box>
+                                )}
+                              >
+                                <MenuItem value="pending" sx={{ fontSize: isSmallScreen ? '0.75rem' : '0.875rem' }}>Pending</MenuItem>
+                                <MenuItem value="processing" sx={{ fontSize: isSmallScreen ? '0.75rem' : '0.875rem' }}>Processing</MenuItem>
+                                <MenuItem value="shipped" sx={{ fontSize: isSmallScreen ? '0.75rem' : '0.875rem' }}>Shipped</MenuItem>
+                                <MenuItem value="delivered" sx={{ fontSize: isSmallScreen ? '0.75rem' : '0.875rem' }}>Delivered</MenuItem>
+                                <MenuItem value="cancelled" sx={{ fontSize: isSmallScreen ? '0.75rem' : '0.875rem' }}>Cancelled</MenuItem>
+                              </Select>
+                            </FormControl>,
+                            'center'
+                          )}
+                          
+                          {renderTableCell(
+                            <Button
+                              variant="contained"
+                              onClick={() => downloadInvoice(order._id)}
+                              startIcon={<Download fontSize="small" />}
+                              sx={{
+                                background: `linear-gradient(135deg, ${purpleTheme.primary} 0%, ${purpleTheme.primaryDark} 100%)`,
+                                color: '#fff',
+                                borderRadius: '8px',
+                                fontWeight: 600,
+                                px: isSmallScreen ? 1.5 : 2.5,
+                                py: isSmallScreen ? 0.5 : 1,
+                                textTransform: 'none',
+                                fontSize: isSmallScreen ? '0.75rem' : '0.875rem',
+                                boxShadow: '0 4px 6px rgba(0,0,0,0.1)',
+                                transition: 'all 0.3s ease',
+                                '&:hover': {
+                                  transform: 'translateY(-2px)',
+                                  boxShadow: '0 6px 8px rgba(0,0,0,0.15)',
+                                  background: `linear-gradient(135deg, ${purpleTheme.primaryDark} 0%, ${purpleTheme.primary} 100%)`,
+                                }
+                              }}
                             >
-                              <MenuItem value="pending" sx={{ fontSize: isSmallScreen ? '0.75rem' : '0.875rem' }}>Pending</MenuItem>
-                              <MenuItem value="processing" sx={{ fontSize: isSmallScreen ? '0.75rem' : '0.875rem' }}>Processing</MenuItem>
-                              <MenuItem value="shipped" sx={{ fontSize: isSmallScreen ? '0.75rem' : '0.875rem' }}>Shipped</MenuItem>
-                              <MenuItem value="delivered" sx={{ fontSize: isSmallScreen ? '0.75rem' : '0.875rem' }}>Delivered</MenuItem>
-                              <MenuItem value="cancelled" sx={{ fontSize: isSmallScreen ? '0.75rem' : '0.875rem' }}>Cancelled</MenuItem>
-                            </Select>
-                          </FormControl>,
-                          'center'
-                        )}
+                              Invoice
+                            </Button>,
+                            'center'
+                          )}
+                          
+                          {renderTableCell(
+                            <IconButton
+                              size="small"
+                              onClick={() => toggleOrderExpansion(order)}
+                              sx={{
+                                color: purpleTheme.primary,
+                                '&:hover': {
+                                  backgroundColor: purpleTheme.secondary
+                                }
+                              }}
+                            >
+                              {expandedOrders[order._id] ? <ExpandLess /> : <ExpandMore />}
+                            </IconButton>,
+                            'center'
+                          )}
+                        </StyledTableRow>
                         
-                        {renderTableCell(
-                          <Button
-                            variant="contained"
-                            onClick={() => downloadInvoice(order._id)}
-                            startIcon={<Download fontSize="small" />}
-                            sx={{
-                              background: `linear-gradient(135deg, ${purpleTheme.primary} 0%, ${purpleTheme.primaryDark} 100%)`,
-                              color: '#fff',
-                              borderRadius: '8px',
-                              fontWeight: 600,
-                              px: isSmallScreen ? 1.5 : 2.5,
-                              py: isSmallScreen ? 0.5 : 1,
-                              textTransform: 'none',
-                              fontSize: isSmallScreen ? '0.75rem' : '0.875rem',
-                              boxShadow: '0 4px 6px rgba(0,0,0,0.1)',
-                              transition: 'all 0.3s ease',
-                              '&:hover': {
-                                transform: 'translateY(-2px)',
-                                boxShadow: '0 6px 8px rgba(0,0,0,0.15)',
-                                background: `linear-gradient(135deg, ${purpleTheme.primaryDark} 0%, ${purpleTheme.primary} 100%)`,
-                              }
-                            }}
-                          >
-                            Invoice
-                          </Button>,
-                          'center'
-                        )}
-                      </StyledTableRow>
+                        {/* Status History and Tracking Row */}
+                        <TableRow>
+                          <TableCell style={{ padding: 0 }} colSpan={12}>
+                            <Collapse in={expandedOrders[order._id]} timeout="auto" unmountOnExit>
+                              <Box sx={{ margin: 1, p: 2, backgroundColor: 'grey.50', borderRadius: 2 }}>
+                                <Typography variant="h6" gutterBottom component="div" sx={{ display: 'flex', alignItems: 'center' }}>
+                                  <History sx={{ mr: 1 }} /> Order Timeline
+                                </Typography>
+                                
+                                {order.statusHistory && order.statusHistory.length > 0 ? (
+                                  renderUnifiedTimeline(order)
+                                ) : (
+                                  <Typography variant="body2" color="textSecondary">
+                                    No status history available.
+                                  </Typography>
+                                )}
+
+                              </Box>
+                            </Collapse>
+                          </TableCell>
+                        </TableRow>
+                      </React.Fragment>
                     ))
                   ) : (
                     <TableRow>
-                      <TableCell colSpan={10} align="center" sx={{ py: 6 }}>
+                      <TableCell colSpan={12} align="center" sx={{ py: 6 }}>
                         <Box textAlign="center" p={2}>
                           <LocalShipping sx={{ fontSize: 80, color: 'text.disabled', mb: 2 }} />
                           <Typography variant="h6" color="textSecondary">
@@ -734,11 +1082,68 @@ const Orders = () => {
             <Box>
               <Typography variant="body2" color="textSecondary">
                 Showing {Math.min(paginatedOrders.length, rowsPerPage)} of {filteredOrders.length} orders
-              </Typography>
+                </Typography>
             </Box>
           </Box>
         </>
       )}
+
+      {/* Tracking Dialog */}
+      <Dialog open={trackingDialog.open} onClose={() => setTrackingDialog({...trackingDialog, open: false})}>
+        <DialogTitle>Add Tracking Information</DialogTitle>
+        <DialogContent>
+          <Typography variant="body2" color="textSecondary" gutterBottom>
+            Order #{trackingDialog.order?._id?.substring(trackingDialog.order?._id.length - 6).toUpperCase()}
+          </Typography>
+          <TextField
+            autoFocus
+            margin="dense"
+            label="Tracking ID"
+            fullWidth
+            variant="outlined"
+            value={trackingDialog.trackingId}
+            onChange={(e) => setTrackingDialog({...trackingDialog, trackingId: e.target.value})}
+            sx={{ mb: 2 }}
+          />
+          <TextField
+            margin="dense"
+            label="Courier (e.g., ekart, dhl)"
+            fullWidth
+            variant="outlined"
+            value={trackingDialog.trackingCourier}
+            onChange={(e) => setTrackingDialog({...trackingDialog, trackingCourier: e.target.value})}
+            sx={{ mb: 2 }}
+          />
+          <TextField
+            margin="dense"
+            label="Note (Optional)"
+            fullWidth
+            variant="outlined"
+            multiline
+            rows={3}
+            value={trackingDialog.note}
+            onChange={(e) => setTrackingDialog({...trackingDialog, note: e.target.value})}
+          />
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setTrackingDialog({...trackingDialog, open: false})}>Cancel</Button>
+          <Button 
+            onClick={() => handleStatusChange(
+              trackingDialog.order._id, 
+              'shipped', 
+              {
+                trackingId: trackingDialog.trackingId,
+                trackingCourier: trackingDialog.trackingCourier
+              },
+              trackingDialog.note
+            )}
+            disabled={!trackingDialog.trackingId || !trackingDialog.trackingCourier}
+            variant="contained"
+          >
+            Mark as Shipped
+          </Button>
+        </DialogActions>
+      </Dialog>
 
       <Snackbar
         open={snackbar.open}

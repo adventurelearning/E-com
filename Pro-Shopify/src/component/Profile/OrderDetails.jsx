@@ -13,18 +13,15 @@ import {
   ListItemText,
   ListItemAvatar,
   Avatar,
-  CircularProgress,
   Alert,
   Skeleton,
   Stack,
+  Card,
+  CardContent,
+  useTheme,
   IconButton,
-  Badge,
-  Stepper,
-  Step,
-  StepLabel,
-  StepContent,
-  useMediaQuery,
-  useTheme
+  Collapse,
+  Tooltip
 } from '@mui/material';
 import {
   ArrowBack,
@@ -37,14 +34,10 @@ import {
   Home,
   Phone,
   CalendarToday,
-  Payment,
-  Info,
-  Rowing,
-  Store,
-  CreditCard,
-  Assignment,
-  DoneAll,
-  HourglassEmpty
+  LocationOn,
+  ExpandMore,
+  Person,
+  Info
 } from '@mui/icons-material';
 import Api from '../../Services/Api';
 import AddReview from '../AddReview';
@@ -55,54 +48,42 @@ const OrderDetails = () => {
   const [order, setOrder] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [activeStep, setActiveStep] = useState(0);
   const navigate = useNavigate();
   const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
-const [reviewProduct, setReviewProduct] = useState(null);
-const handleOpenReview = (product) => {
-  setReviewProduct(product);
-};
+  const [reviewProduct, setReviewProduct] = useState(null);
+  const [trackingData, setTrackingData] = useState(null);
+  const [trackingLoading, setTrackingLoading] = useState(false);
+  const [trackingError, setTrackingError] = useState(null);
+  const [expanded, setExpanded] = useState(false);
 
-const handleCloseReview = () => {
-  setReviewProduct(null);
-};
+  const handleOpenReview = (product) => {
+    setReviewProduct(product);
+  };
 
- const handleReviewSubmit = async (reviewData) => {
+  const handleCloseReview = () => {
+    setReviewProduct(null);
+  };
+
+  const handleReviewSubmit = async (reviewData) => {
     try {
-      // Add authorization token to request
-      // const token = localStorage.getItem('token');
-      
-      // Submit review to backend
       const response = await Api.post('/reviews', reviewData);
-      
-      // Show success message
-      toast.success('Review submitted successfully!', { variant: 'success' });
-      
-      // Close review dialog
+      toast.success('Review submitted successfully!');
       handleCloseReview();
-      
-      // Optionally: refresh product data to show new review
-      // fetchProductData(); 
-      
     } catch (error) {
-      enqueueSnackbar(error.response?.data?.message || 'Failed to submit review', { 
-        variant: 'error' 
-      });
+      toast.error(error.response?.data?.message || 'Failed to submit review');
     }
   };
+
   useEffect(() => {
     const fetchOrderDetails = async () => {
       try {
-        const response = await Api.get(`/orders/${id}`, {
-          headers: {
-            'Authorization': `Bearer ${localStorage.getItem('token')}`
-          }
-        });
+        const response = await Api.get(`/orders/${id}`);
         setOrder(response.data);
         setLoading(false);
-        // Set active step based on order status
-        updateActiveStep(response.data.status);
+        
+        if (response.data.trackingId && response.data.trackingCourier) {
+          fetchTrackingDetails(response.data.trackingCourier, response.data.trackingId);
+        }
       } catch (err) {
         console.error('Error fetching order details:', err);
         setLoading(false);
@@ -120,28 +101,23 @@ const handleCloseReview = () => {
     fetchOrderDetails();
   }, [id, navigate]);
 
-  const updateActiveStep = (status) => {
-    switch (status?.toLowerCase()) {
-      case 'pending':
-        setActiveStep(0);
-        break;
-      case 'confirmed':
-        setActiveStep(1);
-        break;
-      case 'processing':
-        setActiveStep(2);
-        break;
-      case 'shipped':
-        setActiveStep(3);
-        break;
-      case 'delivered':
-        setActiveStep(4);
-        break;
-      case 'cancelled':
-        setActiveStep(-1); // Special case for cancelled
-        break;
-      default:
-        setActiveStep(0);
+  const fetchTrackingDetails = async (courier, trackingNumber) => {
+    setTrackingLoading(true);
+    setTrackingError(null);
+    
+    try {
+      const response = await Api.post('/tracking', {
+        courier,
+        trackingNumber,
+        orderId: id,
+      });
+      
+      setTrackingData(response.data);
+    } catch (err) {
+      console.error('Error fetching tracking details:', err);
+      setTrackingError('Failed to load tracking information.');
+    } finally {
+      setTrackingLoading(false);
     }
   };
 
@@ -178,49 +154,121 @@ const handleCloseReview = () => {
     return null;
   };
 
-  const steps = [
-    {
-      label: 'Order Placed',
-      description: 'Your order has been received',
-      icon: <Assignment color="primary" />
-    },
-    {
-      label: 'Order Confirmed',
-      description: 'Seller has confirmed your order',
-      icon: <CheckCircle color="primary" />
-    },
-    {
-      label: 'Processing',
-      description: 'Seller is preparing your order',
-      icon: <Store color="primary" />
-    },
-    {
-      label: 'Shipped',
-      description: 'Your order is on the way',
-      icon: <LocalShipping color="primary" />
-    },
-    {
-      label: 'Delivered',
-      description: 'Your order has been delivered',
-      icon: <DoneAll color="success" />
+  const formatDate = (dateString) => {
+    if (!dateString) return 'N/A';
+    
+    try {
+      const date = new Date(dateString);
+      return date.toLocaleString(undefined, {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+      });
+    } catch (error) {
+      return 'Invalid date';
     }
-  ];
+  };
+
+  // Create unified timeline
+  const createUnifiedTimeline = () => {
+    const timeline = [];
+    
+    // Add order creation
+    timeline.push({
+      type: 'system',
+      title: 'Order Created',
+      description: 'Your order has been placed successfully.',
+      date: order.createdAt,
+      status: 'created',
+      icon: <CalendarToday sx={{ fontSize: 16 }} />
+    });
+    
+    // Add status history from database
+    if (order.statusHistory && order.statusHistory.length > 0) {
+      order.statusHistory.forEach(item => {
+        timeline.push({
+          type: 'status',
+          title: `Order ${item.status.charAt(0).toUpperCase() + item.status.slice(1)}`,
+          description: item.note || `Order status changed to ${item.status}`,
+          date: item.changedAt,
+          status: item.status,
+          changedBy: item.changedBy?.name || 'System',
+          trackingId: item.trackingId,
+          trackingCourier: item.trackingCourier,
+          icon: getStatusIcon(item.status)
+        });
+      });
+    }
+    
+    // Add tracking events if available
+    if (trackingData && trackingData.data && trackingData.data.tracking.checkpoints) {
+      trackingData.data.tracking.checkpoints.forEach((checkpoint, index) => {
+        timeline.push({
+          type: 'tracking',
+          title: checkpoint.message,
+          description: checkpoint.location || 'Tracking update',
+          date: checkpoint.checkpoint_time,
+          status: checkpoint.tag,
+          icon: getTrackingIcon(checkpoint.tag),
+          isTracking: true
+        });
+      });
+    }
+    
+    // Sort timeline by date
+    timeline.sort((a, b) => new Date(a.date) - new Date(b.date));
+    return timeline;
+  };
+
+  const getStatusIcon = (status) => {
+    switch (status?.toLowerCase()) {
+      case 'pending':
+        return <Info sx={{ fontSize: 16 }} />;
+      case 'processing':
+        return <LocalShipping sx={{ fontSize: 16 }} />;
+      case 'shipped':
+        return <LocalShipping sx={{ fontSize: 16 }} />;
+      case 'delivered':
+        return <CheckCircle sx={{ fontSize: 16 }} />;
+      default:
+        return <Info sx={{ fontSize: 16 }} />;
+    }
+  };
+
+  const getTrackingIcon = (tag) => {
+    switch (tag?.toLowerCase()) {
+      case 'delivered':
+        return <CheckCircle sx={{ fontSize: 16 }} />;
+      case 'intransit':
+        return <LocalShipping sx={{ fontSize: 16 }} />;
+      case 'outfordelivery':
+        return <LocalShipping sx={{ fontSize: 16 }} />;
+      case 'exception':
+        return <Info sx={{ fontSize: 16 }} />;
+      case 'inforeceived':
+        return <Info sx={{ fontSize: 16 }} />;
+      default:
+        return <Info sx={{ fontSize: 16 }} />;
+    }
+  };
 
   if (loading) {
     return (
-      <Box sx={{ p: { xs: 2, md: 4 }, maxWidth: 1400, mx: 'auto' }}>
-        <Skeleton variant="rectangular" width={120} height={40} sx={{ mb: 3 }} />
-        <Grid container spacing={3}>
+      <Box sx={{ p: { xs: 1, md: 2 }, maxWidth: 1200, mx: 'auto' }}>
+        <Skeleton variant="rectangular" width={100} height={30} sx={{ mb: 2 }} />
+        <Grid container spacing={2}>
           <Grid item xs={12} md={8}>
-            <Paper sx={{ p: 3, mb: 3, borderRadius: '12px' }}>
-              <Skeleton variant="text" width="60%" height={40} />
-              <Skeleton variant="rectangular" height={150} sx={{ mt: 2, borderRadius: '8px' }} />
+            <Paper sx={{ p: 2, mb: 2, borderRadius: '8px' }}>
+              <Skeleton variant="text" width="60%" height={30} />
+              <Skeleton variant="rectangular" height={120} sx={{ mt: 1, borderRadius: '6px' }} />
             </Paper>
           </Grid>
           <Grid item xs={12} md={4}>
-            <Paper sx={{ p: 3, mb: 3, borderRadius: '12px' }}>
-              <Skeleton variant="text" width="70%" height={40} />
-              <Skeleton variant="rectangular" height={300} sx={{ mt: 2, borderRadius: '8px' }} />
+            <Paper sx={{ p: 2, mb: 2, borderRadius: '8px' }}>
+              <Skeleton variant="text" width='70%' height={30} />
+              <Skeleton variant="rectangular" height={250} sx={{ mt: 1, borderRadius: '6px' }} />
             </Paper>
           </Grid>
         </Grid>
@@ -230,7 +278,7 @@ const handleCloseReview = () => {
 
   if (error) {
     return (
-      <Box sx={{ p: 3, maxWidth: 1200, mx: 'auto', textAlign: 'center' }}>
+      <Box sx={{ p: 2, maxWidth: 1200, mx: 'auto', textAlign: 'center' }}>
         <Alert severity="error" sx={{ mb: 2 }}>
           {error}
         </Alert>
@@ -238,6 +286,7 @@ const handleCloseReview = () => {
           startIcon={<ArrowBack />}
           onClick={() => navigate('/orders')}
           variant="outlined"
+          size="small"
         >
           Back to Orders
         </Button>
@@ -247,7 +296,7 @@ const handleCloseReview = () => {
 
   if (!order) {
     return (
-      <Box sx={{ p: 3, maxWidth: 1200, mx: 'auto', textAlign: 'center' }}>
+      <Box sx={{ p: 2, maxWidth: 1200, mx: 'auto', textAlign: 'center' }}>
         <Typography variant="h6" color="text.secondary">
           No order details available.
         </Typography>
@@ -255,6 +304,7 @@ const handleCloseReview = () => {
           startIcon={<ArrowBack />}
           onClick={() => navigate('/orders')}
           variant="outlined"
+          size="small"
           sx={{ mt: 2 }}
         >
           Back to Orders
@@ -263,13 +313,16 @@ const handleCloseReview = () => {
     );
   }
 
+  const unifiedTimeline = createUnifiedTimeline();
+
   return (
-    <Box sx={{ p: { xs: 2, md: 4 }, maxWidth: 1400, mx: 'auto', bgcolor: 'background.default' }}>
+    <Box sx={{ p: { xs: 1, md: 2 }, maxWidth: 1200, mx: 'auto', bgcolor: 'background.default' }}>
       <Button
         startIcon={<ArrowBack />}
         onClick={() => navigate('/orders')}
-        sx={{ mb: 3 }}
+        sx={{ mb: 2 }}
         variant="outlined"
+        size="small"
       >
         Back to Orders
       </Button>
@@ -277,26 +330,31 @@ const handleCloseReview = () => {
       {/* Order Header */}
       <Box sx={{ 
         display: 'flex', 
-        flexDirection: isMobile ? 'column' : 'row', 
+        flexDirection: { xs: 'column', sm: 'row' }, 
         justifyContent: 'space-between', 
-        alignItems: isMobile ? 'flex-start' : 'center', 
-        mb: 3,
-        gap: 2
+        alignItems: { xs: 'flex-start', sm: 'center' }, 
+        mb: 2,
+        gap: 1
       }}>
-        <Typography variant="h4" sx={{ fontWeight: 700, color: 'text.primary' }}>
-          Order #{id.substring(18, 24).toUpperCase()}
-        </Typography>
+        <Box>
+          <Typography variant="h5" sx={{ fontWeight: 600, color: 'text.primary', mb: 0.5 }}>
+            Order #{order.orderNumber || id.substring(18, 24).toUpperCase()}
+          </Typography>
+          <Box sx={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 0.5 }}>
+            <Typography variant="body2" color="text.secondary" sx={{ display: 'flex', alignItems: 'center' }}>
+              <CalendarToday sx={{ fontSize: 14, mr: 0.5 }} />
+              Ordered on {formatDate(order.createdAt)}
+            </Typography>
+          </Box>
+        </Box>
         <Chip
           label={order.status || 'N/A'}
           color={getStatusColor(order.status)}
-          size="medium"
-          icon={order.status === 'delivered' ? <CheckCircle /> : 
-                order.status === 'cancelled' ? <HourglassEmpty /> : 
-                <LocalShipping />}
+          size="small"
+          icon={order.status === 'delivered' ? <CheckCircle /> : <LocalShipping />}
           sx={{
-            px: 2,
-            py: 1,
-            fontSize: '0.875rem',
+            px: 1,
+            fontSize: '0.75rem',
             fontWeight: 600,
             textTransform: 'capitalize'
           }}
@@ -304,21 +362,19 @@ const handleCloseReview = () => {
       </Box>
 
       {/* Action Buttons */}
-      <Stack direction={isMobile ? 'column' : 'row'} spacing={2} sx={{ mb: 4 }}>
+      <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1} sx={{ mb: 3 }}>
         <Button
           variant="contained"
           startIcon={<Chat />}
-          sx={{ 
-            textTransform: 'none',
-            bgcolor: 'primary.main',
-            '&:hover': { bgcolor: 'primary.dark' }
-          }}
+          size="small"
+          sx={{ textTransform: 'none' }}
         >
           Contact Support
         </Button>
         <Button
           variant="outlined"
           startIcon={<Download />}
+          size="small"
           sx={{ textTransform: 'none' }}
           onClick={async () => {
             try {
@@ -348,64 +404,124 @@ const handleCloseReview = () => {
         </Button>
       </Stack>
 
-      {/* Order Status Stepper */}
+      {/* Unified Timeline */}
       <Paper sx={{ 
-        p: 3, 
-        mb: 4, 
-        borderRadius: '12px', 
-        boxShadow: '0px 4px 12px rgba(0, 0, 0, 0.05)',
+        p: 2, 
+        mb: 3, 
+        borderRadius: '8px', 
+        boxShadow: '0px 2px 8px rgba(0, 0, 0, 0.05)',
         bgcolor: 'background.paper'
       }}>
-        <Typography variant="h6" sx={{ fontWeight: 600, mb: 3, display: 'flex', alignItems: 'center' }}>
-          <LocalShipping sx={{ mr: 1, color: 'primary.main' }} />
-          Order Status
-        </Typography>
-        
-        <Stepper activeStep={activeStep} orientation={isMobile ? 'vertical' : 'horizontal'}>
-          {steps.map((step, index) => (
-            <Step key={step.label}>
-              <StepLabel
-                optional={!isMobile && <Typography variant="caption">{step.description}</Typography>}
-                StepIconComponent={() => (
-                  <Box sx={{ 
-                    width: 32, 
-                    height: 32, 
-                    borderRadius: '50%', 
-                    bgcolor: index <= activeStep ? 'primary.main' : 'action.disabledBackground',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    color: 'common.white'
-                  }}>
-                    {step.icon}
-                  </Box>
-                )}
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+          <Typography variant="h6" sx={{ fontWeight: 600, display: 'flex', alignItems: 'center' }}>
+            <CalendarToday sx={{ mr: 1, fontSize: 20, color: 'primary.main' }} />
+            Order Tracking
+          </Typography>
+          <Tooltip title={expanded ? "Collapse" : "Expand"}>
+            <IconButton 
+              size="small" 
+              onClick={() => setExpanded(!expanded)}
+              sx={{ transform: expanded ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 0.3s' }}
+            >
+              <ExpandMore />
+            </IconButton>
+          </Tooltip>
+        </Box>
+
+        <Collapse in={expanded} timeout="auto" unmountOnExit>
+          <Box sx={{ 
+            position: 'relative',
+            pl: 2,
+            ml: 1,
+            borderLeft: '2px dashed',
+            borderColor: 'primary.light'
+          }}>
+            {unifiedTimeline.map((event, index) => (
+              <Box 
+                key={index} 
+                sx={{ 
+                  position: 'relative',
+                  mb: 2,
+                  '&::before': {
+                    content: '""',
+                    position: 'absolute',
+                    left: -21,
+                    top: 4,
+                    width: 12,
+                    height: 12,
+                    borderRadius: '50%',
+                    backgroundColor: index === unifiedTimeline.length - 1 ? 'success.main' : 'primary.main',
+                    border: '2px solid',
+                    borderColor: 'white',
+                    boxShadow: '0 0 0 1px primary.main',
+                    zIndex: 2
+                  }
+                }}
               >
-                {step.label}
-              </StepLabel>
-              {isMobile && (
-                <StepContent>
-                  <Typography variant="body2">{step.description}</Typography>
-                </StepContent>
-              )}
-            </Step>
-          ))}
-        </Stepper>
+                <Card sx={{ 
+                  borderRadius: '8px',
+                  boxShadow: index === unifiedTimeline.length - 1 ? '0 2px 8px rgba(0,0,0,0.1)' : '0 1px 4px rgba(0,0,0,0.05)',
+                  border: index === unifiedTimeline.length - 1 ? '1px solid' : '1px solid',
+                  borderColor: index === unifiedTimeline.length - 1 ? 'success.light' : 'grey.200',
+                  backgroundColor: index === unifiedTimeline.length - 1 ? 'success.10' : 'background.paper'
+                }}>
+                  <CardContent sx={{ py: 1, '&:last-child': { pb: 1 } }}>
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap' }}>
+                      <Box sx={{ flex: 1 }}>
+                        <Typography variant="body2" color="text.secondary" sx={{ display: 'flex', alignItems: 'center', mb: 0.5 }}>
+                          {event.icon}
+                          <Box component="span" sx={{ ml: 0.5 }}>
+                            {formatDate(event.date)}
+                          </Box>
+                        </Typography>
+                        <Typography variant="body2" fontWeight="600" gutterBottom>
+                          {event.title}
+                        </Typography>
+                        <Typography variant="body2" color="text.secondary">
+                          {event.description}
+                        </Typography>
+                        {event.changedBy && (
+                          <Typography variant="caption" color="text.secondary" sx={{ display: 'flex', alignItems: 'center', mt: 0.5 }}>
+                            <Person sx={{ fontSize: 14, mr: 0.5 }} />
+                            Updated by: {event.changedBy}
+                          </Typography>
+                        )}
+                        {event.trackingId && (
+                          <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 0.5 }}>
+                            Tracking: {event.trackingCourier} - {event.trackingId}
+                          </Typography>
+                        )}
+                      </Box>
+                      {event.isTracking && (
+                        <Chip 
+                          label="Tracking" 
+                          size="small" 
+                          color="info" 
+                          variant="outlined"
+                          sx={{ fontWeight: 500, ml: 1 }}
+                        />
+                      )}
+                    </Box>
+                  </CardContent>
+                </Card>
+              </Box>
+            ))}
+          </Box>
+        </Collapse>
       </Paper>
 
-      <Grid container spacing={3}>
-        {/* Left Column - Order Items */}
-        <Grid item xs={12} md={8}>
-          {/* Order Items */}
+      <Grid container spacing={2}>
+        {/* Order Items */}
+        <Grid item xs={12} md={7}>
           <Paper sx={{ 
-            p: 3, 
-            mb: 3, 
-            borderRadius: '12px', 
-            boxShadow: '0px 4px 12px rgba(0, 0, 0, 0.05)',
+            p: 2, 
+            mb: 2, 
+            borderRadius: '8px', 
+            boxShadow: '0px 2px 8px rgba(0, 0, 0, 0.05)',
             bgcolor: 'background.paper'
           }}>
-            <Typography variant="h6" sx={{ fontWeight: 600, mb: 3, display: 'flex', alignItems: 'center' }}>
-              <ShoppingBag sx={{ mr: 1, color: 'primary.main' }} />
+            <Typography variant="h6" sx={{ fontWeight: 600, mb: 2, display: 'flex', alignItems: 'center' }}>
+              <ShoppingBag sx={{ mr: 1, fontSize: 20, color: 'primary.main' }} />
               Order Items ({order.items.length})
             </Typography>
 
@@ -416,72 +532,65 @@ const handleCloseReview = () => {
                   <React.Fragment key={item.productId?._id || index}>
                     <ListItem 
                       sx={{ 
-                        py: 2, 
+                        py: 1, 
                         px: 0,
-                        '&:hover': { bgcolor: 'action.hover' }
                       }}
                     >
                       <ListItemAvatar>
-                        <Badge
-                          badgeContent={item.quantity || 0}
-                          color="primary"
-                          overlap="rectangular"
-                          anchorOrigin={{ vertical: 'top', horizontal: 'left' }}
+                        <Avatar
+                          variant="rounded"
+                          src={firstImage}
+                          sx={{
+                            width: 60,
+                            height: 60,
+                            mr: 1,
+                            bgcolor: 'grey.100',
+                            borderRadius: '6px'
+                          }}
                         >
-                          <Avatar
-                            variant="rounded"
-                            src={firstImage}
-                            sx={{
-                              width: 80,
-                              height: 80,
-                              mr: 2,
-                              bgcolor: 'grey.100',
-                              borderRadius: '8px'
-                            }}
-                          >
-                            {!firstImage && <ShoppingBag />}
-                          </Avatar>
-                        </Badge>
+                          {!firstImage && <ShoppingBag />}
+                        </Avatar>
                       </ListItemAvatar>
                       <ListItemText
                         primary={
-                          <Typography variant="body1" fontWeight={600}>
+                          <Typography variant="body2" fontWeight={600}>
                             {item.productId?.name || 'Unknown Product'}
                           </Typography>
                         }
                         secondary={
-                          <Typography variant="body2" color="text.secondary">
-                            {item.productId?.description || 'No description available'}
-                          </Typography>
+                          <Box>
+                            <Typography variant="caption" color="text.secondary" sx={{ mb: 0.5 }}>
+                              Quantity: {item.quantity}
+                            </Typography>
+                            <Typography variant="body2" color="primary.main" fontWeight={600}>
+                              ₹{(item.productId?.discountPrice * item.quantity).toFixed(2)}
+                            </Typography>
+                          </Box>
                         }
-                        sx={{ mr: 2 }}
+                        sx={{ mr: 1 }}
                       />
-                      <Typography variant="body1" fontWeight={600} color="primary.main">
-                        ₹{(item.productId?.discountPrice * item.quantity).toFixed(2)}
-                      </Typography>
                     </ListItem>
                     {index < order.items.length - 1 && (
                       <Divider
                         component="li"
                         sx={{
                           mx: 0,
-                          borderColor: 'divider',
-                          borderBottomWidth: '1px'
+                          borderColor: 'divider'
                         }}
                       />
                     )}
-                            {order.status === 'delivered' && (
-  <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 1 }}>
-    <Button
-      variant="outlined"
-      size="small"
-      onClick={() => handleOpenReview(item.productId)}
-      sx={{ textTransform: 'none' }}
-    >
-      Write a Review
-    </Button>
-  </Box>
-)}
+                    {order.status === 'delivered' && (
+                      <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 1 }}>
+                        <Button
+                          variant="outlined"
+                          size="small"
+                          onClick={() => handleOpenReview(item.productId)}
+                          sx={{ textTransform: 'none', fontSize: '0.75rem' }}
+                        >
+                          Write a Review
+                        </Button>
+                      </Box>
+                    )}
                   </React.Fragment>
                 );
               })}
@@ -489,29 +598,28 @@ const handleCloseReview = () => {
           </Paper>
         </Grid>
 
-        {/* Right Column - Order Summary and Address */}
-        <Grid item xs={12} md={4}>
-          {/* Order Summary */}
+        {/* Order Summary and Address */}
+        <Grid item xs={12} md={5}>
           <Paper sx={{ 
-            p: 3, 
-            mb: 3, 
-            borderRadius: '12px', 
-            boxShadow: '0px 4px 12px rgba(0, 0, 0, 0.05)',
+            p: 2, 
+            mb: 2, 
+            borderRadius: '8px', 
+            boxShadow: '0px 2px 8px rgba(0, 0, 0, 0.05)',
             bgcolor: 'background.paper'
           }}>
-            <Typography variant="h6" sx={{ fontWeight: 600, mb: 3, display: 'flex', alignItems: 'center' }}>
-              <Receipt sx={{ mr: 1, color: 'primary.main' }} />
+            <Typography variant="h6" sx={{ fontWeight: 600, mb: 2, display: 'flex', alignItems: 'center' }}>
+              <Receipt sx={{ mr: 1, fontSize: 20, color: 'primary.main' }} />
               Order Summary
             </Typography>
 
-            <Grid container spacing={2} sx={{ mb: 3 }}>
+            <Grid container spacing={1} sx={{ mb: 2 }}>
               <Grid item xs={6}>
-                <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 0.5 }}>Order ID</Typography>
-                <Typography variant="body1" fontWeight={500}>#{id.substring(18, 24).toUpperCase()}</Typography>
+                <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>Order ID</Typography>
+                <Typography variant="body2" fontWeight={500}>#{order.orderNumber || id.substring(18, 24).toUpperCase()}</Typography>
               </Grid>
               <Grid item xs={6}>
-                <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 0.5 }}>Order Date</Typography>
-                <Typography variant="body1" fontWeight={500}>
+                <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>Order Date</Typography>
+                <Typography variant="body2" fontWeight={500}>
                   {new Date(order.createdAt).toLocaleDateString(undefined, {
                     year: 'numeric',
                     month: 'short',
@@ -520,52 +628,52 @@ const handleCloseReview = () => {
                 </Typography>
               </Grid>
               <Grid item xs={6}>
-                <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 0.5 }}>Payment Method</Typography>
-                <Typography variant="body1" fontWeight={500}>
+                <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>Payment Method</Typography>
+                <Typography variant="body2" fontWeight={500}>
                   {order.paymentMethod === 'cod' ? 'Cash on Delivery' : 
                    order.paymentMethod === 'card' ? 'Credit/Debit Card' : 
                    order.paymentMethod || 'N/A'}
                 </Typography>
               </Grid>
               <Grid item xs={6}>
-                <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 0.5 }}>Payment Status</Typography>
+                <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>Payment Status</Typography>
                 <Chip
-                  label="Paid"
+                  label={order.paymentStatus || 'Paid'}
                   size="small"
-                  color="success"
+                  color={order.paymentStatus === 'pending' ? 'warning' : 'success'}
                   variant="outlined"
-                  sx={{ fontWeight: 500 }}
+                  sx={{ fontWeight: 500, height: 24 }}
                 />
               </Grid>
             </Grid>
 
-            <Divider sx={{ my: 2 }} />
+            <Divider sx={{ my: 1.5 }} />
 
-            <Typography variant="subtitle1" fontWeight={600} sx={{ mb: 2 }}>Price Details</Typography>
-            <Stack spacing={1.5} sx={{ mb: 2 }}>
+            <Typography variant="subtitle2" fontWeight={600} sx={{ mb: 1.5 }}>Price Details</Typography>
+            <Stack spacing={1} sx={{ mb: 2 }}>
               <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-                <Typography variant="body2" color="text.secondary">Subtotal</Typography>
-                <Typography variant="body2">₹{order.subtotal?.toFixed(2)}</Typography>
+                <Typography variant="caption" color="text.secondary">Subtotal</Typography>
+                <Typography variant="caption">₹{order.subtotal?.toFixed(2)}</Typography>
               </Box>
               <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-                <Typography variant="body2" color="text.secondary">Shipping</Typography>
-                <Typography variant="body2" color="success.main">Free</Typography>
+                <Typography variant="caption" color="text.secondary">Shipping</Typography>
+                <Typography variant="caption" color="success.main">Free</Typography>
               </Box>
               <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-                <Typography variant="body2" color="text.secondary">Tax</Typography>
-                <Typography variant="body2">₹{order.tax?.toFixed(2) || '0.00'}</Typography>
+                <Typography variant="caption" color="text.secondary">Tax</Typography>
+                <Typography variant="caption">₹{order.tax?.toFixed(2) || '0.00'}</Typography>
               </Box>
               <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-                <Typography variant="body2" color="text.secondary">Discount</Typography>
-                <Typography variant="body2" color="error.main">-₹{order.discount?.toFixed(2) || '0.00'}</Typography>
+                <Typography variant="caption" color="text.secondary">Discount</Typography>
+                <Typography variant="caption" color="error.main">-₹{order.discount?.toFixed(2) || '0.00'}</Typography>
               </Box>
             </Stack>
 
-            <Divider sx={{ my: 2 }} />
+            <Divider sx={{ my: 1.5 }} />
 
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
-              <Typography variant="body1" fontWeight={600}>Total Amount</Typography>
-              <Typography variant="body1" fontWeight={600} color="primary.main">
+            <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+              <Typography variant="body2" fontWeight={600}>Total Amount</Typography>
+              <Typography variant="body2" fontWeight={600} color="primary.main">
                 ₹{order.total?.toFixed(2)}
               </Typography>
             </Box>
@@ -574,46 +682,45 @@ const handleCloseReview = () => {
           {/* Delivery Address */}
           {order.shippingAddress && (
             <Paper sx={{ 
-              p: 3, 
-              borderRadius: '12px', 
-              boxShadow: '0px 4px 12px rgba(0, 0, 0, 0.05)',
+              p: 2, 
+              borderRadius: '8px', 
+              boxShadow: '0px 2px 8px rgba(0, 0, 0, 0.05)',
               bgcolor: 'background.paper'
             }}>
-              <Typography variant="h6" sx={{ fontWeight: 600, mb: 2, display: 'flex', alignItems: 'center' }}>
-                <Home sx={{ mr: 1, color: 'primary.main' }} />
+              <Typography variant="h6" sx={{ fontWeight: 600, mb: 1.5, display: 'flex', alignItems: 'center' }}>
+                <Home sx={{ mr: 1, fontSize: 20, color: 'primary.main' }} />
                 Delivery Address
               </Typography>
 
-              <Box sx={{ mb: 2 }}>
-                <Typography variant="body1" fontWeight={500}>{order.shippingAddress.fullName}</Typography>
-                <Typography variant="body2" color="text.secondary">{order.shippingAddress.street}</Typography>
-                <Typography variant="body2" color="text.secondary">
+              <Box sx={{ mb: 1.5 }}>
+                <Typography variant="body2" fontWeight={500}>{order.shippingAddress.fullName}</Typography>
+                <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>{order.shippingAddress.street}</Typography>
+                <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>
                   {order.shippingAddress.city}, {order.shippingAddress.state} - {order.shippingAddress.postalCode}
                 </Typography>
-                <Typography variant="body2" color="text.secondary">{order.shippingAddress.country}</Typography>
+                <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>{order.shippingAddress.country}</Typography>
               </Box>
 
-              <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
-                <Phone sx={{ fontSize: '16px', color: 'text.secondary' }} />
-                <Typography variant="body2">{order.shippingAddress.phone}</Typography>
+              <Stack direction="row" spacing={0.5} sx={{ alignItems: 'center' }}>
+                <Phone sx={{ fontSize: '14px', color: 'text.secondary' }} />
+                <Typography variant="caption">{order.shippingAddress.phone}</Typography>
                 {order.shippingAddress.alternatePhone && (
-                  <Typography variant="body2">, {order.shippingAddress.alternatePhone}</Typography>
+                  <Typography variant="caption">, {order.shippingAddress.alternatePhone}</Typography>
                 )}
               </Stack>
             </Paper>
           )}
         </Grid>
       </Grid>
-      {/* // Inside the OrderDetails return statement, after the Stepper component */}
-{reviewProduct && (
-  <AddReview
-    open={Boolean(reviewProduct)}
-    onClose={handleCloseReview}
-    product={reviewProduct}
-    onSubmit={handleReviewSubmit}
-  />
-)}
-
+      
+      {reviewProduct && (
+        <AddReview
+          open={Boolean(reviewProduct)}
+          onClose={handleCloseReview}
+          product={reviewProduct}
+          onSubmit={handleReviewSubmit}
+        />
+      )}
     </Box>
   );
 };

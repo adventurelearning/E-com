@@ -33,11 +33,9 @@ const orderSchema = new mongoose.Schema({
     note: String,
     trackingId: String,
     trackingCourier: String
-  }],
-  total: { type: Number, required: true },
-  razorpayPaymentId: { type: String, default: null },
-  razorpay_order_id : { type: String, default: null },
-  razorpaySignature: { type: String, default: null },
+  }]
 }, { timestamps: true });
+
+
 
 module.exports = mongoose.model('Order', orderSchema);

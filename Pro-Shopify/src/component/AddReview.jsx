@@ -15,7 +15,6 @@ import {
 } from '@mui/material';
 import { PhotoCamera, Close, Delete } from '@mui/icons-material';
 import { useSnackbar } from 'notistack';
-import Api from '../Services/Api';
 
 const AddReview = ({ open, onClose, product, onSubmit }) => {
   const [rating, setRating] = useState(0);
@@ -25,6 +24,10 @@ const AddReview = ({ open, onClose, product, onSubmit }) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const { enqueueSnackbar } = useSnackbar();
+
+  // Cloudinary configuration
+  const CLOUD_NAME = import.meta.env.VITE_CLOUD_NAME;
+  const UPLOAD_PRESET = import.meta.env.VITE_UPLOAD_PRESET;
 
   const handleImageSelect = async (e) => {
     const files = Array.from(e.target.files);
@@ -63,23 +66,32 @@ const AddReview = ({ open, onClose, product, onSubmit }) => {
     );
 
     try {
-      const fd = new FormData();
-      fd.append('photo', img.file);
-
-      const response = await Api.post('/upload', fd, {
-        headers: { 
-          'Content-Type': 'multipart/form-data',
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
+      const formData = new FormData();
+      formData.append('file', img.file);
+      formData.append('upload_preset', UPLOAD_PRESET);
+      
+      // Upload to Cloudinary
+      const response = await fetch(
+        `https://api.cloudinary.com/v1_1/${CLOUD_NAME}/image/upload`, 
+        {
+          method: 'POST',
+          body: formData
         }
-      });
+      );
+      
+      const data = await response.json();
+      
+      if (!response.ok) {
+        throw new Error(data.error?.message || 'Upload failed');
+      }
 
       // Update with server URL and filename
       setImages(prev =>
         prev.map(i =>
           i.url === img.url
             ? {
-                url: response.data.location,
-                serverFilename: response.data.location,
+                url: data.secure_url,
+                serverFilename: data.secure_url,
                 status: 'uploaded'
               }
             : i
@@ -94,7 +106,7 @@ const AddReview = ({ open, onClose, product, onSubmit }) => {
           i.url === img.url ? { ...i, status: 'error' } : i
         )
       );
-      enqueueSnackbar('Image upload failed', { variant: 'error' });
+      enqueueSnackbar('Image upload failed: ' + err.message, { variant: 'error' });
     }
   };
 
@@ -155,7 +167,6 @@ const AddReview = ({ open, onClose, product, onSubmit }) => {
       setImages([]);
     } catch (err) {
       setError(err.message || 'Failed to submit review');
-      // enqueueSnackbar('Failed to submit review', { variant: 'error' });
     } finally {
       setLoading(false);
     }
