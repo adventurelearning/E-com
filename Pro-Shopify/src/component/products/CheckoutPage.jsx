@@ -13,7 +13,8 @@ import {
   FiTruck,
   FiPackage,
   FiChevronRight,
-  FiMapPin
+  FiMapPin,
+  FiLoader
 } from 'react-icons/fi';
 import { motion } from 'framer-motion';
 import AddressForm from './AdressForm';
@@ -29,8 +30,10 @@ const CheckoutPage = () => {
   const [paymentMethod, setPaymentMethod] = useState('cod');
   const [showAddressForm, setShowAddressForm] = useState(false);
   const [showAllAddresses, setShowAllAddresses] = useState(false);
-  const { resetCart,refreshCart } = useCart();
+  const { resetCart, refreshCart } = useCart();
   const addressSectionRef = useRef(null);
+  const [processingPayment, setProcessingPayment] = useState(false);
+  const [razorpayOrderId, setRazorpayOrderId] = useState(null); // Add this state
 
   useEffect(() => {
     const fetchData = async () => {
@@ -83,13 +86,135 @@ const CheckoutPage = () => {
     }
   };
 
-  const placeOrder = async () => {
+  const loadRazorpayScript = () => {
+    return new Promise((resolve) => {
+      if (window.Razorpay) {
+        resolve(true);
+        return;
+      }
+
+      const script = document.createElement('script');
+      script.src = 'https://checkout.razorpay.com/v1/checkout.js';
+      script.onload = () => {
+        resolve(true);
+      };
+      script.onerror = () => {
+        resolve(false);
+      };
+      document.body.appendChild(script);
+    });
+  };
+
+  const handleRazorpayPayment = async () => {
+    try {
+      setProcessingPayment(true);
+      const token = localStorage.getItem('token');
+      
+      // Load Razorpay script
+      const isScriptLoaded = await loadRazorpayScript();
+      if (!isScriptLoaded) {
+        toast.error('Failed to load payment gateway. Please try again.');
+        setProcessingPayment(false);
+        return;
+      }
+
+      // Create Razorpay order
+      const orderResponse = await Api.post('/orders/create-razorpay-order', {
+        amount: Math.round(subtotal * 100), // Convert to paise
+        currency: 'INR'
+      }, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+
+      if (!orderResponse.data.success) {
+        throw new Error(orderResponse.data.message || 'Failed to create payment order');
+      }
+
+      const razorpayOrder = orderResponse.data.order;
+      setRazorpayOrderId(razorpayOrder.id); // Store the Razorpay order ID
+      
+      const address = addresses.find(addr => addr._id === selectedAddress);
+
+      // Razorpay options
+      const options = {
+        key: import.meta.env.VITE_RAZORPAY_KEY_ID,
+        amount: razorpayOrder.amount,
+        currency: razorpayOrder.currency,
+        name: 'Your Store Name',
+        description: `Payment for ${cart.items.length} items`,
+        order_id: razorpayOrder.id,
+        handler: async function (response) {
+          try {
+            // Verify payment
+            const verificationResponse = await Api.post('/orders/update-razorpay-payment', {
+              razorpay_order_id: response.razorpay_order_id,
+              razorpay_payment_id: response.razorpay_payment_id,
+              razorpay_signature: response.razorpay_signature
+            }, {
+              headers: { Authorization: `Bearer ${token}` }
+            });
+
+            if (verificationResponse.data.success) {
+              await completeOrder(response.razorpay_payment_id, razorpayOrder.id); // Pass both IDs
+            } else {
+              toast.error('Payment verification failed. Please contact support.');
+              setProcessingPayment(false);
+            }
+          } catch (error) {
+            console.error('Payment verification error:', error);
+            toast.error('Payment verification failed. Please contact support.');
+            setProcessingPayment(false);
+          }
+        },
+        prefill: {
+          name: address?.fullName || '',
+          email: 'customer@example.com',
+          contact: address?.phone || ''
+        },
+        notes: {
+          items: cart.items.length.toString(),
+          address: `${address?.street}, ${address?.city}`
+        },
+        theme: {
+          color: '#b10024'
+        },
+        modal: {
+          ondismiss: function() {
+            setProcessingPayment(false);
+            toast.info('Payment cancelled');
+          }
+        }
+      };
+
+      const rzp1 = new window.Razorpay(options);
+      rzp1.open();
+
+    } catch (error) {
+      console.error('Razorpay payment error:', error);
+      
+      // Improved error handling
+      if (error.response?.data?.message) {
+        toast.error(error.response.data.message);
+      } else {
+        toast.error('Failed to initialize payment. Please try again.');
+      }
+      setProcessingPayment(false);
+    }
+  };
+
+  const completeOrder = async (razorpayPaymentId = null, razorpay_order_id = null) => {
     try {
       const token = localStorage.getItem('token');
-      if (!token || !selectedAddress || cart.items.length === 0) return;
+      if (!token || !selectedAddress || cart.items.length === 0) {
+        toast.error('Missing required information for order');
+        return;
+      }
 
       const address = addresses.find(addr => addr._id === selectedAddress);
-      if (!address) return;
+      if (!address) {
+        toast.error('Selected address not found');
+        return;
+      }
 
       const orderData = {
         shippingAddress: {
@@ -102,25 +227,60 @@ const CheckoutPage = () => {
         },
         paymentMethod,
         total: subtotal,
+        razorpayPaymentId: paymentMethod === 'razorpay' ? razorpayPaymentId : null,
+        razorpay_order_id: paymentMethod === 'razorpay' ? razorpay_order_id : null // Add this
       };
 
       const response = await Api.post('/orders', orderData, {
         headers: { Authorization: `Bearer ${token}` }
       });
 
-
+      // Clear cart
       await Api.delete('/cart/clear/all', {
         headers: { Authorization: `Bearer ${token}` }
       });
+      
       refreshCart();
       setCart({ items: [] });
-      // await resetCart();
+      
       toast.success('Order placed successfully!');
-      navigate('/', { state: { orderId: response.data._id } });
+      navigate('/orders', { 
+        state: { 
+          orderId: response.data.orderId,
+          paymentMethod: paymentMethod 
+        } 
+      });
 
     } catch (error) {
+      console.error('Order completion error:', error);
       toast.error(error.response?.data?.message || 'Failed to place order');
-      console.error(error);
+    } finally {
+      setProcessingPayment(false);
+    }
+  };
+
+  const placeOrder = async () => {
+    if (!selectedAddress) {
+      if (addressSectionRef.current) {
+        const elementPosition = addressSectionRef.current.getBoundingClientRect().top + window.scrollY;
+        const offset = 80;
+        window.scrollTo({
+          top: elementPosition - offset,
+          behavior: "smooth",
+        });
+        addressSectionRef.current.classList.add("ring-2", "ring-red-500", "ring-offset-2");
+        setTimeout(() => {
+          addressSectionRef.current.classList.remove("ring-2", "ring-red-500", "ring-offset-2");
+        }, 2000);
+      }
+      toast.error('Please select a delivery address');
+      return;
+    }
+
+    if (paymentMethod === 'razorpay') {
+      await handleRazorpayPayment();
+    } else {
+      await completeOrder();
     }
   };
 
@@ -134,12 +294,10 @@ const CheckoutPage = () => {
 
   if (showAddressForm) {
     return (
-      <>
-        <AddressForm
-          onSave={handleAddressSave}
-          onClose={() => setShowAddressForm(false)}
-        />
-      </>
+      <AddressForm
+        onSave={handleAddressSave}
+        onClose={() => setShowAddressForm(false)}
+      />
     );
   }
 
@@ -177,24 +335,20 @@ const CheckoutPage = () => {
   );
 
   return (
-    <>
+    <div className="container mx-auto px-4 py-8">
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.3 }}
+      >
+        <h1 className="text-2xl md:text-3xl font-bold mb-6 text-gray-800">Complete Your Order</h1>
 
-
-      <div className="container mx-auto px-4 py-8">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.3 }}
-        >
-          <h1 className="text-2xl md:text-3xl font-bold mb-6 text-gray-800">Complete Your Order</h1>
-
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            {/* Left Column - Delivery Address */}
-            <div className="lg:col-span-2 space-y-6">
-              {/* Delivery Address Section */}
-              <div ref={addressSectionRef}>
-
-             <motion.div
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          {/* Left Column - Delivery Address */}
+          <div className="lg:col-span-2 space-y-6">
+            {/* Delivery Address Section */}
+            <div ref={addressSectionRef}>
+              <motion.div
                 className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden"
                 whileHover={{ y: -2 }}
               >
@@ -318,178 +472,171 @@ const CheckoutPage = () => {
                   )}
                 </div>
               </motion.div>
-              </div>
-              {/* Payment Method Section */}
-              <motion.div
-                className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden"
-                whileHover={{ y: -2 }}
-              >
-                <div className="p-6">
-                  <h2 className="text-xl font-semibold mb-4 flex items-center">
-                    <FiCreditCard className="mr-2 text-primary" />
-                    Payment Method
-                  </h2>
-                  <div className="space-y-3">
-                    <motion.div
-                      whileTap={{ scale: 0.98 }}
-                      className={`border rounded-xl p-4 cursor-pointer transition-all ${paymentMethod === 'cod'
-                          ? 'border-primary bg-red-50 shadow-md'
-                          : 'border-gray-200 hover:border-gray-300'
-                        }`}
-                      onClick={() => setPaymentMethod('cod')}
-                    >
-                      <div className="flex items-center">
-                        <div className={`h-5 w-5 rounded-full border flex items-center justify-center mr-3 ${paymentMethod === 'cod' ? 'border-primary bg-primary' : 'border-gray-300'
-                          }`}>
-                          {paymentMethod === 'cod' && <div className="h-2 w-2 rounded-full bg-white"></div>}
-                        </div>
-                        <div>
-                          <h3 className="font-medium">Cash on Delivery</h3>
-                          <p className="text-sm text-gray-600">Pay when you receive the product</p>
-                        </div>
-                      </div>
-                    </motion.div>
-
-                    <motion.div
-                      whileTap={{ scale: 0.98 }}
-                      className={`border rounded-xl p-4 cursor-pointer transition-all ${paymentMethod === 'card'
-                          ? 'border-primary bg-red-50 shadow-md'
-                          : 'border-gray-200 hover:border-gray-300'
-                        }`}
-                      onClick={() => setPaymentMethod('card')}
-                    >
-                      <div className="flex items-center">
-                        <div className={`h-5 w-5 rounded-full border flex items-center justify-center mr-3 ${paymentMethod === 'card' ? 'border-primary bg-primary' : 'border-gray-300'
-                          }`}>
-                          {paymentMethod === 'card' && <div className="h-2 w-2 rounded-full bg-white"></div>}
-                        </div>
-                        <div>
-                          <h3 className="font-medium">Credit/Debit Card</h3>
-                          <p className="text-sm text-gray-600">Pay securely with your card</p>
-                        </div>
-                      </div>
-                    </motion.div>
-                  </div>
-                </div>
-              </motion.div>
             </div>
 
-            {/* Right Column - Order Summary */}
-            <div className="lg:col-span-1">
-              <motion.div
-                className="bg-white rounded-xl shadow-sm border border-gray-100 sticky top-4 overflow-hidden"
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.1 }}
-              >
-                <div className="p-6">
-                  <h2 className="text-xl font-semibold mb-4 flex items-center">
-                    <FiPackage className="mr-2 text-primary" />
-                    Order Summary
-                  </h2>
+            {/* Payment Method Section */}
+            <motion.div
+              className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden"
+              whileHover={{ y: -2 }}
+            >
+              <div className="p-6">
+                <h2 className="text-xl font-semibold mb-4 flex items-center">
+                  <FiCreditCard className="mr-2 text-primary" />
+                  Payment Method
+                </h2>
+                <div className="space-y-3">
+                  <motion.div
+                    whileTap={{ scale: 0.98 }}
+                    className={`border rounded-xl p-4 cursor-pointer transition-all ${paymentMethod === 'cod'
+                        ? 'border-primary bg-red-50 shadow-md'
+                        : 'border-gray-200 hover:border-gray-300'
+                      }`}
+                    onClick={() => setPaymentMethod('cod')}
+                  >
+                    <div className="flex items-center">
+                      <div className={`h-5 w-5 rounded-full border flex items-center justify-center mr-3 ${paymentMethod === 'cod' ? 'border-primary bg-primary' : 'border-gray-300'
+                        }`}>
+                        {paymentMethod === 'cod' && <div className="h-2 w-2 rounded-full bg-white"></div>}
+                      </div>
+                      <div>
+                        <h3 className="font-medium">Cash on Delivery</h3>
+                        <p className="text-sm text-gray-600">Pay when you receive the product</p>
+                      </div>
+                    </div>
+                  </motion.div>
 
-                  <div className="space-y-4 max-h-96 overflow-y-auto pr-2">
-                    {cart.items.map(item => (
-                      <motion.div
-                        key={item._id}
-                        className="flex items-start border-b border-gray-100 pb-4"
-                        whileHover={{ x: 2 }}
-                      >
-                        <div className="w-16 h-16 bg-gray-100 rounded-lg overflow-hidden mr-4 flex-shrink-0">
-                          <img
-                            src={item.productId?.images?.[0] || 'https://via.placeholder.com/150'}
-                            alt={item.productId?.name}
-                            className="w-full h-full object-contain"
-                          />
-                        </div>
-                        <div className="flex-1">
-                          <h3 className="font-medium text-gray-800 line-clamp-2">{item.productId?.name}</h3>
-                          <div className="flex items-center justify-between mt-2">
-                            <div className="flex items-center border border-gray-200 rounded-lg overflow-hidden">
-                              <span className="px-3 py-1 bg-white text-center w-12">
-                                {item.quantity}
-                              </span>
-                            </div>
-                            <span className="font-medium">
-                              ₹{(
-                                (item.productId?.discountPrice || item.productId?.originalPrice || 0) *
-                                item.quantity
-                              ).toLocaleString()}
+                  <motion.div
+                    whileTap={{ scale: 0.98 }}
+                    className={`border rounded-xl p-4 cursor-pointer transition-all ${paymentMethod === 'razorpay'
+                        ? 'border-primary bg-red-50 shadow-md'
+                        : 'border-gray-200 hover:border-gray-300'
+                      }`}
+                    onClick={() => setPaymentMethod('razorpay')}
+                  >
+                    <div className="flex items-center">
+                      <div className={`h-5 w-5 rounded-full border flex items-center justify-center mr-3 ${paymentMethod === 'razorpay' ? 'border-primary bg-primary' : 'border-gray-300'
+                        }`}>
+                        {paymentMethod === 'razorpay' && <div className="h-2 w-2 rounded-full bg-white"></div>}
+                      </div>
+                      <div>
+                        <h3 className="font-medium">UPI / Card / NetBanking</h3>
+                        <p className="text-sm text-gray-600">Pay securely with Razorpay</p>
+                      </div>
+                    </div>
+                  </motion.div>
+                </div>
+              </div>
+            </motion.div>
+          </div>
+
+          {/* Right Column - Order Summary */}
+          <div className="lg:col-span-1">
+            <motion.div
+              className="bg-white rounded-xl shadow-sm border border-gray-100 sticky top-4 overflow-hidden"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.1 }}
+            >
+              <div className="p-6">
+                <h2 className="text-xl font-semibold mb-4 flex items-center">
+                  <FiPackage className="mr-2 text-primary" />
+                  Order Summary
+                </h2>
+
+                <div className="space-y-4 max-h-96 overflow-y-auto pr-2">
+                  {cart.items.map(item => (
+                    <motion.div
+                      key={item._id}
+                      className="flex items-start border-b border-gray-100 pb-4"
+                      whileHover={{ x: 2 }}
+                    >
+                      <div className="w-16 h-16 bg-gray-100 rounded-lg overflow-hidden mr-4 flex-shrink-0">
+                        <img
+                          src={item.productId?.images?.[0] || 'https://via.placeholder.com/150'}
+                          alt={item.productId?.name}
+                          className="w-full h-full object-contain"
+                        />
+                      </div>
+                      <div className="flex-1">
+                        <h3 className="font-medium text-gray-800 line-clamp-2">{item.productId?.name}</h3>
+                        <div className="flex items-center justify-between mt-2">
+                          <div className="flex items-center border border-gray-200 rounded-lg overflow-hidden">
+                            <span className="px-3 py-1 bg-white text-center w-12">
+                              {item.quantity}
                             </span>
                           </div>
+                          <span className="font-medium">
+                            ₹{(
+                              (item.productId?.discountPrice || item.productId?.originalPrice || 0) *
+                              item.quantity
+                            ).toLocaleString()}
+                          </span>
                         </div>
-                      </motion.div>
-                    ))}
-                  </div>
-
-                  <div className="border-t border-gray-200 pt-4 space-y-3 mb-4">
-                    <div className="flex justify-between">
-                      <span className="text-gray-600">Subtotal ({cart.items.reduce((total, item) => total + item.quantity, 0)} items)</span>
-                      <span className="font-medium">₹{subtotal.toLocaleString()}</span>
-                    </div>
-                    {discount > 0 && (
-                      <div className="flex justify-between">
-                        <span className="text-gray-600">Discount</span>
-                        <span className="text-green-600">-₹{discount.toLocaleString()}</span>
                       </div>
-                    )}
-                    <div className="flex justify-between">
-                      <span className="text-gray-600">Shipping</span>
-                      <span className="text-green-600">Free</span>
-                    </div>
-                  </div>
-
-                  <div className="border-t border-gray-200 pt-4 mb-6">
-                    <div className="flex justify-between font-bold text-lg">
-                      <span>Total</span>
-                      <span>₹{subtotal.toLocaleString()}</span>
-                    </div>
-                  </div>
-
-                 <button
-                    onClick={() => {
-                          if (!selectedAddress) {
-
-                      if (addressSectionRef.current) {
-                        const elementPosition = addressSectionRef.current.getBoundingClientRect().top + window.scrollY;
-                        const offset = 80; // height of your navbar in px
-                        window.scrollTo({
-                          top: elementPosition - offset,
-                          behavior: "smooth",
-                        });
-                        addressSectionRef.current.classList.add("ring-2", "ring-red-500", "ring-offset-2"); // 👈 highlight
-                        setTimeout(() => {
-                          addressSectionRef.current.classList.remove("ring-2", "ring-red-500", "ring-offset-2");
-                        }, 2000);
-                      }
-                    }
-                      else {
-                        placeOrder();
-                      }
-                    }}
-                    className={`w-full py-3 rounded-lg font-medium transition-colors flex items-center justify-center ${selectedAddress
-                        ? 'bg-gradient-to-r from-primary to-[#b10024] text-white hover:from-[#b10024] hover:to-[#b10024] shadow-md'
-                        : 'bg-gray-200 text-gray-500'
-                      }`}
-                  >
-                    {!selectedAddress ? (
-                      'Select an address'
-                    ) : (
-                      <>
-                        <FiCheck className="mr-2" />
-                        Place Order
-                      </>
-                    )}
-                  </button>
-
+                    </motion.div>
+                  ))}
                 </div>
-              </motion.div>
-            </div>
-          </div>
-        </motion.div>
-      </div>
 
-    </>
+                <div className="border-t border-gray-200 pt-4 space-y-3 mb-4">
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Subtotal ({cart.items.reduce((total, item) => total + item.quantity, 0)} items)</span>
+                    <span className="font-medium">₹{subtotal.toLocaleString()}</span>
+                  </div>
+                  {discount > 0 && (
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Discount</span>
+                      <span className="text-green-600">-₹{discount.toLocaleString()}</span>
+                    </div>
+                  )}
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Shipping</span>
+                    <span className="text-green-600">Free</span>
+                  </div>
+                </div>
+
+                <div className="border-t border-gray-200 pt-4 mb-6">
+                  <div className="flex justify-between font-bold text-lg">
+                    <span>Total</span>
+                    <span>₹{subtotal.toLocaleString()}</span>
+                  </div>
+                </div>
+
+                <button
+                  onClick={placeOrder}
+                  disabled={processingPayment}
+                  className={`w-full py-3 rounded-lg font-medium transition-colors flex items-center justify-center ${selectedAddress && !processingPayment
+                      ? 'bg-gradient-to-r from-primary to-secondary text-white hover:from-secondary hover:to-secondary shadow-md'
+                      : 'bg-gray-200 text-gray-500'
+                    } ${processingPayment ? 'opacity-50 cursor-not-allowed' : ''}`}
+                >
+                  {processingPayment ? (
+                    <>
+                      <FiLoader className="animate-spin mr-2" />
+                      Processing...
+                    </>
+                  ) : !selectedAddress ? (
+                    'Select an address'
+                  ) : (
+                    <>
+                      <FiCheck className="mr-2" />
+                      {paymentMethod === 'razorpay' ? 'Pay Now' : 'Place Order'}
+                    </>
+                  )}
+                </button>
+
+                {paymentMethod === 'razorpay' && (
+                  <div className="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+                    <p className="text-yellow-800 text-sm">
+                      <strong>Test Mode:</strong> Use test card 4111 1111 1111 1111 or UPI ID "success@razorpay"
+                    </p>
+                  </div>
+                )}
+              </div>
+            </motion.div>
+          </div>
+        </div>
+      </motion.div>
+    </div>
   );
 };
 

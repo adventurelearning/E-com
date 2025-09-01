@@ -9,7 +9,7 @@ const orderSchema = new mongoose.Schema({
     }
   ],
   shippingAddress: {
-    label: { type: String, required: false }, // Home, Work, etc.
+    label: { type: String, required: false },
     fullName: { type: String, required: true },
     phone: { type: String, required: true },
     street: { type: String, required: true },
@@ -23,7 +23,21 @@ const orderSchema = new mongoose.Schema({
   paymentMethod: String,
   status: { type: String, default: 'pending' },
   trackingId: String,
-  total: { type: Number, required: true }, // Total amount for the order
+  trackingCourier: String,
+  total: { type: Number, required: true },
+  // New field to track status history
+  statusHistory: [{
+    status: String,
+    changedAt: { type: Date, default: Date.now },
+    changedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+    note: String,
+    trackingId: String,
+    trackingCourier: String
+  }],
+  total: { type: Number, required: true },
+  razorpayPaymentId: { type: String, default: null },
+  razorpay_order_id : { type: String, default: null },
+  razorpaySignature: { type: String, default: null },
 }, { timestamps: true });
 
 module.exports = mongoose.model('Order', orderSchema);

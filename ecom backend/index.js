@@ -21,6 +21,7 @@ const footerRoutes = require('./routes/footer.js');
 const logoroutes=require('./routes/logoRoutes.js')
 // const uploadRoute = require("./routes/uploadRoute.js");
 const themeRoutes = require("./routes/themeRoute.js");
+const paymentRoute = require("./routes/paymentRoute.js");
 // Initialize Express app
 const app = express();
 
@@ -75,6 +76,7 @@ app.use("/api/reviews", reviewRoutes);
 app.use('/api/footer', footerRoutes);
 
 app.use("/api/theme", themeRoutes);
+app.use("/api/", paymentRoute);
 
 
 app.use('/api/logo', logoroutes);

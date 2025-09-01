@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import logo from '../assets/logo3.png';
+import logo from '../assets/ADV E-Commerce logo.svg';
 import Search from './Search';
 import { MdOutlineShoppingCart, MdMenu, MdClose, MdAccountCircle, MdDeleteForever, MdHelpCenter } from "react-icons/md";
 import { IoGitCompareOutline } from "react-icons/io5";

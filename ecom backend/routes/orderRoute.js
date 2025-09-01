@@ -4,219 +4,243 @@ const Order = require('../models/Order');
 const Cart = require('../models/Cart');
 const { protect, requireRole } = require('../middlewares/authMiddleware');
 const mongoose = require('mongoose');
-// 📦 Place a new order (user or supplier)
-const User = require('../models/User'); // make sure you import this
+const User = require('../models/User');
 const PDFDocument = require('pdfkit');
 const fs = require('fs');
+const Razorpay = require('razorpay');
+const crypto = require('crypto');
 
-// router.post('/', protect, async (req, res) => {
-//   const { shippingAddress, paymentMethod, mode, productId, quantity } = req.body;
-//   const userId = req.user._id;
+// Initialize Razorpay
+let razorpay;
+try {
+  razorpay = new Razorpay({
+    key_id: process.env.RAZORPAY_KEY_ID,
+    key_secret: process.env.RAZORPAY_KEY_SECRET
+  });
+  
+  console.log('Razorpay initialized successfully');
+} catch (error) {
+  console.error('Razorpay initialization failed:', error.message);
+}
 
-//   const user = await User.findById(userId);
-//   const cart = await Cart.findOne({ user: userId });
+// Create Razorpay order
+router.post('/create-razorpay-order', async (req, res) => {
+  try {
+    const { amount = 100, currency = 'INR' } = req.body;
+    
+    if (!amount || amount <= 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'Valid amount is required'
+      });
+    }
 
-//   if (!cart || cart.items.length === 0) {
-//     return res.status(400).json({ message: 'Cart is empty' });
-//   }
+    const options = {
+      amount: Math.round(amount), // Already in paise from frontend
+      currency,
+      receipt: `receipt_${Date.now()}_${Math.random().toString(36).substring(7)}`,
+      payment_capture: 1
+    };
 
-//   // Update user phone and address
-//   // if (shippingAddress?.phone && !user.phone) user.phone = shippingAddress.phone;
+    const order = await razorpay.orders.create(options);
+    
+    res.json({
+      success: true,
+      order: {
+        id: order.id,
+        amount: order.amount,
+        currency: order.currency
+      }
+    });
+  } catch (error) {
+    console.error('Razorpay order creation error:', error);
+    
+    if (error.error && error.error.description) {
+      return res.status(400).json({
+        success: false,
+        message: error.error.description
+      });
+    }
+    
+    res.status(500).json({
+      success: false,
+      message: 'Failed to create payment order'
+    });
+  }
+});
 
-//   const isDuplicate = user.addresses.some(addr =>
-//     addr.street === shippingAddress.address &&
-//     addr.city === shippingAddress.city &&
-//     addr.postalCode === shippingAddress.zip
-//   );
+// Verify Razorpay payment
+router.post('/update-razorpay-payment', protect, async (req, res) => {
+  try {
+    const { razorpay_order_id, razorpay_payment_id, razorpay_signature } = req.body;
 
-//   if (!isDuplicate) {
-//     user.addresses.forEach(addr => (addr.isDefault = false));
-//     user.addresses.push({
-//       label: 'Shipping',
-//       street: shippingAddress.address,
-//       city: shippingAddress.city,
-//       state: shippingAddress.state,
-//       postalCode: shippingAddress.zip,
-//       country: 'India',
-//       isDefault: true,
-//     });
-//   }
+    if (!razorpay_order_id || !razorpay_payment_id || !razorpay_signature) {
+      return res.status(400).json({
+        success: false,
+        message: 'Missing payment verification data'
+      });
+    }
 
-//   await user.save();
+    const generated_signature = crypto
+      .createHmac('sha256', process.env.RAZORPAY_KEY_SECRET)
+      .update(razorpay_order_id + "|" + razorpay_payment_id)
+      .digest('hex');
 
-//   let items = [];
+    if (generated_signature === razorpay_signature) {
+      res.json({ 
+        success: true, 
+        message: 'Payment verified successfully' 
+      });
+    } else {
+      res.status(400).json({ 
+        success: false, 
+        message: 'Invalid payment signature' 
+      });
+    }
+  } catch (error) {
+    console.error('Payment verification error:', error);
+    res.status(500).json({ 
+      success: false, 
+      message: 'Payment verification failed' 
+    });
+  }
+});
 
-//   if (mode === 'buy-now') {
-//     // get just that product from cart
-//     items = cart.items.filter(i => i.productId.equals(productId));
-//     if (items.length === 0) {
-//       return res.status(400).json({ message: 'Buy-now item not found in cart' });
-//     }
-//   } else {
-//     items = cart.items;
-//   }
-
-//   // Create order
-//   const order = new Order({
-//     user: userId,
-//     items,
-//     shippingAddress,
-//     paymentMethod,
-//     status: 'pending',
-//   });
-
-//   await order.save();
-
-//   // Clean up cart
-//   if (mode === 'buy-now') {
-//     cart.items = cart.items.filter(i => !i.productId.equals(productId));
-//     if (cart.items.length === 0) {
-//       await Cart.deleteOne({ user: userId });
-//     } else {
-//       await cart.save();
-//     }
-//   } else {
-//     await Cart.deleteOne({ user: userId });
-//   }
-
-//   res.status(201).json(order);
-// });
-
-
-
-// 👤 Get logged-in user's orders
-
+// Place order
 router.post('/', protect, async (req, res) => {
-  const { shippingAddress, paymentMethod, mode, productId, total, quantity } = req.body; // Removed quantity (not needed here)
+  const { shippingAddress, paymentMethod, mode, productId, total, quantity, razorpayPaymentId, razorpay_order_id } = req.body;
   const userId = req.user._id;
-  console.log('Placing order for user:', req.body);
 
-  const user = await User.findById(userId);
-  const cart = await Cart.findOne({ user: userId });
+  try {
+    const user = await User.findById(userId);
+    let cart = await Cart.findOne({ user: userId });
 
-  if (!cart || cart.items.length === 0) {
-    return res.status(400).json({ message: 'Cart is empty' });
-  }
+    // Validate payment for Razorpay
+    if (paymentMethod === 'razorpay' && !razorpayPaymentId) {
+      return res.status(400).json({ message: 'Razorpay payment ID required' });
+    }
 
-  // ====== 1. ADDRESS VALIDATION AND PROCESSING ======
-  // Validate required address fields
-  if (!shippingAddress ||
-    !shippingAddress.fullName ||
-    !shippingAddress.phone ||
-    !shippingAddress.street ||
-    !shippingAddress.city ||
-    !shippingAddress.state ||
-    !shippingAddress.postalCode) {
-    return res.status(400).json({ message: 'Missing required shipping address fields' });
-  }
+    // Address validation
+    if (!shippingAddress || 
+      !shippingAddress.fullName || 
+      !shippingAddress.phone ||
+      !shippingAddress.street || 
+      !shippingAddress.city || 
+      !shippingAddress.state || 
+      !shippingAddress.postalCode) {
+      return res.status(400).json({ message: 'Missing required shipping address fields' });
+    }
 
-  // Check for duplicate address using correct fields
-  const isDuplicate = user.addresses.some(addr =>
-    addr.street === shippingAddress.street && // Changed from address to street
-    addr.city === shippingAddress.city &&
-    addr.postalCode === shippingAddress.postalCode // Changed from zip to postalCode
-  );
+    // Check for duplicate address using correct fields
+    const isDuplicate = user.addresses.some(addr =>
+      addr.street === shippingAddress.street &&
+      addr.city === shippingAddress.city &&
+      addr.postalCode === shippingAddress.postalCode
+    );
 
-  // Create new address with correct structure
-  if (!isDuplicate) {
-    user.addresses.forEach(addr => (addr.isDefault = false));
+    // Create new address with correct structure
+    if (!isDuplicate) {
+      user.addresses.forEach(addr => (addr.isDefault = false));
 
-    user.addresses.push({
-      label: shippingAddress.label || 'Shipping', // Added label
-      fullName: shippingAddress.fullName, // Added fullName
-      phone: shippingAddress.phone, // Added phone
-      street: shippingAddress.street, // Changed from address to street
-      city: shippingAddress.city,
-      state: shippingAddress.state,
-      postalCode: shippingAddress.postalCode, // Changed from zip to postalCode
-      country: shippingAddress.country || 'India',
-      isDefault: true,
+      user.addresses.push({
+        label: shippingAddress.label || 'Shipping',
+        fullName: shippingAddress.fullName,
+        phone: shippingAddress.phone,
+        street: shippingAddress.street,
+        city: shippingAddress.city,
+        state: shippingAddress.state,
+        postalCode: shippingAddress.postalCode,
+        country: shippingAddress.country || 'India',
+        isDefault: true,
+      });
+
+      await user.save();
+    }
+
+    let items = [];
+    if (mode === 'buy-now') {
+      if (!productId || !quantity) {
+        return res.status(400).json({ message: 'Missing product or quantity for buy-now' });
+      }
+      items = [{ productId, quantity: Number(quantity) }];
+    } else {
+      if (!cart || cart.items.length === 0) {
+        return res.status(400).json({ message: 'Cart is empty' });
+      }
+      items = cart.items;
+    }
+
+    // Order creation - ADD razorpay_order_id HERE
+    const order = new Order({
+      user: userId,
+      items: items.map(item => ({
+        productId: item.productId,
+        quantity: item.quantity
+      })),
+      shippingAddress: {
+        label: shippingAddress.label || 'Shipping',
+        fullName: shippingAddress.fullName,
+        phone: shippingAddress.phone,
+        street: shippingAddress.street,
+        city: shippingAddress.city,
+        state: shippingAddress.state,
+        postalCode: shippingAddress.postalCode,
+        country: shippingAddress.country || 'India',
+        isDefault: false
+      },
+      paymentMethod,
+      status: 'pending',
+      total: total,
+      statusHistory: [{
+        status: 'pending',
+        changedAt: new Date(),
+        changedBy: userId,
+        note: 'Order created'
+      }],
+      razorpayPaymentId: paymentMethod === 'razorpay' ? razorpayPaymentId : null,
+      razorpay_order_id: paymentMethod === 'razorpay' ? razorpay_order_id : null // Add this line
     });
 
-    await user.save();
-  }
+    await order.save();
 
-  // ====== 2. ITEM PROCESSING ======
-  let items = [];
-  if (mode === 'buy-now') {
-    if (!productId || !quantity) {
-      return res.status(400).json({ message: 'Missing product or quantity for buy-now' });
-    }
+    // Cart cleanup
+    if (mode === 'buy-now') {
+      if (cart) {
+        const cartItemIndex = cart.items.findIndex(i => i.productId.toString() === productId);
+        if (cartItemIndex !== -1) {
+          const cartItem = cart.items[cartItemIndex];
+          const cartQty = Number(cartItem.quantity);
+          const buyQty = Number(quantity);
 
-    items = [{
-      productId,
-      quantity: Number(quantity),
-    }];
-  } else {
-    items = cart.items;
-  }
-
-
-  // ====== 3. ORDER CREATION ======
-  const order = new Order({
-    user: userId,
-    items: items.map(item => ({ // Map to ensure correct structure
-      productId: item.productId,
-      quantity: item.quantity
-    })),
-    shippingAddress: { // Correct structure matching schema
-      label: shippingAddress.label || 'Shipping',
-      fullName: shippingAddress.fullName,
-      phone: shippingAddress.phone,
-      street: shippingAddress.street,
-      city: shippingAddress.city,
-      state: shippingAddress.state,
-      postalCode: shippingAddress.postalCode,
-      country: shippingAddress.country || 'India',
-      isDefault: false // Orders don't need default addresses
-    },
-    paymentMethod,
-    status: 'pending',
-    total: total, // ✅ save total passed from frontend
-
-  });
-  console.log('Order data:', order);
-
-  await order.save();
-
-  // ====== 4. CART CLEANUP ======
-  if (mode === 'buy-now') {
-    const cartItemIndex = cart.items.findIndex(i => i.productId.toString() === productId);
-
-    if (cartItemIndex !== -1) {
-      const cartItem = cart.items[cartItemIndex];
-      const cartQty = Number(cartItem.quantity);
-      const buyQty = Number(quantity);
-
-      if (cartQty > buyQty) {
-        // Reduce the quantity in cart
-        cart.items[cartItemIndex].quantity = cartQty - buyQty;
-        await cart.save();
-      } else {
-        // Remove the item from cart
-        cart.items.splice(cartItemIndex, 1);
-
-        if (cart.items.length > 0) {
-          await cart.save();
-        } else {
-          await Cart.deleteOne({ _id: cart._id });
+          if (cartQty > buyQty) {
+            cart.items[cartItemIndex].quantity = cartQty - buyQty;
+            await cart.save();
+          } else {
+            cart.items.splice(cartItemIndex, 1);
+            if (cart.items.length > 0) {
+              await cart.save();
+            } else {
+              await Cart.deleteOne({ _id: cart._id });
+            }
+          }
         }
       }
-
-      console.log(`Cart updated after buy-now: Product ${productId} reduced by ${buyQty}`);
     } else {
-      console.log(`Buy-now product ${productId} not found in cart. No cart update needed.`);
+      if (cart) {
+        await Cart.deleteOne({ _id: cart._id });
+      }
     }
-  }
-  else {
-    await Cart.deleteOne({ _id: cart._id }); // More precise deletion
-  }
 
-  res.status(201).json({
-    message: 'Order created successfully',
-    orderId: order._id,
-    shippingAddress: order.shippingAddress
-  });
+    res.status(201).json({
+      message: 'Order created successfully',
+      orderId: order._id,
+      shippingAddress: order.shippingAddress
+    });
+
+  } catch (error) {
+    console.error('Order creation error:', error);
+    res.status(500).json({ message: 'Server error during order creation' });
+  }
 });
 
 router.get('/', protect, async (req, res) => {
