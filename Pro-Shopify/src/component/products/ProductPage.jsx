@@ -667,7 +667,7 @@ const ProductPage = () => {
               <div className="flex flex-col sm:flex-row gap-3">
                 <motion.button
                   onClick={handleAddToCart}
-                  className="flex-1 bg-gradient-to-r from-primary to-[#ff5252] hover:from-primary hover:to-primary text-white px-6 py-3 rounded-xl transition-all flex items-center justify-center gap-2 font-medium shadow-lg hover:shadow-xl"
+                  className="flex-1 bg-gradient-to-r from-primary to-accent hover:from-secondary hover:to-secondary text-white px-6 py-3 rounded-xl transition-all flex items-center justify-center gap-2 font-medium shadow-lg hover:shadow-xl"
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
                 >
@@ -693,7 +693,7 @@ const ProductPage = () => {
                       }
                     });
                   }}
-                  className="flex-1 bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-500 hover:to-yellow-500 text-white px-6 py-3 rounded-lg transition-colors font-medium"
+                  className="flex-1 bg-gradient-to-r from-primary to-secondary hover:from-secondary hover:to-secondary text-white px-6 py-3 rounded-lg transition-colors font-medium"
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
                 >
