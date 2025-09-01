@@ -11,7 +11,7 @@ const Home = () => {
     <div className="min-h-screen flex flex-col bg-gray-50">
       
       {/* Hero Section */}
-      <section className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+      <section className="container w-full  mx-auto px-4 sm:px-6 lg:px-8 py-6">
         <div className="flex flex-col lg:flex-row gap-6">
           {/* Main Banner - takes 2/3 width on large screens */}
           <div className="w-full lg:w-2/3 h-[400px] lg:h-[500px] rounded-xl overflow-hidden shadow-lg">

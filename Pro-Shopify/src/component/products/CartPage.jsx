@@ -347,7 +347,7 @@ const CartPage = () => {
                 </div>
 
                 <button
-                  className="w-full bg-primary hover:bg-[#b10024] text-white py-3 rounded-lg transition-colors font-medium mb-4"
+                  className="w-full bg-primary hover:bg-secondary text-white py-3 rounded-lg transition-colors font-medium mb-4"
                   onClick={() => navigate('/checkout')}
                 >
                   Proceed to Checkout

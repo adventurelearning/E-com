@@ -36,19 +36,6 @@ const orderSchema = new mongoose.Schema({
   }]
 }, { timestamps: true });
 
-// Pre-save middleware to track status changes
-// orderSchema.pre('save', function(next) {
-//   if (this.isModified('status') || this.isModified('trackingId') || this.isModified('trackingCourier')) {
-//     this.statusHistory.push({
-//       status: this.status,
-//       changedAt: new Date(),
-//       changedBy: this._updatedBy || this.user, // You'll need to set _updatedBy before saving
-//       note: this._updateNote, // You'll need to set _updateNote before saving
-//       trackingId: this.trackingId,
-//       trackingCourier: this.trackingCourier
-//     });
-//   }
-//   next();
-// });
+
 
 module.exports = mongoose.model('Order', orderSchema);
