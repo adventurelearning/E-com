@@ -151,31 +151,35 @@ router.post('/', protect, async (req, res) => {
     items = cart.items;
   }
 
-
-  // ====== 3. ORDER CREATION ======
-  const order = new Order({
-    user: userId,
-    items: items.map(item => ({ // Map to ensure correct structure
-      productId: item.productId,
-      quantity: item.quantity
-    })),
-    shippingAddress: { // Correct structure matching schema
-      label: shippingAddress.label || 'Shipping',
-      fullName: shippingAddress.fullName,
-      phone: shippingAddress.phone,
-      street: shippingAddress.street,
-      city: shippingAddress.city,
-      state: shippingAddress.state,
-      postalCode: shippingAddress.postalCode,
-      country: shippingAddress.country || 'India',
-      isDefault: false // Orders don't need default addresses
-    },
-    paymentMethod,
-    status: 'pending',
-    total: total, // ✅ save total passed from frontend
-
-  });
-  console.log('Order data:', order);
+    // Order creation
+    const order = new Order({
+      user: userId,
+      items: items.map(item => ({
+        productId: item.productId,
+        quantity: item.quantity
+      })),
+      shippingAddress: {
+        label: shippingAddress.label || 'Shipping',
+        fullName: shippingAddress.fullName,
+        phone: shippingAddress.phone,
+        street: shippingAddress.street,
+        city: shippingAddress.city,
+        state: shippingAddress.state,
+        postalCode: shippingAddress.postalCode,
+        country: shippingAddress.country || 'India',
+        isDefault: false
+      },
+      paymentMethod,
+      status: 'pending',
+      total: total,
+      // Add initial status to history
+      statusHistory: [{
+        status: 'pending',
+        changedAt: new Date(),
+        changedBy: userId,
+        note: 'Order created'
+      }]
+    });
 
   await order.save();
 
@@ -252,17 +256,60 @@ router.get('/userOrders/all', protect, requireRole('admin'), async (req, res) =>
   }
 });
 
-// 🔐 Admin: Update order status
+// Get status history for an order
+router.get('/:id/status-history', protect, async (req, res) => {
+  try {
+    const order = await Order.findOne({ _id: req.params.id, user: req.user._id })
+      .select('statusHistory')
+      .populate('statusHistory.changedBy', 'name email');
+    
+    if (!order) return res.status(404).json({ message: 'Order not found' });
+    
+    res.json(order.statusHistory);
+  } catch (error) {
+    console.error('Error fetching status history:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// Admin: Update order status with tracking info
+// Admin: Update order status with tracking info
 router.put('/admin/:id', protect, requireRole('admin'), async (req, res) => {
-  const { status, trackingId } = req.body;
-  const order = await Order.findById(req.params.id);
-  if (!order) return res.status(404).json({ message: 'Order not found' });
+  const { status, trackingId, trackingCourier, note } = req.body;
+  
+  try {
+    const order = await Order.findById(req.params.id);
+    if (!order) return res.status(404).json({ message: 'Order not found' });
 
-  order.status = status || order.status;
-  if (trackingId) order.trackingId = trackingId;
-  await order.save();
+    // If status is being set to shipped, require tracking info
+    if (status === 'shipped' && (!trackingId || !trackingCourier)) {
+      return res.status(400).json({ 
+        message: 'Tracking ID and Courier are required when shipping an order' 
+      });
+    }
 
-  res.json(order);
+    // Update order fields
+    if (status) order.status = status;
+    if (trackingId) order.trackingId = trackingId;
+    if (trackingCourier) order.trackingCourier = trackingCourier;
+
+    // Push new history entry (manual now)
+    order.statusHistory.push({
+      status: status || order.status,
+      changedAt: new Date(),   // you can override with AfterShip delivery time here
+      changedBy: req.user._id,
+      note: note || `Status changed to ${status}`,
+      trackingId: trackingId || order.trackingId,
+      trackingCourier: trackingCourier || order.trackingCourier
+    });
+
+    await order.save();
+
+    res.json(order);
+  } catch (error) {
+    console.error('Error updating order:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
 });
 
 
@@ -408,6 +455,11 @@ router.get('/:id/invoice', protect, async (req, res) => {
       .text(`Status: ${order.status.toUpperCase()}`, 325, y + 55)
       .text(`Payment: ${order.paymentMethod.toUpperCase()}`, 325, y + 70)
       .text(`Order ID: ${order._id}`, 325, y + 85);
+
+    // Add tracking info if available
+    if (order.trackingId && order.trackingCourier) {
+      doc.text(`Tracking: ${order.trackingCourier} - ${order.trackingId}`, 325, y + 100);
+    }
 
     y += 130;
 

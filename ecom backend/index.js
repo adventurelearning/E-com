@@ -21,6 +21,7 @@ const footerRoutes = require('./routes/footer.js');
 const logoroutes=require('./routes/logoRoutes.js')
 // const uploadRoute = require("./routes/uploadRoute.js");
 const themeRoutes = require("./routes/themeRoute.js");
+const trackingRoute = require("./routes/trackingRoute.js");
 // Initialize Express app
 const app = express();
 
@@ -78,6 +79,8 @@ app.use("/api/theme", themeRoutes);
 
 
 app.use('/api/logo', logoroutes);
+app.use("/api/tracking", trackingRoute);
+
 // app.use("/api/upload", uploadRoute);
 // Error handling middleware
 app.use(errorHandler);
