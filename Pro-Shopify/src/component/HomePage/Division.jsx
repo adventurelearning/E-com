@@ -116,7 +116,7 @@ const Division = () => {
   }
 
   return (
-    <section className="container mx-auto px-4 py-8 max-w-7xl">
+    <section className="container mx-auto px-4 py-8 ">
       <div className="flex flex-col sm:flex-row justify-between items-center mb-8 gap-4">
         <h2 className="text-3xl font-bold text-gray-800">Shop by Category</h2>
         
