@@ -30,14 +30,14 @@ const Home = () => {
       <OfferBanner />
       
       {/* Products Section */}
-      <section className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <section className="w-full  mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <h2 className="text-2xl md:text-3xl font-bold text-gray-800 mb-6">Featured Products</h2>
         <ProductsList />
       </section>
 
       {/* Features Section */}
       <section className="w-full bg-white py-12">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <Features />
         </div>
       </section>
