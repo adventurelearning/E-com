@@ -155,12 +155,12 @@ const ProductReviewsPage = () => {
         <p className="text-gray-600 text-sm mb-6 max-w-md mx-auto">
           Be the first to share your experience with this product!
         </p>
-        <button
+        {/* <button
           onClick={() => navigate(`/productpage/${id}/write-review`)}
           className="inline-flex items-center px-5 py-2.5 bg-primary hover:bg-primary text-white font-medium rounded-lg shadow-md hover:shadow-lg transition-all text-sm"
         >
           Write Your Review
-        </button>
+        </button> */}
       </div>
     );
   }
@@ -522,13 +522,13 @@ const ProductReviewsPage = () => {
             )}
 
             <div className="mt-8 pt-6 border-t border-gray-200 text-center">
-              <button
+              {/* <button
                 onClick={() => navigate(`/productpage/${id}/write-review`)}
                 className="inline-flex items-center px-6 py-2.5 bg-primary hover:bg-primary text-white font-medium rounded-lg shadow-md hover:shadow-lg transition-all text-sm"
               >
                 Write Your Review
                 <FaStar className="ml-2 text-yellow-300" size={14} />
-              </button>
+              </button> */}
 
               <p className="mt-3 text-gray-600 text-xs">
                 Share your experience to help others make better choices
