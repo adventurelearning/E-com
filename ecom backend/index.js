@@ -23,6 +23,8 @@ const logoroutes=require('./routes/logoRoutes.js')
 const themeRoutes = require("./routes/themeRoute.js");
 const trackingRoute = require("./routes/trackingRoute.js");
 const paymentRoute = require("./routes/paymentRoute.js");
+const returnpolicyRoute=require('./routes/returnpolicyRoutes.js');
+const privacypolicyRoute=require('./routes/privacyPoilcyRoute.js')
 // Initialize Express app
 const app = express();
 
@@ -84,6 +86,9 @@ app.use('/api/logo', logoroutes);
 app.use("/api/tracking", trackingRoute);
 
 // app.use("/api/upload", uploadRoute);
+app.use("/api/returnpolicy",returnpolicyRoute)
+app.use("/api/privacypolicy",privacypolicyRoute)
+
 // Error handling middleware
 app.use(errorHandler);
 
