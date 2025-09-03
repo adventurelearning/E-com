@@ -176,7 +176,9 @@ const CheckoutPage = () => {
           address: `${address?.street}, ${address?.city}`
         },
         theme: {
-          color: '#b10024'
+          color: getComputedStyle(document.documentElement)
+            .getPropertyValue('--color-primary')
+            .trim()
         },
         modal: {
           ondismiss: function() {
