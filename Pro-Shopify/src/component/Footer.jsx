@@ -52,7 +52,7 @@ const Footer = () => {
 
   return (
     <footer className="bg-gradient-to-r from-white-900 to-white-800 text-black-200 p-8">
-      <div className="max-w-7xl mx-auto">
+      <div className="container mx-auto">
         {/* Top Section */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-10 mb-12">
           {/* Contact Us Section */}

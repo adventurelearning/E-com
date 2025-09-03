@@ -12,6 +12,7 @@ import {
 import { TbTransitionBottom } from "react-icons/tb";
 import { GrConfigure } from "react-icons/gr";
 import { getAdminInfo } from '../utils/auth';
+import { MdOutlineSettingsSuggest } from "react-icons/md";
 
 const SidebarItem = ({ title, icon, children, path, toggleSidebar }) => {
   const [open, setOpen] = useState(false);
@@ -255,6 +256,43 @@ const Sidebar = ({ open, toggleSidebar }) => {
         }
       ],
     },
+    {
+      title: 'CMS',
+      icon: <MdOutlineSettingsSuggest />,
+      visible: hasRole('Configuration'),
+      subItems: [
+        {
+          title: 'Return_Policy',
+          path: '/return-policy',
+          visible: true,
+        },
+         {
+          title: 'Privacy_Policy',
+          path: '/privacy-policy',
+          visible: true,
+        },
+        {
+          title: 'Shipping_Policy',
+          path: '/shipping-policy',
+          visible: true,
+        },
+        {
+          title: 'Payment_Policy',
+          path: '/payment-policy',
+          visible: true,
+        },
+        {
+          title: 'Return_Policy',
+          path: '/return-policy',
+          visible: true,
+        },
+        {
+          title: 'Terms_Conditions',
+          path: '/terms-conditions',
+          visible: true,
+        },
+      ],
+    },
 
     {
       title: 'Configuration',
@@ -279,6 +317,7 @@ const Sidebar = ({ open, toggleSidebar }) => {
       path: '/Settings',
       visible: hasRole('Settings'),
     },
+
     // {
     //   title: 'Products-S',
     //   icon: <FiBox />,

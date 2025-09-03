@@ -37,6 +37,8 @@ import Settings from './pages/Settings/Settings';
 import ThemePage from './configuration/Theme';
 import Logo from './configuration/Logo';
 import AdminFooter from './components/AdminFooter';
+import ReturnPolicy from './pages/cms/ReturnPolicy';
+import PrivacyPolicy from './pages/cms/PrivacyPolicy';
 
 function AppContent() {
   const [sidebarOpen, setSidebarOpen] = useState(true);
@@ -228,6 +230,17 @@ function AppContent() {
              <Route path="/Settings" element={
               <ProtectedRoute requiredPermission="Settings">
                 <Settings />
+              </ProtectedRoute>
+            } />
+
+            <Route path="/return-policy" element={
+              <ProtectedRoute requiredPermission="Suplier">
+                <ReturnPolicy />
+              </ProtectedRoute>
+            } />
+                <Route path="/privacy-policy" element={
+              <ProtectedRoute requiredPermission="Suplier">
+                <PrivacyPolicy />
               </ProtectedRoute>
             } />
 
