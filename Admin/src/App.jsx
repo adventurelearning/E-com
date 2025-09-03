@@ -39,7 +39,11 @@ import Logo from './configuration/Logo';
 import AdminFooter from './components/AdminFooter';
 import ReturnPolicy from './pages/cms/ReturnPolicy';
 import PrivacyPolicy from './pages/cms/PrivacyPolicy';
-
+import ShippingPolicy from './pages/cms/ShippingPolicy';
+import PaymentPolicy from './pages/cms/PaymentPolicy';
+import Terms_Con from './pages/cms/Terms_Con';
+import RefundPolicy from './pages/cms/RefundPolicy';
+import Customer_Service from './pages/cms/Customer_Service';
 function AppContent() {
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const location = useLocation();
@@ -241,6 +245,33 @@ function AppContent() {
                 <Route path="/privacy-policy" element={
               <ProtectedRoute requiredPermission="Suplier">
                 <PrivacyPolicy />
+              </ProtectedRoute>
+            } />
+             <Route path="/shipping-policy" element={
+              <ProtectedRoute requiredPermission="Suplier">
+                <ShippingPolicy />
+              </ProtectedRoute>
+            } />
+              <Route path="/payment-policy" element={
+              <ProtectedRoute requiredPermission="Suplier">
+                <PaymentPolicy />
+              </ProtectedRoute>
+            } />
+
+             <Route path="/terms-conditions" element={
+              <ProtectedRoute requiredPermission="Suplier">
+                <Terms_Con />
+              </ProtectedRoute>
+            } />
+
+ <Route path="/refund-policy" element={
+              <ProtectedRoute requiredPermission="Suplier">
+                <RefundPolicy />
+              </ProtectedRoute>
+            } />
+ <Route path="/customer-service" element={
+              <ProtectedRoute requiredPermission="Suplier">
+                <Customer_Service />
               </ProtectedRoute>
             } />
 

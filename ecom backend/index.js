@@ -25,6 +25,11 @@ const trackingRoute = require("./routes/trackingRoute.js");
 const paymentRoute = require("./routes/paymentRoute.js");
 const returnpolicyRoute=require('./routes/returnpolicyRoutes.js');
 const privacypolicyRoute=require('./routes/privacyPoilcyRoute.js')
+const shippingpolicyRoute=require('./routes/shippingpolicyRoutes.js')
+const paymentpolicyRoute=require('./routes/paymentpolicyRoute.js')
+const Terms_Con=require('./routes/TermsConditionRoute.js')
+const refundpolicy=require('./routes/refundPolicyRoutes.js')
+const customerservice=require('./routes/custerRoutes.js')
 // Initialize Express app
 const app = express();
 
@@ -88,7 +93,15 @@ app.use("/api/tracking", trackingRoute);
 // app.use("/api/upload", uploadRoute);
 app.use("/api/returnpolicy",returnpolicyRoute)
 app.use("/api/privacypolicy",privacypolicyRoute)
+app.use("/api/shippingpolicy",shippingpolicyRoute)
+app.use("/api/paymentpolicy",paymentpolicyRoute)
+app.use("/api/Terms_Con",Terms_Con);
+app.use("/api/refundpolicy",refundpolicy);
+app.use("/api/customer_service",customerservice);
 
+app.get("/Hlo",(req,res)=>{
+  res.send("Hello from /ll");
+})
 // Error handling middleware
 app.use(errorHandler);
 
