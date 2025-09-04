@@ -118,7 +118,7 @@ const Orders = () => {
     };
 
     fetchOrders();
-  }, []);
+  }, [snackbar]);
 
   // Function to fetch tracking details
   const fetchTrackingDetails = async (orderId, trackingCourier, trackingId) => {
