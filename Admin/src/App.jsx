@@ -44,6 +44,7 @@ import PaymentPolicy from './pages/cms/PaymentPolicy';
 import Terms_Con from './pages/cms/Terms_Con';
 import RefundPolicy from './pages/cms/RefundPolicy';
 import Customer_Service from './pages/cms/Customer_Service';
+import Whats_new from './pages/cms/Whats_new';
 function AppContent() {
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const location = useLocation();
@@ -274,7 +275,11 @@ function AppContent() {
                 <Customer_Service />
               </ProtectedRoute>
             } />
-
+ <Route path="/whats-new" element={
+              <ProtectedRoute requiredPermission="Suplier">
+                <Whats_new />
+              </ProtectedRoute>
+            } />
               <Route path="/Theme" element={
               <ProtectedRoute requiredPermission="Theme">
                 <ThemePage />

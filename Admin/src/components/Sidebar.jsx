@@ -296,6 +296,11 @@ const Sidebar = ({ open, toggleSidebar }) => {
           path: '/customer-service',
           visible: true,
         },
+           {
+          title: 'What\'s New',
+          path: '/whats-new',
+          visible: true,
+        },
       ],
     },
 
