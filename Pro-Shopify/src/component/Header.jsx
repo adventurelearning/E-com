@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import logo from '../assets/ADV E-Commerce logo.svg';
+// import logo from '../assets/ADV E-Commerce logo.svg';
+import logo from '../assets/Group 12.svg';
 import Search from './Search';
 import { MdOutlineShoppingCart, MdMenu, MdClose, MdAccountCircle, MdDeleteForever, MdHelpCenter } from "react-icons/md";
 import { IoGitCompareOutline } from "react-icons/io5";
@@ -123,11 +124,11 @@ const Header = () => {
     }
   };
 
-  useEffect(()=>{
-    Api.get('/logo').then((res)=>{
+  useEffect(() => {
+    Api.get('/logo').then((res) => {
       console.log(res.data);
     })
-  },[]);
+  }, []);
 
   const handleDrawerToggle = () => {
     setMobileOpen(!mobileOpen);
@@ -149,7 +150,7 @@ const Header = () => {
     setMobileAnchorEl(null);
   };
 
-  const drawer = (
+  const drawer = ( 
     <div className="w-72 h-full flex flex-col">
       <div className="flex justify-between items-center p-4 bg-gray-50">
         <Link to="/" onClick={handleDrawerToggle}>
@@ -258,8 +259,8 @@ const Header = () => {
   return (
     <header className="bg-white shadow-sm w-full">
       {/* Top Strip */}
-      <div className="top-strip py-2 border-b border-gray-200 bg-gray-50 hidden md:block">
-        <div className="container mx-auto px-4">
+      <div className="top-strip py-2 px-4 border-b border-gray-200 bg-gray-50 hidden md:block">
+        <div className=" mx-auto px-4">
           <div className="flex items-center justify-between">
             <div className="w-full md:w-1/2">
               <p className="text-xs md:text-sm font-medium text-gray-600">
@@ -280,7 +281,7 @@ const Header = () => {
 
       {/* Main Header */}
       <div className="header py-3 border-b border-gray-200">
-        <div className="container mx-auto px-4">
+        <div className=" mx-auto px-4">
           <div className="flex items-center justify-between">
             {/* Logo */}
             <div className="flex-1 md:flex-none md:w-1/4 flex justify-center md:justify-start">
@@ -288,7 +289,7 @@ const Header = () => {
                 <img
                   src={logo}
                   alt="Logo"
-                  className="h-12 md:h-20 w-auto transition-transform hover:scale-105"
+                  className="h-12 md:h-16 w-auto transition-transform hover:scale-105"
                 />
               </Link>
             </div>
@@ -384,20 +385,24 @@ const Header = () => {
           </div>
 
           {/* Mobile Search - Visible only on mobile */}
-          <div className="mt-3 md:hidden">
-            <Search fullWidth />
+          <div className="flex items-center justify-between md:hidden px-4 py-3 bg-white shadow-sm">
+
+            {/* Search Bar - full width with flex-grow */}
+            {/* <div className="flex-1 mx-2">
+              <Search fullWidth />
+            </div> */}
           </div>
         </div>
       </div>
 
       {/* Desktop User Menu */}
       {anchorEl && (
-        <div 
-          className="fixed inset-0 z-50" 
+        <div
+          className="fixed inset-0 z-50"
           onClick={handleClose}
           style={{ display: open ? 'block' : 'none' }}
         >
-          <div 
+          <div
             className="absolute right-4 top-16 bg-white rounded-md shadow-lg py-2 w-56 z-50 border border-gray-200"
             onClick={(e) => e.stopPropagation()}
           >
@@ -472,12 +477,12 @@ const Header = () => {
 
       {/* Mobile User Menu */}
       {mobileAnchorEl && (
-        <div 
-          className="fixed inset-0 z-50 bg-black bg-opacity-50" 
+        <div
+          className="fixed inset-0 z-50 bg-black bg-opacity-50"
           onClick={handleMobileMenuClose}
           style={{ display: mobileOpenMenu ? 'block' : 'none' }}
         >
-          <div 
+          <div
             className="absolute right-0 top-0 h-full bg-white w-64 shadow-lg z-50 overflow-y-auto"
             onClick={(e) => e.stopPropagation()}
           >

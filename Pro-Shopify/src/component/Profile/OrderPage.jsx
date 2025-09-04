@@ -240,7 +240,7 @@ const OrdersPage = () => {
     <>
     <Box sx={{
       p: { xs: 2, md: 3 },
-      maxWidth: 1200,
+      maxWidth: 1300,
       mx: 'auto',
       minHeight: 'calc(100vh - 64px - 56px)'
     }}>

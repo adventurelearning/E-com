@@ -78,11 +78,11 @@ const Division = () => {
   if (loading) {
     return (
       <div className="container mx-auto px-4 py-8 max-w-7xl">
-        <h2 className="text-3xl font-bold text-gray-800 mb-8">Shop by Category</h2>
+        <h2 className="xl:text-2xl lg:text-2xl sm:text-[12px] font-bold text-gray-800 mb-8">Shop by Category</h2>
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-6">
           {[...Array(itemsPerPage)].map((_, index) => (
-            <motion.div 
-              key={index} 
+            <motion.div
+              key={index}
               className="animate-pulse"
               initial={{ opacity: 0.5 }}
               animate={{ opacity: 1 }}
@@ -100,11 +100,11 @@ const Division = () => {
   if (error) {
     return (
       <div className="container mx-auto px-4 py-8 max-w-7xl">
-        <h2 className="text-3xl font-bold text-gray-800 mb-6">Shop by Category</h2>
+        <h2 className="text-xl font-bold text-gray-800 mb-6">Shop by Category</h2>
         <div className="bg-red-50 border border-red-200 text-red-600 p-4 rounded-lg text-center">
           <p className="font-medium">Error loading categories</p>
           <p className="text-sm mt-1">{error}</p>
-          <button 
+          <button
             onClick={() => window.location.reload()}
             className="mt-3 px-4 py-2 bg-red-100 text-red-700 rounded-md hover:bg-red-200 transition-colors"
           >
@@ -116,19 +116,19 @@ const Division = () => {
   }
 
   return (
-    <section className="container mx-auto px-4 py-8 ">
+    <section className=" mx-auto px-8 py-4 ">
       <div className="flex flex-col sm:flex-row justify-between items-center mb-8 gap-4">
-        <h2 className="text-3xl font-bold text-gray-800">Shop by Category</h2>
-        
+        <h2 className="text-2xl font-bold text-gray-800">Shop by Category</h2>
+
         {totalPages > 1 && (
           <div className="flex items-center gap-2">
+            {/* Prev button → hidden on mobile */}
             <button
               onClick={handlePrev}
-              className={`p-2 h-10 w-10 rounded-full flex items-center justify-center shadow-sm ${
-                currentPage === 0 
-                  ? 'bg-gray-100 text-gray-400 cursor-not-allowed' 
-                  : 'bg-white text-gray-700 hover:bg-gray-50'
-              } transition-colors`}
+              className={`hidden sm:flex p-2 h-10 w-10 rounded-full items-center justify-center shadow-sm ${currentPage === 0
+                ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                : 'bg-white text-gray-700 hover:bg-gray-50'
+                } transition-colors`}
               aria-label="Previous"
               disabled={currentPage === 0}
             >
@@ -136,10 +136,10 @@ const Division = () => {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
               </svg>
             </button>
-            
+
+            {/* Page numbers */}
             <div className="hidden sm:flex gap-1">
               {Array.from({ length: Math.min(totalPages, 5) }).map((_, index) => {
-                // Show first, last, and current page with neighbors
                 let pageIndex;
                 if (totalPages <= 5) {
                   pageIndex = index;
@@ -155,26 +155,24 @@ const Division = () => {
                   <button
                     key={pageIndex}
                     onClick={() => goToPage(pageIndex)}
-                    className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-medium ${
-                      currentPage === pageIndex 
-                        ? 'bg-blue-600 text-white' 
-                        : 'bg-white text-gray-700 hover:bg-[#f0d1e2]'
-                    } transition-colors`}
+                    className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-medium ${currentPage === pageIndex
+                      ? 'bg-blue-600 text-white'
+                      : 'bg-white text-gray-700 hover:bg-[#f0d1e2]'
+                      } transition-colors`}
                   >
                     {pageIndex + 1}
                   </button>
                 );
               })}
             </div>
-            
-            
+
+            {/* Next button → hidden on mobile */}
             <button
               onClick={handleNext}
-              className={`p-2 h-10 w-10 rounded-full flex items-center justify-center shadow-sm ${
-                currentPage === totalPages - 1 || totalPages === 0 
-                  ? 'bg-gray-100 text-gray-400 cursor-not-allowed' 
-                  : 'bg-white text-gray-700 hover:bg-gray-50'
-              } transition-colors`}
+              className={`hidden sm:flex p-2 h-10 w-10 rounded-full items-center justify-center shadow-sm ${currentPage === totalPages - 1 || totalPages === 0
+                ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                : 'bg-white text-gray-700 hover:bg-gray-50'
+                } transition-colors`}
               aria-label="Next"
               disabled={currentPage === totalPages - 1 || totalPages === 0}
             >
@@ -184,20 +182,22 @@ const Division = () => {
             </button>
           </div>
         )}
+
       </div>
 
       <div className="relative">
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-6">
-          {visibleItems.map((category) => (
+        {/* On small screens → horizontal scroll, no pagination */}
+        <div className="flex gap-4 overflow-x-auto sm:grid sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 sm:gap-6 hide-scrollbar">
+          {categories.map((category) => (   // 🔥 use categories directly (not visibleItems)
             <motion.div
               key={category.id}
-              className="group cursor-pointer"
+              className="group cursor-pointer flex-shrink-0 w-32 sm:w-auto"
               whileHover={{ y: -2 }}
               transition={{ duration: 0.2 }}
               onClick={() => navigate(`/category/${category.name}`)}
             >
-              <div className="relative bg-white rounded-t-[400px] shadow-sm overflow-hidden group-hover:bg-[#f3e1eb] transition-all duration-300">
-                <div className="w-full h-32 mb-4 flex items-center justify-center">
+              <div className="relative bg-white rounded-t-[300px] shadow-sm overflow-hidden group-hover:bg-[#f3e1eb] transition-all duration-300">
+                <div className="w-full h-24 sm:h-32 mb-2 flex items-center justify-center">
                   <img
                     src={category.imageUrl}
                     alt={category.name}
@@ -209,7 +209,7 @@ const Division = () => {
                 </div>
                 <div className="absolute inset-0 bg-gradient-to-t from-black/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
               </div>
-              <h3 className="text-center mt-3 font-medium text-gray-800 text-sm md:text-base line-clamp-2 group-hover:text-primary transition-colors">
+              <h3 className="text-center mt-2 font-medium text-gray-800 text-xs sm:text-sm md:text-base line-clamp-2 group-hover:text-primary transition-colors">
                 {category.name}
               </h3>
             </motion.div>
@@ -218,7 +218,7 @@ const Division = () => {
       </div>
 
       {/* Mobile pagination */}
-      {totalPages > 1 && (
+      {/* {totalPages > 1 && (
         <div className="flex justify-center mt-8 sm:hidden">
           <div className="flex items-center gap-2">
             <button
@@ -231,23 +231,22 @@ const Division = () => {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
               </svg>
             </button>
-            
+
             <div className="flex gap-1">
               {Array.from({ length: totalPages }).map((_, index) => (
                 <button
                   key={index}
                   onClick={() => goToPage(index)}
-                  className={`w-8 h-8 rounded-full flex items-center justify-center text-sm ${
-                    currentPage === index 
-                      ? 'bg-blue-600 text-white' 
-                      : 'bg-gray-100 text-gray-700'
-                  }`}
+                  className={`w-8 h-8 rounded-full flex items-center justify-center text-sm ${currentPage === index
+                    ? 'bg-blue-600 text-white'
+                    : 'bg-gray-100 text-gray-700'
+                    }`}
                 >
                   {index + 1}
                 </button>
               ))}
             </div>
-            
+
             <button
               onClick={handleNext}
               disabled={currentPage === totalPages - 1}
@@ -260,7 +259,7 @@ const Division = () => {
             </button>
           </div>
         </div>
-      )}
+      )} */}
     </section>
   );
 };

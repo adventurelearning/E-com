@@ -44,8 +44,8 @@ const OfferBanner = () => {
   }
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <h2 className="text-2xl font-bold mb-6 text-center">Special Offers</h2>
+    <div className=" mx-auto px-8 py-4">
+      <h2 className="text-2xl font-bold mb-6 text-center lg:text-left">Special Offers</h2>
       
       <div className="">
         {offers.map((offer) => (

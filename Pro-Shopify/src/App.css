@@ -3,3 +3,8 @@
   --color-secondary: #6B7280;
   --color-accent: #F59E0B;
 }
+
+
+.container{
+  width:100%; 
+}
