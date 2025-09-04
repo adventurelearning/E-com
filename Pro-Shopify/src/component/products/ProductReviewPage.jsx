@@ -166,7 +166,7 @@ const ProductReviewsPage = () => {
   }
 
   return (
-    <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-6">
+    <div className=" mx-auto px-8 sm:px-6 lg:px-8 py-6">
       <Lightbox
         open={lightboxOpen}
         close={() => setLightboxOpen(false)}

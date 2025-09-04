@@ -57,14 +57,14 @@ const CategoryProduct = () => {
       );
       const uniqueSubcategories = [...new Set(categoryProducts.map(item => item.subcategory))].filter(Boolean);
       setSubcategories(uniqueSubcategories);
-      
+
       // If a subcategory is provided in the URL, find the matching subcategory
       if (subcategory) {
         const normalizedUrlSubcategory = normalizeString(subcategory);
         const matchingSubcategory = uniqueSubcategories.find(
           sub => normalizeString(sub) === normalizedUrlSubcategory
         );
-        
+
         if (matchingSubcategory) {
           setSelectedSubcategory(matchingSubcategory);
         }
@@ -79,7 +79,7 @@ const CategoryProduct = () => {
       const matchingSubcategory = subcategories.find(
         sub => normalizeString(sub) === normalizedUrlSubcategory
       );
-      
+
       if (matchingSubcategory) {
         setSelectedSubcategory(matchingSubcategory);
       }
@@ -105,8 +105,8 @@ const CategoryProduct = () => {
   // Apply subcategory filter
   if (selectedSubcategory) {
     filteredProducts = filteredProducts.filter(
-      item => item.subcategory && 
-      normalizeString(item.subcategory) === normalizeString(selectedSubcategory)
+      item => item.subcategory &&
+        normalizeString(item.subcategory) === normalizeString(selectedSubcategory)
     );
   }
 
@@ -202,7 +202,7 @@ const CategoryProduct = () => {
 
   return (
     <>
-      <div className="container mx-auto px-4 py-8">
+      <div className=" mx-auto px-8 py-8">
         <div className="mb-8 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
           <div>
             <h1 className="text-3xl md:text-4xl font-bold text-gray-800 capitalize mb-2">
@@ -599,7 +599,7 @@ const CategoryProduct = () => {
                       />
                       <label htmlFor="price-discount" className="cursor-pointer">
                         Discounted Items
-                        </label>
+                      </label>
                     </div>
                   </div>
                 )}
@@ -646,112 +646,129 @@ const CategoryProduct = () => {
           {/* Product Grid */}
           <div className="flex-1">
             {filteredProducts.length > 0 ? (
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+              <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
                 <AnimatePresence>
                   {filteredProducts.map((product) => (
                     <motion.div
-                      key={product._id} 
-                      className="border rounded-lg p-4 hover:shadow-lg transition-shadow bg-white flex flex-col group"
+                      key={product._id}
+                      className="border rounded-lg p-3 sm:p-4 hover:shadow-lg transition-shadow bg-white flex flex-col group"
                       initial={{ opacity: 0, scale: 0.95 }}
                       animate={{ opacity: 1, scale: 1 }}
                       exit={{ opacity: 0, scale: 0.95 }}
                       transition={{ duration: 0.2 }}
                       whileHover={{
                         y: -5,
-                        boxShadow: "0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)"
+                        boxShadow:
+                          "0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)",
                       }}
                       layout
                     >
+                      {/* Title + Wishlist */}
                       <div className="flex justify-between items-start mb-2">
                         <h2
-                          className="text-lg font-semibold line-clamp-1 hover:text-blue-600 cursor-pointer transition-colors"
+                          className="text-sm sm:text-base md:text-lg font-semibold line-clamp-1 hover:text-blue-600 cursor-pointer transition-colors"
                           onClick={() => handleClick(product._id)}
                           title={product.name}
                         >
-                          {product.name} {product.colors ? `(${product.colors})` : ''}
+                          {product.name}{" "}
+                          {product.colors ? `(${product.colors})` : ""}
                         </h2>
                         <button
                           onClick={async (e) => {
                             e.stopPropagation();
-                            const token = localStorage.getItem('token');
+                            const token = localStorage.getItem("token");
                             if (!token) {
-                              navigate('/login', { state: { from: `/category/${category}` } });
+                              navigate("/login", {
+                                state: { from: `/category/${category}` },
+                              });
                               return;
                             }
 
                             try {
                               if (isInWishlist(product._id)) {
-                                // Find the wishlist item ID to remove
-                                const wishlistItem = wishlistItems.find(item => item.product._id === product._id);
+                                const wishlistItem = wishlistItems.find(
+                                  (item) => item.product._id === product._id
+                                );
                                 if (wishlistItem) {
                                   await removeFromWishlist(wishlistItem._id);
-                                  toast.success('Removed from wishlist');
+                                  toast.success("Removed from wishlist");
                                 }
                               } else {
                                 await addToWishlist(product._id);
-                                toast.success('Added to wishlist');
+                                toast.success("Added to wishlist");
                               }
                               fetchWishlistCount();
                             } catch (error) {
-                              toast.error('Failed to update wishlist');
+                              toast.error("Failed to update wishlist");
                             }
                           }}
-                          className={`transition-colors ${isInWishlist(product._id) ? 'text-red-500' : 'text-gray-400 hover:text-red-500'}`}
-                          aria-label={isInWishlist(product._id) ? "Remove from favorites" : "Add to favorites"}
+                          className={`transition-colors ${isInWishlist(product._id)
+                              ? "text-red-500"
+                              : "text-gray-400 hover:text-red-500"
+                            }`}
+                          aria-label={
+                            isInWishlist(product._id)
+                              ? "Remove from favorites"
+                              : "Add to favorites"
+                          }
                         >
                           {isInWishlist(product._id) ? (
-                            <FaHeart className="group-hover:scale-110 transition-transform" />
+                            <FaHeart className="group-hover:scale-110 transition-transform text-sm sm:text-base" />
                           ) : (
-                            <FaRegHeart className="group-hover:scale-110 transition-transform" />
+                            <FaRegHeart className="group-hover:scale-110 transition-transform text-sm sm:text-base" />
                           )}
                         </button>
                       </div>
 
-                      {/* Product Image */}
+                      {/* Image */}
                       <div
-                        className="relative h-48 w-full bg-gray-100 rounded-md overflow-hidden cursor-pointer"
+                        className="relative h-40 sm:h-48 w-full bg-gray-100 rounded-md overflow-hidden cursor-pointer"
                         onClick={() => handleClick(product._id)}
                       >
                         <img
                           src={
                             Array.isArray(product.images) && product.images.length > 0
                               ? product.images[0]
-                              : 'https://via.placeholder.com/300x300?text=No+Image'
+                              : "https://via.placeholder.com/300x300?text=No+Image"
                           }
                           alt={product.name}
                           className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
                           loading="lazy"
                         />
-                        {product.discountPrice && product.discountPrice < product.originalPrice && (
-                          <span className="absolute top-2 right-2 bg-green-600 text-white text-xs font-bold px-2 py-1 rounded-full">
-                            {Math.round(
-                              ((product.originalPrice - product.discountPrice) / product.originalPrice) * 100
-                            )}% OFF
-                          </span>
-                        )}
+                        {product.discountPrice &&
+                          product.discountPrice < product.originalPrice && (
+                            <span className="absolute top-2 right-2 bg-green-600 text-white text-[10px] sm:text-xs font-bold px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-full">
+                              {Math.round(
+                                ((product.originalPrice - product.discountPrice) /
+                                  product.originalPrice) *
+                                100
+                              )}
+                              % OFF
+                            </span>
+                          )}
                         <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-5 transition-all duration-300" />
                       </div>
 
-                      {/* Product Details */}
-                      <div className="mt-4 flex-grow flex flex-col justify-between">
-
+                      {/* Details */}
+                      <div className="mt-3 flex-grow flex flex-col justify-between">
                         {/* Price */}
-                        <div className="flex items-center mt-2">
-                          <span className="text-lg font-bold text-gray-800">
-                            ₹{product.discountPrice?.toLocaleString() || product.originalPrice?.toLocaleString()}
+                        <div className="flex items-center mt-1 sm:mt-2">
+                          <span className="text-base sm:text-lg font-bold text-gray-800">
+                            ₹
+                            {product.discountPrice?.toLocaleString() ||
+                              product.originalPrice?.toLocaleString()}
                           </span>
-                          {product.discountPrice && product.discountPrice < product.originalPrice && (
-                            <>
-                              <span className="text-red-500 line-through text-sm ml-2">
+                          {product.discountPrice &&
+                            product.discountPrice < product.originalPrice && (
+                              <span className="text-xs sm:text-sm text-red-500 line-through ml-2">
                                 ₹{product.originalPrice?.toLocaleString()}
                               </span>
-                            </>
-                          )}
+                            )}
                         </div>
 
                         {/* Offers */}
                         {product.offers && (
-                          <div className="mt-2 text-xs text-green-700">
+                          <div className="mt-2 text-[11px] sm:text-xs text-green-700">
                             {product.offers.slice(0, 2).map((offer, i) => (
                               <div key={i} className="flex items-start mb-1">
                                 <span className="mr-1">•</span>
@@ -761,14 +778,18 @@ const CategoryProduct = () => {
                           </div>
                         )}
 
-                        {/* Actions */}
-                        <div className="mt-4 flex justify-between items-center">
-                          <div className="flex items-center mb-2">
-                            <div className="flex items-center bg-blue-50 px-2 py-1 rounded">
-                              <span className="text-yellow-500 mr-1">{product.rating || 4.2}</span>
-                              <FaStar className="text-yellow-500 text-xs" />
+                        {/* Rating */}
+                        <div className="mt-3 sm:mt-4 flex justify-between items-center">
+                          <div className="flex items-center mb-1 sm:mb-2">
+                            <div className="flex items-center bg-blue-50 px-1.5 sm:px-2 py-0.5 sm:py-1 rounded">
+                              <span className="text-yellow-500 text-xs sm:text-sm mr-1">
+                                {product.rating || 4.2}
+                              </span>
+                              <FaStar className="text-yellow-500 text-[10px] sm:text-xs" />
                             </div>
-                            <span className="text-gray-500 text-sm ml-2">({product.reviews || 124} reviews)</span>
+                            <span className="text-gray-500 text-[11px] sm:text-sm ml-2">
+                              ({product.reviews || 124} reviews)
+                            </span>
                           </div>
                         </div>
                       </div>
@@ -786,23 +807,25 @@ const CategoryProduct = () => {
                 <img
                   src="https://cdn-icons-png.flaticon.com/512/4076/4076478.png"
                   alt="No products found"
-                  className="w-32 h-32 object-contain mb-4 opacity-70"
+                  className="w-24 h-24 sm:w-32 sm:h-32 object-contain mb-4 opacity-70"
                 />
-                <h3 className="text-xl font-medium text-gray-700 mb-2">
+                <h3 className="text-lg sm:text-xl font-medium text-gray-700 mb-2">
                   No products found
                 </h3>
-                <p className="text-gray-500 text-center max-w-md">
-                  We couldn't find any products matching your filters. Try adjusting your filters or browse our other categories.
+                <p className="text-gray-500 text-center text-sm sm:text-base max-w-md">
+                  We couldn't find any products matching your filters. Try adjusting your
+                  filters or browse our other categories.
                 </p>
                 <button
                   onClick={resetFilters}
-                  className="mt-4 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2"
+                  className="mt-4 bg-blue-600 text-white px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2 text-sm sm:text-base"
                 >
                   Reset Filters
                 </button>
               </motion.div>
             )}
           </div>
+
         </div>
       </div>
     </>
