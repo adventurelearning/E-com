@@ -1,6 +1,6 @@
 // src/components/Charts/LineChart.jsx
-import React from 'react';
-import { Line } from 'react-chartjs-2';
+import React from "react";
+import { Line } from "react-chartjs-2";
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -10,7 +10,8 @@ import {
   Title,
   Tooltip,
   Legend,
-} from 'chart.js';
+} from "chart.js";
+import { useTheme, useMediaQuery } from "@mui/material";
 
 ChartJS.register(
   CategoryScale,
@@ -22,38 +23,86 @@ ChartJS.register(
   Legend
 );
 
-const LineChart = () => {
-  const labels = ['January', 'February', 'March', 'April', 'May', 'June', 'July'];
-  
-  const data = {
-    labels,
+const LineChart = ({ data }) => {
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
+
+  const months = [
+    "Jan",
+    "Feb",
+    "Mar",
+    "Apr",
+    "May",
+    "Jun",
+    "Jul",
+    "Aug",
+    "Sep",
+    "Oct",
+    "Nov",
+    "Dec",
+  ];
+
+  const chartData = {
+    labels: months,
     datasets: [
       {
-        label: 'Sales',
-        data: [65, 59, 80, 81, 56, 55, 40],
-        borderColor: 'rgb(75, 192, 192)',
-        backgroundColor: 'rgba(75, 192, 192, 0.5)',
-        tension: 0.1,
-      },
-      {
-        label: 'Revenue',
-        data: [28, 48, 40, 19, 86, 27, 90],
-        borderColor: 'rgb(53, 162, 235)',
-        backgroundColor: 'rgba(53, 162, 235, 0.5)',
+        label: "Monthly Revenue (₹)",
+        data: data || Array(12).fill(0),
+        borderColor: "rgb(75, 192, 192)",
+        backgroundColor: "rgba(75, 192, 192, 0.2)",
+        tension: 0.4,
+        fill: true,
+        borderWidth: isMobile ? 2 : 3, // thinner line on mobile
+        pointRadius: isMobile ? 2 : 4, // smaller points on mobile
       },
     ],
   };
 
   const options = {
     responsive: true,
+    maintainAspectRatio: false,
     plugins: {
       legend: {
-        position: 'top',
+        position: "top",
+        labels: {
+          font: {
+            size: isMobile ? 10 : 14, // smaller legend text on mobile
+          },
+        },
+      },
+      tooltip: {
+        bodyFont: { size: isMobile ? 10 : 14 },
+        titleFont: { size: isMobile ? 11 : 15 },
+      },
+    },
+    scales: {
+      x: {
+        ticks: {
+          font: { size: isMobile ? 9 : 13 },
+        },
+      },
+      y: {
+        beginAtZero: true,
+        ticks: {
+          callback: function (value) {
+            return "₹" + value.toLocaleString("en-IN");
+          },
+          font: { size: isMobile ? 9 : 13 },
+        },
       },
     },
   };
 
-  return <Line options={options} data={data} />;
+  return (
+    <div
+      style={{
+        height: isMobile ? "200px" : "300px", // smaller chart on mobile
+        width:  isMobile ? "300px" : "500px", // full width instead of fixed 440px
+      }}
+    >
+      <Line options={options} data={chartData} />
+    </div>
+  );
 };
 
 export default LineChart;
