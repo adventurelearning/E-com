@@ -143,10 +143,10 @@ const ProductCard = ({ product }) => {
         <div className="mt-3 sm:mt-4">
           <div className="flex items-center">
             <span className="text-base sm:text-lg font-bold">
-              ₹{product.discountPrice.toLocaleString()}
+             ₹{(product?.discountPrice ?? 0).toLocaleString()}
             </span>
             <span className="text-gray-500 line-through text-xs sm:text-sm ml-2">
-              ₹{product.originalPrice.toLocaleString()}
+              ₹{(product?.originalPrice ?? 0).toLocaleString()}
             </span>
             <span className="text-green-600 text-xs sm:text-sm font-medium ml-2">
               {product.discountPercent}% off
