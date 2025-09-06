@@ -12,6 +12,7 @@ import { Drawer, IconButton } from '@mui/material';
 import { FiMenu } from 'react-icons/fi';
 import { motion, AnimatePresence } from 'framer-motion';
 import Api from '../Services/Api';
+import Search from './Search';
 
 const Navigation = () => {
     const [isOpenCatPanel, setIsOpenCatPanel] = useState(false);
@@ -218,7 +219,7 @@ const Navigation = () => {
         <>
             <div className='bg-white w-full sticky top-0 z-40 shadow-sm border-b border-gray-100'>
                 <nav className='py-2 px-4'>
-                    <div className='container mx-auto flex items-center justify-between lg:justify-end gap-4 lg:gap-8'>
+                    <div className=' mx-auto flex items-center justify-between lg:justify-end gap-4 lg:gap-8'>
                         {isMobile && (
                             <IconButton 
                                 color="inherit"
@@ -229,6 +230,13 @@ const Navigation = () => {
                             >
                                 <FiMenu />
                             </IconButton>
+                            
+                        )}
+
+                        {isMobile && (
+                            <div className="flex-1 mx-2">
+                                     <Search fullWidth />
+                                   </div>
                         )}
                         
                         <div className='lg:w-[62%] hidden lg:block'>

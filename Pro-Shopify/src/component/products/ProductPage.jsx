@@ -61,11 +61,11 @@ const ProductPage = () => {
     if (!product || !product.specialPrice || product.specialPrice <= 0) {
       return false;
     }
-    
+
     const now = new Date();
     const startDate = new Date(product.specialPriceStart);
     const endDate = new Date(product.specialPriceEnd);
-    
+
     return now >= startDate && now <= endDate;
   };
 
@@ -105,7 +105,7 @@ const ProductPage = () => {
         // Fetch reviews for this product
         const reviewsResponse = await Api.get(`/reviews/product/${id}`);
         console.log('reviewsResponse', reviewsResponse);
-        
+
         setReviews(reviewsResponse.data);
         setReviewsLoading(false);
 
@@ -120,8 +120,8 @@ const ProductPage = () => {
             { label: 'XL', stock: 5 }
           ],
           // Calculate discount percent if not provided
-          discountPercent: productData.discountPercent || 
-            (productData.discountPrice > 0 && productData.originalPrice > productData.discountPrice ? 
+          discountPercent: productData.discountPercent ||
+            (productData.discountPrice > 0 && productData.originalPrice > productData.discountPrice ?
               Math.round(((productData.originalPrice - productData.discountPrice) / productData.originalPrice) * 100) : 0),
           discountPrice: productData.discountPrice || 0,
           originalPrice: productData.originalPrice,
@@ -470,7 +470,7 @@ const ProductPage = () => {
         />
       )}
 
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className=" mx-auto px-8 sm:px-6 lg:px-8 py-8">
         {/* Breadcrumbs */}
         <nav className="flex mb-6" aria-label="Breadcrumb">
           <ol className="inline-flex items-center space-x-1 md:space-x-2">
@@ -509,15 +509,18 @@ const ProductPage = () => {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 xl:gap-12">
           {/* Product Images Section */}
           <div className="bg-white p-4 rounded-2xl shadow-lg border border-gray-200 relative">
-            <div className="relative aspect-square w-full rounded-xl overflow-hidden group"
+            {/* Product Image Section */}
+            <div
+              className="relative aspect-square w-full rounded-xl overflow-hidden group"
               onMouseMove={handleMouseMove}
-              onMouseLeave={handleMouseLeave}>
+              onMouseLeave={handleMouseLeave}
+            >
               <AnimatePresence mode="wait">
                 <motion.img
                   key={currentImageIndex}
                   src={product.images[currentImageIndex]}
                   alt={product.name}
-                  className="h-full w-full object-contain cursor-zoom-in"
+                  className="h-64 sm:h-80 md:h-full w-full object-contain cursor-zoom-in"
                   onClick={() => {
                     setLightboxIndex(currentImageIndex);
                     setLightboxOpen(true);
@@ -537,7 +540,7 @@ const ProductPage = () => {
                     style={{
                       backgroundImage: `url(${product.images[currentImageIndex]})`,
                       backgroundPosition: `${zoomPosition.x}% ${zoomPosition.y}%`,
-                      transform: 'translate(-50%, -50%)',
+                      transform: "translate(-50%, -50%)",
                       left: `${zoomPosition.x}%`,
                       top: `${zoomPosition.y}%`,
                     }}
@@ -547,11 +550,12 @@ const ProductPage = () => {
 
               {/* Discount Badge */}
               {displayPrice.discountPercent > 0 && (
-                <div className={`absolute top-4 left-4 text-white text-sm font-bold px-3 py-1 rounded-full shadow-md ${
-                  isSpecialActive 
-                    ? 'bg-gradient-to-r from-orange-500 to-red-500' 
-                    : 'bg-gradient-to-r from-primary to-[#ff5252]'
-                }`}>
+                <div
+                  className={`absolute top-2 sm:top-4 left-2 sm:left-4 text-white text-xs sm:text-sm font-bold px-2 sm:px-3 py-0.5 sm:py-1 rounded-full shadow-md ${isSpecialActive
+                    ? "bg-gradient-to-r from-orange-500 to-red-500"
+                    : "bg-gradient-to-r from-primary to-[#ff5252]"
+                    }`}
+                >
                   {displayPrice.discountPercent}% OFF
                   {isSpecialActive && <span className="ml-1">(Special)</span>}
                 </div>
@@ -560,15 +564,15 @@ const ProductPage = () => {
               {/* Favorite Button */}
               <motion.button
                 onClick={toggleFavorite}
-                className="absolute top-4 right-4 bg-white/80 backdrop-blur-sm rounded-full p-2 shadow-md"
+                className="absolute top-2 sm:top-4 right-2 sm:right-4 bg-white/80 backdrop-blur-sm rounded-full p-1.5 sm:p-2 shadow-md"
                 aria-label={isFavorite ? "Remove from favorites" : "Add to favorites"}
                 whileHover={{ scale: 1.1 }}
                 whileTap={{ scale: 0.9 }}
               >
                 {isFavorite ? (
-                  <FaHeart className="text-primary text-xl" />
+                  <FaHeart className="text-primary text-lg sm:text-xl" />
                 ) : (
-                  <FaRegHeart className="text-xl text-gray-700" />
+                  <FaRegHeart className="text-lg sm:text-xl text-gray-700" />
                 )}
               </motion.button>
 
@@ -576,17 +580,17 @@ const ProductPage = () => {
                 <>
                   <button
                     onClick={prevImage}
-                    className="absolute left-4 top-1/2 -translate-y-1/2 bg-white/90 text-gray-800 p-2 rounded-full shadow-lg hover:bg-white transition-all transform hover:scale-110"
+                    className="absolute left-2 sm:left-4 top-1/2 -translate-y-1/2 bg-white/90 text-gray-800 p-1.5 sm:p-2 rounded-full shadow-lg hover:bg-white transition-all transform hover:scale-110"
                     aria-label="Previous image"
                   >
-                    <FaChevronLeft className="text-sm" />
+                    <FaChevronLeft className="text-xs sm:text-sm" />
                   </button>
                   <button
                     onClick={nextImage}
-                    className="absolute right-4 top-1/2 -translate-y-1/2 bg-white/90 text-gray-800 p-2 rounded-full shadow-lg hover:bg-white transition-all transform hover:scale-110"
+                    className="absolute right-2 sm:right-4 top-1/2 -translate-y-1/2 bg-white/90 text-gray-800 p-1.5 sm:p-2 rounded-full shadow-lg hover:bg-white transition-all transform hover:scale-110"
                     aria-label="Next image"
                   >
-                    <FaChevronRight className="text-sm" />
+                    <FaChevronRight className="text-xs sm:text-sm" />
                   </button>
                 </>
               )}
@@ -594,14 +598,15 @@ const ProductPage = () => {
 
             {/* Thumbnail Navigation */}
             {product.images.length > 1 && (
-              <div className="flex gap-3 mt-4 overflow-x-auto py-2 scrollbar-hide">
+              <div className="flex gap-2 sm:gap-3 mt-4 overflow-x-auto py-2 scrollbar-hide">
                 {product.images.map((image, index) => (
                   <button
                     key={index}
                     onClick={() => setCurrentImageIndex(index)}
-                    className={`flex-shrink-0 h-16 w-16 border-2 rounded-md overflow-hidden transition-all ${index === currentImageIndex
-                      ? 'border-primary scale-105 shadow-md'
-                      : 'border-gray-200 hover:border-gray-300'}`}
+                    className={`flex-shrink-0 h-12 w-12 sm:h-16 sm:w-16 border-2 rounded-md overflow-hidden transition-all ${index === currentImageIndex
+                      ? "border-primary scale-105 shadow-md"
+                      : "border-gray-200 hover:border-gray-300"
+                      }`}
                   >
                     <img
                       src={image}
@@ -613,10 +618,10 @@ const ProductPage = () => {
               </div>
             )}
 
-            {/* Special Price Timer (if active) */}
+            {/* Special Price Timer */}
             {isSpecialActive && product.specialPriceEnd && (
-              <div className="mt-4 p-3 bg-orange-50 border border-orange-200 rounded-lg">
-                <p className="text-orange-800 font-medium text-sm mb-2">
+              <div className="mt-4 p-2 sm:p-3 bg-orange-50 border border-orange-200 rounded-lg">
+                <p className="text-orange-800 font-medium text-xs sm:text-sm mb-2">
                   🕒 Special offer ends in:
                 </p>
                 <div className="flex gap-2">
@@ -624,18 +629,30 @@ const ProductPage = () => {
                     const now = new Date();
                     const endDate = new Date(product.specialPriceEnd);
                     const timeLeft = endDate - now;
-                    
+
                     if (timeLeft <= 0) return null;
-                    
+
                     const days = Math.floor(timeLeft / (1000 * 60 * 60 * 24));
-                    const hours = Math.floor((timeLeft % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-                    const minutes = Math.floor((timeLeft % (1000 * 60 * 60)) / (1000 * 60));
-                    
+                    const hours = Math.floor(
+                      (timeLeft % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)
+                    );
+                    const minutes = Math.floor(
+                      (timeLeft % (1000 * 60 * 60)) / (1000 * 60)
+                    );
+
                     return (
                       <>
-                        {days > 0 && <span className="bg-orange-500 text-white px-2 py-1 rounded text-xs font-bold">{days}d</span>}
-                        <span className="bg-orange-500 text-white px-2 py-1 rounded text-xs font-bold">{hours}h</span>
-                        <span className="bg-orange-500 text-white px-2 py-1 rounded text-xs font-bold">{minutes}m</span>
+                        {days > 0 && (
+                          <span className="bg-orange-500 text-white px-1.5 sm:px-2 py-0.5 rounded text-[10px] sm:text-xs font-bold">
+                            {days}d
+                          </span>
+                        )}
+                        <span className="bg-orange-500 text-white px-1.5 sm:px-2 py-0.5 rounded text-[10px] sm:text-xs font-bold">
+                          {hours}h
+                        </span>
+                        <span className="bg-orange-500 text-white px-1.5 sm:px-2 py-0.5 rounded text-[10px] sm:text-xs font-bold">
+                          {minutes}m
+                        </span>
                       </>
                     );
                   })()}
@@ -643,31 +660,35 @@ const ProductPage = () => {
               </div>
             )}
 
-            {/* Quantity Selector and Action Buttons */}
-            <div className="mt-8 space-y-4">
+            {/* Quantity Selector & Buttons */}
+            <div className="mt-6 sm:mt-8 space-y-4">
               <div className="flex items-center justify-between max-w-xs mx-auto">
-                <span className="text-gray-700 font-medium">Quantity:</span>
+                <span className="text-gray-700 font-medium text-sm sm:text-base">
+                  Quantity:
+                </span>
                 <div className="flex items-center border rounded-lg overflow-hidden">
                   <button
                     onClick={decrementQuantity}
-                    className="px-3 py-1 bg-gray-100 hover:bg-gray-200 transition-colors text-gray-600"
+                    className="px-2 sm:px-3 py-1 bg-gray-100 hover:bg-gray-200 transition-colors text-gray-600 text-sm sm:text-base"
                   >
                     -
                   </button>
-                  <span className="px-4 py-1 bg-white text-center w-12">{quantity}</span>
+                  <span className="px-3 sm:px-4 py-1 bg-white text-center w-10 sm:w-12 text-sm sm:text-base">
+                    {quantity}
+                  </span>
                   <button
                     onClick={incrementQuantity}
-                    className="px-3 py-1 bg-gray-100 hover:bg-gray-200 transition-colors text-gray-600"
+                    className="px-2 sm:px-3 py-1 bg-gray-100 hover:bg-gray-200 transition-colors text-gray-600 text-sm sm:text-base"
                   >
                     +
                   </button>
                 </div>
               </div>
 
-              <div className="flex flex-col sm:flex-row gap-3">
+              <div className="flex  gap-2 sm:gap-3">
                 <motion.button
                   onClick={handleAddToCart}
-                  className="flex-1 bg-gradient-to-r from-primary to-accent hover:from-secondary hover:to-secondary text-white px-6 py-3 rounded-xl transition-all flex items-center justify-center gap-2 font-medium shadow-lg hover:shadow-xl"
+                  className="flex-1 bg-gradient-to-r from-primary to-accent hover:from-secondary hover:to-secondary text-white px-4 sm:px-6 py-2 sm:py-3 rounded-lg sm:rounded-xl transition-all flex items-center justify-center gap-2 font-medium shadow-md sm:shadow-lg text-sm sm:text-base"
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
                 >
@@ -678,7 +699,7 @@ const ProductPage = () => {
                 <motion.button
                   onClick={() => {
                     handleAddToCart();
-                    navigate('/buy-now', {
+                    navigate("/buy-now", {
                       state: {
                         product: {
                           _id: id,
@@ -687,13 +708,13 @@ const ProductPage = () => {
                           originalPrice: product.originalPrice,
                           discountPrice: displayPrice.price,
                           discountPercent: displayPrice.discountPercent,
-                          isSpecial: displayPrice.isSpecial
+                          isSpecial: displayPrice.isSpecial,
                         },
-                        quantity
-                      }
+                        quantity,
+                      },
                     });
                   }}
-                  className="flex-1 bg-gradient-to-r from-primary to-secondary hover:from-secondary hover:to-secondary text-white px-6 py-3 rounded-lg transition-colors font-medium"
+                  className="flex-1 bg-gradient-to-r from-primary to-secondary hover:from-secondary hover:to-secondary text-white px-4 sm:px-6 py-2 sm:py-3 rounded-lg transition-colors font-medium text-sm sm:text-base"
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
                 >
@@ -703,87 +724,73 @@ const ProductPage = () => {
             </div>
           </div>
 
+
           {/* Product Details Section */}
-          <div className="bg-white p-6 rounded-2xl shadow-lg border border-gray-200">
-            <div className="mb-4">
-              <h1 className="text-2xl md:text-3xl font-bold text-gray-900">{product.name}</h1>
-              <div className="flex items-center mt-2">
+          <div className="bg-white p-4 sm:p-6 rounded-2xl shadow-lg border border-gray-200">
+            <div className="mb-3 sm:mb-4">
+              <h1 className="text-lg sm:text-2xl md:text-3xl font-bold text-gray-900">{product.name}</h1>
+              <div className="flex items-center mt-1 sm:mt-2">
                 <Rating
                   initialValue={product.averageRating}
                   readonly
-                  size={20}
+                  size={16} // smaller stars on mobile
                   allowFraction
-                  SVGstyle={{ display: 'inline-block' }}
-                  className="mr-2"
+                  SVGstyle={{ display: "inline-block" }}
+                  className="mr-1 sm:mr-2"
                 />
-                <span className="text-gray-700 font-medium">{product.averageRating.toFixed(1)}</span>
-                <span className="text-gray-500 text-sm ml-2">({reviews.length || 0} reviews)</span>
+                <span className="text-gray-700 font-medium text-sm sm:text-base">
+                  {product.averageRating.toFixed(1)}
+                </span>
+                <span className="text-gray-500 text-xs sm:text-sm ml-1 sm:ml-2">
+                  ({reviews.length || 0} reviews)
+                </span>
               </div>
             </div>
 
             {/* Price Section */}
-            <div className="mt-4 space-y-2">
-              <div className="flex items-center flex-wrap gap-2">
-                <span className="text-2xl md:text-3xl font-bold text-gray-900">
+            <div className="mt-3 sm:mt-4 space-y-1 sm:space-y-2">
+              <div className="flex items-center flex-wrap gap-1 sm:gap-2">
+                <span className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900">
                   ₹{displayPrice.price.toLocaleString()}
                 </span>
                 {displayPrice.originalPrice && (
-                  <span className="text-gray-500 line-through text-lg">
+                  <span className="text-gray-500 line-through text-sm sm:text-lg">
                     ₹{displayPrice.originalPrice.toLocaleString()}
                   </span>
                 )}
                 {displayPrice.discountPercent > 0 && (
-                  <span className={`text-lg font-medium ${isSpecialActive ? 'text-orange-600' : 'text-primary'}`}>
+                  <span
+                    className={`text-sm sm:text-lg font-medium ${isSpecialActive ? "text-orange-600" : "text-primary"
+                      }`}
+                  >
                     Save {displayPrice.discountPercent}%
                     {isSpecialActive && <span className="ml-1">(Special)</span>}
                   </span>
                 )}
               </div>
-              <p className="text-sm text-gray-500">Inclusive of all taxes</p>
-              
+              <p className="text-xs sm:text-sm text-gray-500">Inclusive of all taxes</p>
+
               {/* Special Price Info */}
               {isSpecialActive && (
-                <div className="mt-2 p-2 bg-orange-50 border border-orange-100 rounded-md">
-                  <p className="text-orange-700 text-sm">
-                    🎉 Special price valid until {new Date(product.specialPriceEnd).toLocaleDateString()}
+                <div className="mt-1 sm:mt-2 p-2 bg-orange-50 border border-orange-100 rounded-md">
+                  <p className="text-orange-700 text-xs sm:text-sm">
+                    🎉 Special price valid until{" "}
+                    {new Date(product.specialPriceEnd).toLocaleDateString()}
                   </p>
                 </div>
               )}
             </div>
 
-            {/* Color Selection */}
-            {/* <div className="mt-6">
-              <h3 className="font-medium text-lg mb-3">Color: <span className="font-normal text-gray-700">{selectedColor}</span></h3>
-              <div className="flex flex-wrap gap-2">
-                {product.colors.map((color) => (
-                  <motion.button
-                    key={color}
-                    onClick={() => setSelectedColor(color)}
-                    className={`px-4 py-2 border rounded-full text-sm font-medium transition-all flex items-center gap-2 ${selectedColor === color
-                      ? 'border-primary bg-primary text-white'
-                      : 'border-gray-200 hover:border-gray-300'}`}
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
-                  >
-                    {selectedColor === color && <FaCheck className="text-xs" />}
-                    {color}
-                  </motion.button>
-                ))}
-              </div>
-            </div> */}
+            {/* Color Variants Section */}
             {product?.groupId && (
-              <div className="mt-8 bg-white p-6 rounded-2xl shadow-lg border border-gray-200">
-                {/* <h2 className="text-2xl font-bold mb-6 pb-2 border-b border-gray-200">
-                  Color Variants
-                </h2> */}
-
+              <div className="mt-6 sm:mt-8 bg-white p-4 sm:p-6 rounded-2xl shadow-lg border border-gray-200">
                 {loadingVariants ? (
-                  <div className="flex justify-center py-8">
-                    <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-primary"></div>
+                  <div className="flex justify-center py-6 sm:py-8">
+                    <div className="animate-spin rounded-full h-6 w-6 sm:h-8 sm:w-8 border-t-2 border-b-2 border-primary"></div>
                   </div>
                 ) : colorVariants.length > 0 ? (
-                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
-                    {colorVariants.map(variant => {
+                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 sm:gap-4">
+                    {colorVariants.map((variant) => {
                       const variantDisplayPrice = getDisplayPrice(variant);
                       return (
                         <motion.div
@@ -801,108 +808,90 @@ const ProductPage = () => {
                                 className="w-full h-full object-contain"
                               />
                             ) : (
-                              <div className="flex items-center justify-center h-full text-gray-400">
+                              <div className="flex items-center justify-center h-full text-xs sm:text-sm text-gray-400">
                                 No Image
                               </div>
                             )}
-
-                            {variant.colors?.[0] === selectedColor && (
-                              <div className="absolute top-2 right-2 bg-primary text-white text-xs px-2 py-1 rounded-full">
-                                Current
-                              </div>
-                            )}
-                            
-                            {/* Discount badge for variant */}
-                            {/* {variantDisplayPrice.discountPercent > 0 && (
-                              <div className={`absolute top-2 left-2 text-white text-xs font-bold px-2 py-1 rounded ${
-                                isSpecialPriceActive(variant) 
-                                  ? 'bg-orange-500' 
-                                  : 'bg-primary'
-                              }`}>
-                                {variantDisplayPrice.discountPercent}% OFF
-                              </div>
-                            )} */}
                           </div>
 
-                          <div className="mt-2 text-center">
+                          <div className="mt-1 sm:mt-2 text-center">
                             <div className="flex justify-center items-center gap-1">
                               {variant.colors?.map((color, idx) => (
                                 <div
                                   key={idx}
-                                  className={`w-4 h-4 rounded-full border ${color === selectedColor ? 'border-primary' : 'border-gray-300'}`}
+                                  className={`w-3 h-3 sm:w-4 sm:h-4 rounded-full border ${color === selectedColor
+                                    ? "border-primary"
+                                    : "border-gray-300"
+                                    }`}
                                   style={{ backgroundColor: color.toLowerCase() }}
                                   title={color}
                                 />
                               ))}
                             </div>
-                            <span className="text-sm font-medium mt-1">
-                              {variant.colors?.[0] || 'Color variant'}
+                            <span className="text-xs sm:text-sm font-medium mt-0.5 sm:mt-1">
+                              {variant.colors?.[0] || "Color variant"}
                             </span>
-                            {/* <div className="flex items-center justify-center mt-1">
-                              <span className="text-sm font-bold text-primary">
-                                ₹{(variantDisplayPrice.price || 0).toLocaleString()}
-                              </span>
-                              {variantDisplayPrice.originalPrice && (
-                                <span className="text-gray-500 line-through text-xs ml-1">
-                                  ₹{variantDisplayPrice.originalPrice.toLocaleString()}
-                                </span>
-                              )}
-                            </div> */}
                           </div>
                         </motion.div>
                       );
                     })}
                   </div>
                 ) : (
-                  <div className="text-center py-8 text-gray-500">
+                  <div className="text-center py-6 sm:py-8 text-xs sm:text-base text-gray-500">
                     No other color variants available
                   </div>
                 )}
               </div>
             )}
+
             {/* Size Selection */}
             {product.sizeChart && product.sizeChart.length > 0 && (
-              <div className="mt-6">
-                <h3 className="font-medium text-lg mb-3">Size: {selectedSize && <span className="font-normal text-gray-700">{selectedSize}</span>}</h3>
-                <div className="flex flex-wrap gap-2">
+              <div className="mt-4 sm:mt-6">
+                <h3 className="font-medium text-sm sm:text-lg mb-2 sm:mb-3">
+                  Size:{" "}
+                  {selectedSize && (
+                    <span className="font-normal text-gray-700">{selectedSize}</span>
+                  )}
+                </h3>
+                <div className="flex flex-wrap gap-1.5 sm:gap-2">
                   {product.sizeChart.map((sizeObj) => (
                     <motion.button
                       key={sizeObj.label}
                       onClick={() => setSelectedSize(sizeObj.label)}
                       disabled={sizeObj.stock <= 0}
-                      className={`w-12 h-10 flex items-center justify-center border rounded-md text-sm font-medium transition-all relative ${selectedSize === sizeObj.label
-                        ? 'border-primary bg-primary text-white'
+                      className={`w-10 h-8 sm:w-12 sm:h-10 flex items-center justify-center border rounded-md text-xs sm:text-sm font-medium transition-all relative ${selectedSize === sizeObj.label
+                        ? "border-primary bg-primary text-white"
                         : sizeObj.stock <= 0
-                          ? 'border-gray-200 text-gray-400 cursor-not-allowed'
-                          : 'border-gray-200 hover:border-gray-300'}`}
+                          ? "border-gray-200 text-gray-400 cursor-not-allowed"
+                          : "border-gray-200 hover:border-gray-300"
+                        }`}
                       whileHover={sizeObj.stock > 0 ? { scale: 1.05 } : {}}
                       whileTap={sizeObj.stock > 0 ? { scale: 0.95 } : {}}
                     >
                       {sizeObj.label}
-                      {sizeObj.stock <= 0 && (
-                        <span className="absolute w-full h-px bg-gray-400 top-1/2 left-0 transform -rotate-12"></span>
-                      )}
                     </motion.button>
                   ))}
                 </div>
                 {selectedSize && (
-                  <div className="mt-2 text-sm text-gray-600">
-                    {product.sizeChart.find(size => size.label === selectedSize)?.stock || 0} in stock
+                  <div className="mt-1 sm:mt-2 text-xs sm:text-sm text-gray-600">
+                    {product.sizeChart.find((size) => size.label === selectedSize)
+                      ?.stock || 0}{" "}
+                    in stock
                   </div>
                 )}
               </div>
             )}
 
             {/* Delivery & Offers Section */}
-            <div className="mt-6 space-y-4">
-              <div className="p-4 bg-gradient-to-r from-gray-50 to-gray-100 rounded-xl border border-gray-200">
-                <div className="flex items-start gap-3">
-                  <div className="bg-primary p-2 rounded-full text-white">
-                    <FaTruck className="text-xl" />
+            <div className="mt-4 sm:mt-6 space-y-3 sm:space-y-4">
+              <div className="p-3 sm:p-4 bg-gradient-to-r from-gray-50 to-gray-100 rounded-xl border border-gray-200">
+                <div className="flex items-start gap-2 sm:gap-3">
+                  <div className="bg-primary p-1.5 sm:p-2 rounded-full text-white">
+                    <FaTruck className="text-base sm:text-xl" />
                   </div>
                   <div>
-                    <p className="font-medium">Free Delivery</p>
-                    <p className="text-sm text-gray-600">
+                    <p className="font-medium text-sm sm:text-base">Free Delivery</p>
+                    <p className="text-xs sm:text-sm text-gray-600">
                       Delivery by {product.deliveryDate}
                       <br />
                       Free shipping on orders over ₹500
@@ -911,27 +900,31 @@ const ProductPage = () => {
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
-                <div className="flex items-start gap-2 p-3 bg-gray-50 rounded-lg border border-gray-100">
-                  <FaShieldAlt className="text-gray-600 mt-1 flex-shrink-0" />
+              <div className="grid grid-cols-2 gap-2 sm:gap-4">
+                <div className="flex items-start gap-2 p-2 sm:p-3 bg-gray-50 rounded-lg border border-gray-100">
+                  <FaShieldAlt className="text-gray-600 text-sm sm:text-base mt-0.5 sm:mt-1 flex-shrink-0" />
                   <div>
-                    <p className="font-medium">Warranty</p>
-                    <p className="text-sm text-gray-600">{product.warranty}</p>
+                    <p className="font-medium text-xs sm:text-base">Warranty</p>
+                    <p className="text-xs sm:text-sm text-gray-600">{product.warranty}</p>
                   </div>
                 </div>
-                <div className="flex items-start gap-2 p-3 bg-gray-50 rounded-lg border border-gray-100">
-                  <FaExchangeAlt className="text-gray-600 mt-1 flex-shrink-0" />
+                <div className="flex items-start gap-2 p-2 sm:p-3 bg-gray-50 rounded-lg border border-gray-100">
+                  <FaExchangeAlt className="text-gray-600 text-sm sm:text-base mt-0.5 sm:mt-1 flex-shrink-0" />
                   <div>
-                    <p className="font-medium">Returns</p>
-                    <p className="text-sm text-gray-600">{product.returnPolicy}</p>
+                    <p className="font-medium text-xs sm:text-base">Returns</p>
+                    <p className="text-xs sm:text-sm text-gray-600">
+                      {product.returnPolicy}
+                    </p>
                   </div>
                 </div>
               </div>
 
               {product.offers && product.offers.length > 0 && (
-                <div className="border border-green-100 bg-green-50 rounded-xl p-4">
-                  <h3 className="font-medium text-lg mb-3 text-green-800">Available offers</h3>
-                  <ul className="space-y-3">
+                <div className="border border-green-100 bg-green-50 rounded-xl p-3 sm:p-4">
+                  <h3 className="font-medium text-sm sm:text-lg mb-2 sm:mb-3 text-green-800">
+                    Available offers
+                  </h3>
+                  <ul className="space-y-2 sm:space-y-3">
                     {product.offers.map((offer, i) => (
                       <motion.li
                         key={i}
@@ -940,10 +933,10 @@ const ProductPage = () => {
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: i * 0.1 }}
                       >
-                        <span className="text-green-500 mr-2 mt-1">
-                          <FaCheck className="text-sm" />
+                        <span className="text-green-500 mr-1 sm:mr-2 mt-0.5">
+                          <FaCheck className="text-xs sm:text-sm" />
                         </span>
-                        <span className="text-gray-700">{offer}</span>
+                        <span className="text-xs sm:text-sm text-gray-700">{offer}</span>
                       </motion.li>
                     ))}
                   </ul>
@@ -951,41 +944,53 @@ const ProductPage = () => {
               )}
             </div>
           </div>
+
         </div>
 
         {/* Product Tabs */}
         <div className="mt-8 bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden">
-          <div className="flex border-b border-gray-200">
+          {/* Tabs */}
+          <div className="flex border-b border-gray-200 overflow-x-auto">
             {['description', 'specs', 'reviews'].map((tab) => (
               <button
                 key={tab}
-                className={`px-6 py-4 font-medium text-lg ${activeTab === tab
-                  ? 'text-primary border-b-2 border-primary'
-                  : 'text-gray-600'}`}
+                className={`px-4 md:px-6 py-3 md:py-4 font-medium text-sm md:text-lg whitespace-nowrap ${activeTab === tab
+                    ? 'text-primary border-b-2 border-primary'
+                    : 'text-gray-600'
+                  }`}
                 onClick={() => setActiveTab(tab)}
               >
-                {tab === 'reviews' ? `Reviews (${reviews.length})` : tab.charAt(0).toUpperCase() + tab.slice(1)}
+                {tab === 'reviews'
+                  ? `Reviews (${reviews.length})`
+                  : tab.charAt(0).toUpperCase() + tab.slice(1)}
               </button>
             ))}
           </div>
 
-          <div className="p-6">
+          {/* Tab Content */}
+          <div className="p-4 md:p-6 text-sm md:text-base">
             {/* Description */}
             {activeTab === 'description' && (
               <div>
-                <h3 className="font-medium text-lg mb-4 text-gray-800">Product Details</h3>
-                {/* Use dangerouslySetInnerHTML to render HTML content */}
-                <div 
-                  className="text-gray-700 mb-6 product-description"
+                <h3 className="font-medium text-base md:text-lg mb-3 text-gray-800">
+                  Product Details
+                </h3>
+                <div
+                  className="text-gray-700 mb-4 leading-relaxed"
                   dangerouslySetInnerHTML={createMarkup(product.description)}
                 />
 
                 {product.featureDescriptions?.length > 0 && (
-                  <div className="mt-6">
-                    <h3 className="font-medium text-lg mb-4 text-gray-800">Key Features</h3>
-                    <ul className="space-y-6">
+                  <div className="mt-4 md:mt-6">
+                    <h3 className="font-medium text-base md:text-lg mb-3 text-gray-800">
+                      Key Features
+                    </h3>
+                    <ul className="space-y-4 md:space-y-6">
                       {product.featureDescriptions.map((feature, index) => (
-                        <li key={index} className="flex flex-col md:flex-row items-start gap-4 bg-gray-50 p-4 rounded-xl border border-gray-200 shadow-sm">
+                        <li
+                          key={index}
+                          className="flex flex-col md:flex-row items-start gap-3 md:gap-4 bg-gray-50 p-3 md:p-4 rounded-xl border border-gray-200 shadow-sm"
+                        >
                           {feature.image && (
                             <div className="w-full md:w-1/3">
                               <img
@@ -998,53 +1003,59 @@ const ProductPage = () => {
 
                           <div className="flex-1">
                             <div className="flex items-center mb-2">
-                              <div className="bg-gray-100 p-2 rounded-full mr-2">
-                                <FaCheck className="text-primary" />
+                              <div className="bg-gray-100 p-1.5 md:p-2 rounded-full mr-2">
+                                <FaCheck className="text-primary text-xs md:text-sm" />
                               </div>
                               {feature.title && (
-                                <h4 className="font-medium text-gray-900 text-base md:text-lg">{feature.title}</h4>
+                                <h4 className="font-medium text-gray-900 text-sm md:text-base">
+                                  {feature.title}
+                                </h4>
                               )}
                             </div>
-                            <p className="text-gray-700">{feature.description}</p>
+                            <p className="text-gray-700 text-sm md:text-base">
+                              {feature.description}
+                            </p>
                           </div>
                         </li>
                       ))}
                     </ul>
                   </div>
                 )}
-
               </div>
             )}
 
             {/* Specifications */}
             {activeTab === 'specs' && (
               <div>
-                <h3 className="font-medium text-lg mb-4 text-gray-800">Specifications</h3>
-                <div className="space-y-3">
+                <h3 className="font-medium text-base md:text-lg mb-3 text-gray-800">
+                  Specifications
+                </h3>
+                <div className="space-y-2 md:space-y-3 text-sm md:text-base">
                   <div className="flex justify-between py-2 border-b border-gray-100">
                     <span className="text-gray-500">Brand</span>
                     <span className="text-gray-800 font-medium">{product.brand}</span>
                   </div>
-
                   <div className="flex justify-between py-2 border-b border-gray-100">
                     <span className="text-gray-500">Color</span>
                     <span className="text-gray-800 font-medium">{selectedColor}</span>
                   </div>
-
                   {selectedSize && (
                     <div className="flex justify-between py-2 border-b border-gray-100">
                       <span className="text-gray-500">Size</span>
                       <span className="text-gray-800 font-medium">{selectedSize}</span>
                     </div>
                   )}
-
                   {product.specifications?.map((spec, index) => (
-                    <div key={index} className="flex justify-between py-2 border-b border-gray-100">
+                    <div
+                      key={index}
+                      className="flex justify-between py-2 border-b border-gray-100"
+                    >
                       <span className="text-gray-500">{spec.key}</span>
-                      <span className="text-gray-800 font-medium text-right max-w-xs">{spec.value}</span>
+                      <span className="text-gray-800 font-medium text-right max-w-xs">
+                        {spec.value}
+                      </span>
                     </div>
                   ))}
-
                   <div className="flex justify-between py-2 border-b border-gray-100">
                     <span className="text-gray-500">SKU</span>
                     <span className="text-gray-800 font-medium">PRD{id}</span>
@@ -1055,125 +1066,83 @@ const ProductPage = () => {
 
             {/* Reviews */}
             {activeTab === 'reviews' && (
-              <div className="flex flex-col md:flex-row gap-8">
-                {/* Average Rating Card */}
+              <div className="flex flex-col md:flex-row gap-6 md:gap-8">
+                {/* Average Rating */}
                 <div className="md:w-1/3 lg:w-1/4">
-                  <div className="text-center bg-gray-50 p-6 rounded-lg border border-gray-200">
-                    <div className="text-5xl font-bold mb-2 text-gray-900">
+                  <div className="text-center bg-gray-50 p-4 md:p-6 rounded-lg border border-gray-200">
+                    <div className="text-3xl md:text-5xl font-bold mb-2 text-gray-900">
                       {product.averageRating.toFixed(1)}
                     </div>
-                    <div className="flex justify-center mb-3">
+                    <div className="flex justify-center mb-2 md:mb-3">
                       <Rating
                         initialValue={product.averageRating}
                         readonly
-                        size={25}
+                        size={18}
+                        className="md:size-25"
                         SVGstyle={{ display: 'inline-block' }}
                       />
                     </div>
-                    <p className="text-gray-600">{reviews.length} ratings</p>
+                    <p className="text-gray-600 text-sm md:text-base">
+                      {reviews.length} ratings
+                    </p>
                   </div>
                 </div>
 
                 {/* Review List */}
                 <div className="md:w-2/3 lg:w-3/4">
                   {reviewsLoading ? (
-                    <div className="flex justify-center py-12">
-                      <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-primary"></div>
+                    <div className="flex justify-center py-8 md:py-12">
+                      <div className="animate-spin rounded-full h-6 w-6 md:h-8 md:w-8 border-t-2 border-b-2 border-primary"></div>
                     </div>
                   ) : reviews.length > 0 ? (
-                    <div className="space-y-6">
+                    <div className="space-y-4 md:space-y-6">
                       {reviews.slice(0, 3).map((review) => (
-                        <div key={review._id} className="border-b border-gray-100 pb-6 last:border-0">
-                          <div className="flex items-start mb-3">
-                            <div className="w-10 h-10 rounded-full bg-gray-200 mr-4 overflow-hidden">
-{review.user?.photoURL && review.user.photoURL.trim() !== "" ? (
-  <img
-    src={review.user.photoURL}
-    alt={review.user?.name || "User Avatar"}
-    className="w-full h-full object-cover"
-    onError={(e) => {
-      e.currentTarget.style.display = "none"; // hide broken img
-      e.currentTarget.parentElement.innerHTML = 
-        `<div class="flex items-center justify-center w-full h-full text-gray-50  bg-blue-400 font-medium">
-          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" class="w-6 h-6">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 12c2.28 0 4-1.72 4-4s-1.72-4-4-4-4 1.72-4 4 1.72 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
-          </svg>
-        </div>`;
-    }}
-  />
-) : (
-  <div className="flex items-center justify-center w-full h-full text-gray-50 bg-blue-400 rounded-full">
-          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" class="w-6 h-6">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 12c2.28 0 4-1.72 4-4s-1.72-4-4-4-4 1.72-4 4 1.72 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
-          </svg>  </div>
-)}
-
-
+                        <div
+                          key={review._id}
+                          className="border-b border-gray-100 pb-4 md:pb-6 last:border-0"
+                        >
+                          <div className="flex items-start mb-2 md:mb-3">
+                            <div className="w-8 h-8 md:w-10 md:h-10 rounded-full bg-gray-200 mr-3 md:mr-4 overflow-hidden">
+                              {/* user avatar logic */}
                             </div>
                             <div>
-                              <p className="font-medium">{review.user?.name || 'Anonymous'}</p>
+                              <p className="font-medium text-sm md:text-base">
+                                {review.user?.name || 'Anonymous'}
+                              </p>
                               <div className="flex items-center mt-1">
                                 <Rating
                                   initialValue={review.rating}
                                   readonly
-                                  size={15}
+                                  size={12}
+                                  className="md:size-15 mr-1 md:mr-2"
                                   SVGstyle={{ display: 'inline-block' }}
-                                  className="mr-2"
                                 />
-                                <span className="text-gray-500 text-sm">
-                                  {new Date(review.createdAt).toLocaleDateString('en-US', {
-                                    year: 'numeric',
-                                    month: 'short',
-                                    day: 'numeric'
-                                  })}
+                                <span className="text-gray-500 text-xs md:text-sm">
+                                  {new Date(review.createdAt).toLocaleDateString(
+                                    'en-US',
+                                    {
+                                      year: 'numeric',
+                                      month: 'short',
+                                      day: 'numeric',
+                                    }
+                                  )}
                                 </span>
                               </div>
                             </div>
                           </div>
 
-                          <p className="text-gray-700 mt-3">{review.comment}</p>
-
-                          {/* Optional review images */}
-                          {review.images?.length > 0 && (
-                            <div className="mt-4 flex gap-3 flex-wrap">
-                              {review.images.map((img, i) => (
-                                <img
-                                  key={i}
-                                  src={img}
-                                  alt={`Review image ${i + 1}`}
-                                  className="w-24 h-24 object-cover rounded-lg border hover:scale-105 transition-transform"
-                                />
-                              ))}
-                            </div>
-                          )}
-
-                          {/* Admin response */}
-                          {review.adminComment && (
-                            <div className="mt-4 p-3 bg-blue-50 rounded-lg border border-blue-100">
-                              <div className="flex items-center mb-2">
-                                <span className="bg-blue-600 text-white text-xs px-2 py-1 rounded mr-2">Admin</span>
-                                <span className="text-blue-800 font-medium">Response</span>
-                              </div>
-                              <p className="text-blue-700">{review.adminComment}</p>
-                            </div>
-                          )}
+                          <p className="text-gray-700 text-sm md:text-base mt-2 md:mt-3">
+                            {review.comment}
+                          </p>
                         </div>
                       ))}
                     </div>
                   ) : (
-                    <div className="text-center py-8">
-                      <p className="text-gray-500">No reviews yet. Be the first to review!</p>
+                    <div className="text-center py-6 md:py-8">
+                      <p className="text-gray-500 text-sm md:text-base">
+                        No reviews yet. Be the first to review!
+                      </p>
                     </div>
-                  )}
-
-                  {reviews.length > 0 && (
-                    <button
-                      className="mt-6 text-primary font-medium hover:underline flex items-center"
-                      onClick={() => navigate(`/productpage/${id}/reviews`)}
-                    >
-                      See all {reviews.length} reviews
-                      <FaChevronRight className="ml-1 text-sm" />
-                    </button>
                   )}
                 </div>
               </div>
@@ -1182,20 +1151,23 @@ const ProductPage = () => {
         </div>
 
 
+
         {/* Similar Products Section */}
         <div className="mt-12 bg-white p-6 rounded-2xl shadow-lg border border-gray-200">
-          <h2 className="text-2xl font-bold mb-6 pb-2 border-b border-gray-200">Similar Products</h2>
+          <h2 className="text-xl sm:text-2xl font-bold mb-6 pb-2 border-b border-gray-200">
+            Similar Products
+          </h2>
 
           {similarLoading ? (
             <div className="flex justify-center py-12">
               <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-primary"></div>
             </div>
           ) : similarProducts.length > 0 ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+            <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6">
               {similarProducts.map((item) => {
                 const itemDisplayPrice = getDisplayPrice(item);
                 const isItemSpecialActive = isSpecialPriceActive(item);
-                
+
                 return (
                   <motion.div
                     key={item.id}
@@ -1204,46 +1176,54 @@ const ProductPage = () => {
                     transition={{ duration: 0.2 }}
                   >
                     <Link to={`/productpage/${item._id}`} className="block">
-                      <div className="relative h-48 bg-gray-100 flex items-center justify-center p-4">
+                      <div className="relative h-36 sm:h-48 bg-gray-100 flex items-center justify-center p-3 sm:p-4">
                         <img
                           src={item.images[0]}
                           alt={item.name}
                           className="h-full w-full object-contain transition-transform duration-300 group-hover:scale-105"
                         />
                         {itemDisplayPrice.discountPercent > 0 && (
-                          <div className={`absolute top-3 left-3 text-white text-xs font-bold px-2 py-1 rounded ${
-                            isItemSpecialActive 
-                              ? 'bg-orange-500' 
-                              : 'bg-primary'
-                          }`}>
+                          <div
+                            className={`absolute top-2 sm:top-3 left-2 sm:left-3 text-white text-[10px] sm:text-xs font-bold px-1.5 sm:px-2 py-0.5 sm:py-1 rounded ${isItemSpecialActive ? "bg-orange-500" : "bg-primary"
+                              }`}
+                          >
                             {itemDisplayPrice.discountPercent}% OFF
-                            {isItemSpecialActive && <span className="ml-1 text-xs">Special</span>}
+                            {isItemSpecialActive && (
+                              <span className="ml-1 text-[10px] sm:text-xs">Special</span>
+                            )}
                           </div>
                         )}
                       </div>
-                      <div className="p-4">
-                        <h3 className="font-medium text-gray-900 line-clamp-2 h-12 mb-2">{item.name}</h3>
-                        <div className="flex items-center mb-2">
+                      <div className="p-2 sm:p-4">
+                        <h3 className="font-medium text-gray-900 line-clamp-2 text-sm sm:text-base h-10 sm:h-12 mb-1 sm:mb-2">
+                          {item.name}
+                        </h3>
+                        <div className="flex items-center mb-1 sm:mb-2">
                           <Rating
                             initialValue={item.averageRating}
                             readonly
-                            size={15}
-                            className="mr-2"
-                            SVGstyle={{ display: 'inline-block' }}
+                            size={12}
+                            className="mr-1 sm:mr-2"
+                            SVGstyle={{ display: "inline-block" }}
                           />
-                          <span className="text-gray-600 text-sm">({item.reviews?.length || 0})</span>
+                          <span className="text-gray-600 text-xs sm:text-sm">
+                            ({item.reviews?.length || 0})
+                          </span>
                         </div>
-                        <div className="space-y-1">
-                          <span className="text-lg font-bold text-gray-900">
+                        <div className="space-y-0.5 sm:space-y-1">
+                          <span className="text-base sm:text-lg font-bold text-gray-900">
                             ₹{(itemDisplayPrice.price || 0).toLocaleString()}
                           </span>
                           {itemDisplayPrice.originalPrice && (
-                            <div className="flex items-center gap-2">
-                              <span className="text-gray-500 line-through text-sm">
+                            <div className="flex items-center gap-1 sm:gap-2">
+                              <span className="text-gray-500 line-through text-xs sm:text-sm">
                                 ₹{itemDisplayPrice.originalPrice.toLocaleString()}
                               </span>
                               {itemDisplayPrice.discountPercent > 0 && (
-                                <span className={`text-sm ${isItemSpecialActive ? 'text-orange-600' : 'text-primary'}`}>
+                                <span
+                                  className={`text-xs sm:text-sm ${isItemSpecialActive ? "text-orange-600" : "text-primary"
+                                    }`}
+                                >
                                   {itemDisplayPrice.discountPercent}% off
                                 </span>
                               )}
@@ -1259,15 +1239,13 @@ const ProductPage = () => {
           ) : (
             <div className="text-center py-12">
               <p className="text-gray-500 mb-4">No similar products found</p>
-              <Link
-                to="/products"
-                className="text-primary hover:underline font-medium"
-              >
+              <Link to="/products" className="text-primary hover:underline font-medium">
                 Browse all products
               </Link>
             </div>
           )}
         </div>
+
       </div>
     </div>
   );

@@ -9,35 +9,34 @@ import OfferBanner from '../component/HomePage/OfferBanner'
 const Home = () => {
   return (
     <div className="min-h-screen flex flex-col bg-gray-50">
-      
+
       {/* Hero Section */}
-      <section className="container w-full  mx-auto px-4 sm:px-6 lg:px-8 py-6">
-        <div className="flex flex-col lg:flex-row gap-6">
-          {/* Main Banner - takes 2/3 width on large screens */}
-          <div className="w-full lg:w-2/3 h-[400px] lg:h-[500px] rounded-xl overflow-hidden shadow-lg">
+      <section className="w-[full] px-4 sm:px-6 lg:px-8 py-6">
+        <div className="flex flex-col lg:flex-row gap-4 lg:h-[500px]">
+          {/* Main Banner - 2/3 width on large screens */}
+          <div className="w-full lg:w-3/4 h-[200px] sm:h-[350px] md:h-[400px] lg:h-full">
             <Banner />
           </div>
-          
-          {/* Sub Banner - takes 1/3 width on large screens */}
-          <div className="w-full lg:w-1/3 h-[500px] lg:h-[500px] rounded-xl overflow-hidden shadow-lg">
+
+          {/* Sub Banner - 1/3 width on large screens */}
+          <div className="w-[full] lg:w-1/4 h-[150px] sm:h-[180px] md:h-[200px] lg:h-full">
             <SubBanner />
           </div>
         </div>
       </section>
-
+  <section className="w-full mx-auto  sm:px-6 lg:px-4 ">
       <Division />
-
+    </section>
       <OfferBanner />
       
       {/* Products Section */}
-      <section className="w-full  mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <h2 className="text-2xl md:text-3xl font-bold text-gray-800 mb-6">Featured Products</h2>
+      <section className="w-full mx-auto px-4 sm:px-6 lg:px-8 ">
         <ProductsList />
       </section>
 
       {/* Features Section */}
       <section className="w-full bg-white py-12">
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+        <div className=" mx-auto px-4 sm:px-6 lg:px-8">
           <Features />
         </div>
       </section>

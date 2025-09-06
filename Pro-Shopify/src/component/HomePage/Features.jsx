@@ -53,29 +53,26 @@ const Features = () => {
   ]
 
   return (
-    <div className="bg-gradient-to-b from-gray-50 to-gray-100 py-16 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-8xl mx-auto">
-        <div className="text-center mb-12">
-          <h2 className="text-3xl font-extrabold text-gray-900 sm:text-4xl">
+    <div className="bg-gradient-to-b from-gray-50 to-gray-100 py-4 px-4 sm:px-6 lg:px-8">
+      <div className="w-full mx-auto">
+        <div className="text-center mb-10">
+          <h2 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-gray-900">
             Why Choose Us
           </h2>
-          <p className="mt-4 max-w-2xl text-xl text-gray-600 mx-auto">
+          <p className="mt-3 sm:mt-4 max-w-2xl text-base sm:text-lg lg:text-xl text-gray-600 mx-auto">
             We provide the best services to make your shopping experience better
           </p>
         </div>
-        
-        <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-4">
+
+        <div className="grid grid-cols-2 gap-12 sm:grid-cols-2 lg:grid-cols-4">
           {features.map((feature, index) => (
-            <div 
-              key={index}
-              className="pt-6"
-            >
-              <div className="flow-root bg-white rounded-lg px-6 pb-8 h-full shadow-lg hover:shadow-xl transition-all duration-300 ease-in-out hover:-translate-y-2">
+            <div key={index} className="pt-4 sm:pt-6">
+              <div className="flow-root bg-white rounded-lg px-4 sm:px-6 pb-6 sm:pb-8 h-full shadow-md hover:shadow-lg transition-all duration-300 ease-in-out hover:-translate-y-2">
                 <div className="-mt-6">
-                  <div className="flex items-center justify-center h-16 w-16 rounded-md bg-gradient-to-r from-blue-600 to-blue-400 text-white mx-auto">
+                  <div className="flex items-center justify-center h-14 w-14 sm:h-16 sm:w-16 rounded-md bg-gradient-to-r from-blue-600 to-blue-400 text-white mx-auto">
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
-                      className="h-8 w-8"
+                      className="h-6 w-6 sm:h-8 sm:w-8"
                       fill="none"
                       viewBox="0 0 24 24"
                       stroke="currentColor"
@@ -83,10 +80,10 @@ const Features = () => {
                       {feature.icon}
                     </svg>
                   </div>
-                  <h3 className="mt-6 text-lg font-medium text-gray-900 tracking-tight text-center">
+                  <h3 className="mt-4 sm:mt-6 text-sm sm:text-lg font-medium text-gray-900 tracking-tight text-center">
                     {feature.title}
                   </h3>
-                  <p className="mt-3 text-base text-gray-500 text-center">
+                  <p className="mt-2 sm:mt-3 text-xs sm:text-base text-gray-500 text-center">
                     {feature.description}
                   </p>
                 </div>
@@ -96,6 +93,7 @@ const Features = () => {
         </div>
       </div>
     </div>
+
   )
 }
 

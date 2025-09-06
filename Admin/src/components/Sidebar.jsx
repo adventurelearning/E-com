@@ -282,13 +282,23 @@ const Sidebar = ({ open, toggleSidebar }) => {
           visible: true,
         },
         {
-          title: 'Return_Policy',
-          path: '/return-policy',
+          title: 'Refund_Policy',
+          path: '/refund-policy',
           visible: true,
         },
         {
           title: 'Terms_Conditions',
           path: '/terms-conditions',
+          visible: true,
+        },
+          {
+          title: 'Customer Service',
+          path: '/customer-service',
+          visible: true,
+        },
+           {
+          title: 'What\'s New',
+          path: '/whats-new',
           visible: true,
         },
       ],
