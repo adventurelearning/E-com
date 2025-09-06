@@ -353,59 +353,64 @@ const Sidebar = ({ open, toggleSidebar }) => {
     },
   ];
 
-  return (
+    return (
     <div
-      className={`fixed top-0 left-0 z-50 h-full w-64 bg-white border-r border-purple-100 shadow-lg transform transition-transform duration-300 ease-in-out ${open ? 'translate-x-0' : '-translate-x-full'
-        } md:relative md:translate-x-0 md:shadow-md`}
-    >
-      {/* Header */}
-      <div className="p-3 flex justify-between items-center border-b border-purple-100">
-        <div className="flex items-center space-x-3">
-          <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-purple-500 to-indigo-600 flex items-center justify-center">
-            <span className="text-white font-bold text-lg">A</span>
-          </div>
-          <h1 className="text-xl font-bold text-gray-800 bg-gradient-to-r from-purple-600 to-indigo-600 bg-clip-text text-transparent">
-            Admin Panel
-          </h1>
-        </div>
-
-        <button
-          onClick={toggleSidebar}
-          className="md:hidden p-2 rounded-lg text-purple-600"
-        >
-          <FiX className="text-xl" />
-        </button>
+  className={`fixed md:relative h-screen w-64 bg-white border-r border-purple-100 shadow-lg z-10 ${
+    open ? "block" : "hidden md:block"
+  }`}
+>
+  {/* Header - Fixed */}
+  <div className="p-2 md:p-3 flex justify-between items-center border-b border-purple-100 bg-white">
+    <div className="flex items-center space-x-2 md:space-x-3">
+      <div className="w-8 h-8 md:w-9 md:h-9 rounded-lg bg-gradient-to-br from-purple-500 to-indigo-600 flex items-center justify-center">
+        <span className="text-white font-bold text-sm md:text-lg">A</span>
       </div>
-
-      {/* Navigation */}
-      <nav className="p-4 space-y-1 overflow-y-auto custom-scrollbar">
-        {sidebarItems.map(
-          (item, index) =>
-            item.visible && (
-              <SidebarItem
-                key={index}
-                title={item.title}
-                icon={item.icon}
-                path={item.path}
-                toggleSidebar={toggleSidebar}
-              >
-                {item.subItems?.map(
-                  (sub, subIndex) =>
-                    sub.visible && (
-                      <SubItem
-                        key={subIndex}
-                        to={sub.path}
-                        toggleSidebar={toggleSidebar}
-                      >
-                        {sub.title}
-                      </SubItem>
-                    )
-                )}
-              </SidebarItem>
-            )
-        )}
-      </nav>
+      <h1 className="text-lg md:text-xl font-bold text-gray-800 bg-gradient-to-r from-purple-600 to-indigo-600 bg-clip-text text-transparent">
+        Admin Panel
+      </h1>
     </div>
+
+    <button
+      onClick={toggleSidebar}
+      className="md:hidden p-2 rounded-lg text-purple-600"
+    >
+      <FiX className="text-lg md:text-xl" />
+    </button>
+  </div>
+
+  {/* Navigation - Scrollable */}
+  <div className="h-[calc(100vh-56px)] md:h-[calc(100vh-64px)] overflow-y-auto custom-scrollbar">
+    <nav className="p-2 md:p-4 space-y-1">
+      {sidebarItems.map(
+        (item, index) =>
+          item.visible && (
+            <SidebarItem
+              key={index}
+              title={item.title}
+              icon={item.icon}
+              path={item.path}
+              toggleSidebar={toggleSidebar}
+              className="text-sm md:text-base"
+            >
+              {item.subItems?.map(
+                (sub, subIndex) =>
+                  sub.visible && (
+                    <SubItem
+                      key={subIndex}
+                      to={sub.path}
+                      toggleSidebar={toggleSidebar}
+                      className="text-xs md:text-sm"
+                    >
+                      {sub.title}
+                    </SubItem>
+                  )
+              )}
+            </SidebarItem>
+          )
+      )}
+    </nav>
+  </div>
+</div>
   );
 };
 

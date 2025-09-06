@@ -279,33 +279,33 @@ const AdminFooter = () => {
   };
 
   if (loading) {
-    return <div className="container mx-auto p-6">Loading...</div>;
+    return <div className="container mx-auto p-4 text-base">Loading...</div>;
   }
 
   return (
-    <div className="container mx-auto p-6">
-      <h1 className="text-2xl font-bold mb-6">Footer Content Management</h1>
+    <div className="container mx-auto p-4">
+      <h1 className="text-xl md:text-2xl font-bold mb-4 md:mb-6">Footer Content Management</h1>
       
       {message && (
-        <div className={`p-4 mb-4 rounded ${message.includes('Error') ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700'}`}>
+        <div className={`p-3 mb-4 rounded text-sm md:text-base ${message.includes('Error') ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700'}`}>
           {message}
         </div>
       )}
       
       {/* Success Popup */}
       {showSuccessPopup && (
-        <div className="fixed inset-0 flex items-center justify-center z-50">
+        <div className="fixed inset-0 flex items-center justify-center z-50 p-4">
           <div className="fixed inset-0 bg-black bg-opacity-50" onClick={() => setShowSuccessPopup(false)}></div>
-          <div className="bg-white p-6 rounded-lg shadow-xl z-10 transform transition-all duration-300 scale-100 opacity-100">
-            <div className="flex items-center justify-center w-16 h-16 bg-green-100 rounded-full mx-auto mb-4">
-              <svg className="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+          <div className="bg-white p-4 md:p-6 rounded-lg shadow-xl z-10 transform transition-all duration-300 scale-100 opacity-100 w-full max-w-xs md:max-w-md">
+            <div className="flex items-center justify-center w-12 h-12 md:w-16 md:h-16 bg-green-100 rounded-full mx-auto mb-3 md:mb-4">
+              <svg className="w-6 h-6 md:w-8 md:h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
               </svg>
             </div>
-            <h3 className="text-xl font-semibold text-gray-800 text-center mb-2">Success!</h3>
-            <p className="text-gray-600 text-center">Footer updated successfully.</p>
+            <h3 className="text-lg md:text-xl font-semibold text-gray-800 text-center mb-2">Success!</h3>
+            <p className="text-gray-600 text-center text-sm md:text-base">Footer updated successfully.</p>
             <button 
-              className="mt-4 bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition-colors w-full"
+              className="mt-3 md:mt-4 bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition-colors w-full text-sm md:text-base"
               onClick={() => setShowSuccessPopup(false)}
             >
               OK
@@ -314,131 +314,131 @@ const AdminFooter = () => {
         </div>
       )}
       
-      <form onSubmit={handleSubmit} className="space-y-6">
+      <form onSubmit={handleSubmit} className="space-y-4 md:space-y-6">
         {/* Contact Us Section */}
-        <div className="bg-white p-6 rounded shadow">
-          <h2 className="text-xl font-semibold mb-4">Contact Us Section</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="bg-white p-4 md:p-6 rounded shadow">
+          <h2 className="text-lg md:text-xl font-semibold mb-3 md:mb-4">Contact Us Section</h2>
+          <div className="grid grid-cols-1 gap-3 md:grid-cols-2 md:gap-4">
             <div>
-              <label className="block text-sm font-medium mb-1">Company Name</label>
+              <label className="block text-xs md:text-sm font-medium mb-1">Company Name</label>
               <input
                 type="text"
                 name="companyName"
                 value={footerData.companyName}
                 onChange={handleInputChange}
-                className="w-full p-2 border rounded"
+                className="w-full p-2 border rounded text-sm md:text-base"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium mb-1">Email</label>
+              <label className="block text-xs md:text-sm font-medium mb-1">Email</label>
               <input
                 type="email"
                 name="email"
                 value={footerData.email}
                 onChange={handleInputChange}
-                className="w-full p-2 border rounded"
+                className="w-full p-2 border rounded text-sm md:text-base"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium mb-1">Address Line 1</label>
+              <label className="block text-xs md:text-sm font-medium mb-1">Address Line 1</label>
               <input
                 type="text"
                 name="addressLine1"
                 value={footerData.addressLine1}
                 onChange={handleInputChange}
-                className="w-full p-2 border rounded"
+                className="w-full p-2 border rounded text-sm md:text-base"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium mb-1">Phone</label>
+              <label className="block text-xs md:text-sm font-medium mb-1">Phone</label>
               <input
                 type="text"
                 name="phone"
                 value={footerData.phone}
                 onChange={handleInputChange}
-                className="w-full p-2 border rounded"
+                className="w-full p-2 border rounded text-sm md:text-base"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium mb-1">Address Line 2</label>
+              <label className="block text-xs md:text-sm font-medium mb-1">Address Line 2</label>
               <input
                 type="text"
                 name="addressLine2"
                 value={footerData.addressLine2}
                 onChange={handleInputChange}
-                className="w-full p-2 border rounded"
+                className="w-full p-2 border rounded text-sm md:text-base"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium mb-1">Chat Button Text</label>
+              <label className="block text-xs md:text-sm font-medium mb-1">Chat Button Text</label>
               <input
                 type="text"
                 name="chatButtonText"
                 value={footerData.chatButtonText}
                 onChange={handleInputChange}
-                className="w-full p-2 border rounded"
+                className="w-full p-2 border rounded text-sm md:text-base"
               />
             </div>
           </div>
         </div>
 
         {/* Products Sections */}
-        <div className="bg-white p-6 rounded shadow">
-          <h2 className="text-xl font-semibold mb-4">Link Sections</h2>
+        <div className="bg-white p-4 md:p-6 rounded shadow">
+          <h2 className="text-lg md:text-xl font-semibold mb-3 md:mb-4">Link Sections</h2>
           
           {footerData.productsSections.map((section, sectionIndex) => (
-            <div key={sectionIndex} className="mb-6 p-4 border rounded">
-              <div className="flex justify-between items-center mb-3">
-                <h3 className="text-lg font-medium">{section.title}</h3>
+            <div key={sectionIndex} className="mb-4 md:mb-6 p-3 md:p-4 border rounded">
+              <div className="flex justify-between items-center mb-2 md:mb-3">
+                <h3 className="text-base md:text-lg font-medium">{section.title}</h3>
                 <button
                   type="button"
                   onClick={() => handleRemoveProductSection(sectionIndex)}
-                  className="text-red-600 px-3 py-1 border border-red-600 rounded hover:bg-red-600 hover:text-white transition-colors"
+                  className="text-red-600 px-2 py-1 md:px-3 md:py-1 border border-red-600 rounded hover:bg-red-600 hover:text-white transition-colors text-xs md:text-sm"
                 >
                   Remove Section
                 </button>
               </div>
               
               {section.links.map((link, linkIndex) => (
-                <div key={linkIndex} className="flex items-center mb-2 ml-4 p-2 bg-gray-50 rounded">
-                  <span className="mr-2 font-medium">{link.text}</span>
-                  <span className="text-gray-600 text-sm">{link.url}</span>
+                <div key={linkIndex} className="flex items-center mb-1 md:mb-2 ml-2 md:ml-4 p-1 md:p-2 bg-gray-50 rounded">
+                  <span className="mr-1 md:mr-2 font-medium text-xs md:text-sm">{link.text}</span>
+                  <span className="text-gray-600 text-xs md:text-sm truncate flex-1">{link.url}</span>
                   <button
                     type="button"
                     onClick={() => handleRemoveProductLink(sectionIndex, linkIndex)}
-                    className="ml-4 text-red-600 hover:text-red-800"
+                    className="ml-2 md:ml-4 text-red-600 hover:text-red-800 text-xs md:text-sm"
                   >
                     Remove
                   </button>
                 </div>
               ))}
               
-              <div className="mt-4 ml-4 grid grid-cols-1 md:grid-cols-3 gap-2 items-end">
+              <div className="mt-2 md:mt-4 ml-2 md:ml-4 grid grid-cols-1 md:grid-cols-3 gap-2 items-end">
                 <div>
-                  <label className="block text-sm font-medium mb-1">Link Text</label>
+                  <label className="block text-xs md:text-sm font-medium mb-1">Link Text</label>
                   <input
                     type="text"
                     placeholder="Link Text"
                     value={productLinkInputs[sectionIndex]?.text || ''}
                     onChange={(e) => handleProductLinkInputChange(sectionIndex, 'text', e.target.value)}
-                    className="w-full p-2 border rounded"
+                    className="w-full p-2 border rounded text-xs md:text-sm"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium mb-1">URL</label>
+                  <label className="block text-xs md:text-sm font-medium mb-1">URL</label>
                   <input
                     type="text"
                     placeholder="URL"
                     value={productLinkInputs[sectionIndex]?.url || ''}
                     onChange={(e) => handleProductLinkInputChange(sectionIndex, 'url', e.target.value)}
-                    className="w-full p-2 border rounded"
+                    className="w-full p-2 border rounded text-xs md:text-sm"
                   />
                 </div>
                 <div>
                   <button
                     type="button"
                     onClick={() => handleAddProductLink(sectionIndex)}
-                    className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition-colors"
+                    className="bg-blue-500 text-white px-2 py-1 md:px-4 md:py-2 rounded hover:bg-blue-600 transition-colors w-full text-xs md:text-sm"
                   >
                     Add Link
                   </button>
@@ -447,20 +447,20 @@ const AdminFooter = () => {
             </div>
           ))}
           
-          <div className="mt-6 p-4 border rounded">
-            <h3 className="text-lg font-medium mb-3">Add New Link Section</h3>
-            <div className="flex space-x-2">
+          <div className="mt-4 md:mt-6 p-3 md:p-4 border rounded">
+            <h3 className="text-base md:text-lg font-medium mb-2 md:mb-3">Add New Link Section</h3>
+            <div className="flex flex-col md:flex-row space-y-2 md:space-y-0 md:space-x-2">
               <input
                 type="text"
                 placeholder="Section Title"
                 value={newProductSection.title}
                 onChange={(e) => setNewProductSection({...newProductSection, title: e.target.value})}
-                className="p-2 border rounded flex-grow"
+                className="p-2 border rounded flex-grow text-xs md:text-sm"
               />
               <button
                 type="button"
                 onClick={handleAddProductSection}
-                className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition-colors"
+                className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition-colors text-xs md:text-sm"
               >
                 Add Section
               </button>
@@ -469,76 +469,76 @@ const AdminFooter = () => {
         </div>
 
         {/* Social Links Section */}
-        <div className="bg-white p-6 rounded shadow">
-          <h2 className="text-xl font-semibold mb-4">Social Media Links</h2>
+        <div className="bg-white p-4 md:p-6 rounded shadow">
+          <h2 className="text-lg md:text-xl font-semibold mb-3 md:mb-4">Social Media Links</h2>
           
           {footerData.socialLinks.map((social, index) => (
-            <div key={index} className="mb-4 p-4 border rounded flex items-center justify-between">
+            <div key={index} className="mb-3 md:mb-4 p-3 md:p-4 border rounded flex items-center justify-between">
               <div className="flex items-center">
-                <img src={social.imageUrl} alt={social.platform} className="w-8 h-8 mr-3 object-contain" />
+                <img src={social.imageUrl} alt={social.platform} className="w-6 h-6 md:w-8 md:h-8 mr-2 md:mr-3 object-contain" />
                 <div>
-                  <p className="font-medium">{social.platform}</p>
-                  <p className="text-sm text-gray-600">{social.url}</p>
+                  <p className="font-medium text-xs md:text-sm">{social.platform}</p>
+                  <p className="text-xs md:text-sm text-gray-600 truncate max-w-xs">{social.url}</p>
                 </div>
               </div>
               <button
                 type="button"
                 onClick={() => handleRemoveSocialLink(index)}
-                className="text-red-600 hover:text-red-800"
+                className="text-red-600 hover:text-red-800 text-xs md:text-sm"
               >
                 Remove
               </button>
             </div>
           ))}
           
-          <div className="mt-6 p-4 border rounded">
-            <h3 className="text-lg font-medium mb-3">Add New Social Media Link</h3>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="mt-4 md:mt-6 p-3 md:p-4 border rounded">
+            <h3 className="text-base md:text-lg font-medium mb-2 md:mb-3">Add New Social Media Link</h3>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-3 md:gap-4">
               <div>
-                <label className="block text-sm font-medium mb-1">Platform Name</label>
+                <label className="block text-xs md:text-sm font-medium mb-1">Platform Name</label>
                 <input
                   type="text"
                   name="platform"
                   value={newSocialLink.platform}
                   onChange={handleSocialLinkInputChange}
                   placeholder="e.g., Facebook, Twitter"
-                  className="w-full p-2 border rounded"
+                  className="w-full p-2 border rounded text-xs md:text-sm"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium mb-1">URL</label>
+                <label className="block text-xs md:text-sm font-medium mb-1">URL</label>
                 <input
                   type="url"
                   name="url"
                   value={newSocialLink.url}
                   onChange={handleSocialLinkInputChange}
                   placeholder="https://example.com"
-                  className="w-full p-2 border rounded"
+                  className="w-full p-2 border rounded text-xs md:text-sm"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium mb-1">Icon Image</label>
+                <label className="block text-xs md:text-sm font-medium mb-1">Icon Image</label>
                 <div className="flex flex-col">
                   <input
                     type="file"
                     onChange={handleSocialImageUpload}
-                    className="w-full p-2 border rounded"
+                    className="w-full p-2 border rounded text-xs"
                     accept="image/*"
                     disabled={uploading}
                   />
                   {uploading && (
-                    <div className="mt-2 flex items-center">
-                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-500 mr-2"></div>
-                      <span className="text-sm text-blue-600">Uploading...</span>
+                    <div className="mt-1 md:mt-2 flex items-center">
+                      <div className="animate-spin rounded-full h-3 w-3 md:h-4 md:w-4 border-b-2 border-blue-500 mr-1 md:mr-2"></div>
+                      <span className="text-xs md:text-sm text-blue-600">Uploading...</span>
                     </div>
                   )}
                   {uploadError && (
-                    <p className="mt-2 text-sm text-red-600">{uploadError}</p>
+                    <p className="mt-1 md:mt-2 text-xs md:text-sm text-red-600">{uploadError}</p>
                   )}
                   {newSocialLink.imageUrl && (
-                    <div className="mt-2">
-                      <p className="text-sm font-medium">Preview:</p>
-                      <img src={newSocialLink.imageUrl} alt="Preview" className="w-8 h-8 mt-1 object-contain" />
+                    <div className="mt-1 md:mt-2">
+                      <p className="text-xs md:text-sm font-medium">Preview:</p>
+                      <img src={newSocialLink.imageUrl} alt="Preview" className="w-6 h-6 md:w-8 md:h-8 mt-1 object-contain" />
                     </div>
                   )}
                 </div>
@@ -547,7 +547,7 @@ const AdminFooter = () => {
             <button
               type="button"
               onClick={handleAddSocialLink}
-              className="mt-4 bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition-colors"
+              className="mt-3 md:mt-4 bg-blue-500 text-white px-3 py-1 md:px-4 md:py-2 rounded hover:bg-blue-600 transition-colors text-xs md:text-sm"
               disabled={!newSocialLink.platform || !newSocialLink.url || !newSocialLink.imageUrl || uploading}
             >
               Add Social Link
@@ -556,25 +556,25 @@ const AdminFooter = () => {
         </div>
 
         {/* Copyright Section */}
-        <div className="bg-white p-6 rounded shadow">
-          <h2 className="text-xl font-semibold mb-4">Copyright Section</h2>
+        <div className="bg-white p-4 md:p-6 rounded shadow">
+          <h2 className="text-lg md:text-xl font-semibold mb-3 md:mb-4">Copyright Section</h2>
           <div>
-            <label className="block text-sm font-medium mb-1">Copyright Text</label>
+            <label className="block text-xs md:text-sm font-medium mb-1">Copyright Text</label>
             <input
               type="text"
               name="copyrightText"
               value={footerData.copyrightText}
               onChange={handleInputChange}
-              className="w-full p-2 border rounded"
+              className="w-full p-2 border rounded text-xs md:text-sm"
               placeholder="Use {year} for dynamic year"
             />
           </div>
         </div>
 
-        <div className="flex space-x-4">
+        <div className="flex flex-col md:flex-row space-y-2 md:space-y-0 md:space-x-4">
           <button
             type="submit"
-            className="bg-blue-600 text-white px-6 py-3 rounded font-medium hover:bg-blue-700 transition-colors"
+            className="bg-blue-600 text-white px-4 py-2 md:px-6 md:py-3 rounded font-medium hover:bg-blue-700 transition-colors text-sm md:text-base"
           >
             {editingId ? 'Update Footer' : 'Create Footer'}
           </button>
@@ -583,7 +583,7 @@ const AdminFooter = () => {
             <button
               type="button"
               onClick={handleDelete}
-              className="bg-red-600 text-white px-6 py-3 rounded font-medium hover:bg-red-700 transition-colors"
+              className="bg-red-600 text-white px-4 py-2 md:px-6 md:py-3 rounded font-medium hover:bg-red-700 transition-colors text-sm md:text-base"
             >
               Delete Footer
             </button>
