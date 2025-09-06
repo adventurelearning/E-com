@@ -25,6 +25,7 @@ const Footer = () => {
   const fetchFooterData = async () => {
     try {
       const response = await Api.get('/footer');
+      console.log("Footer data fetched:", response.data);
       setFooterData(response.data);
       setLoading(false);
     } catch (error) {

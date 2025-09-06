@@ -26,6 +26,15 @@ import OfferBanner from './component/HomePage/OfferBanner'
 import ProductReviewsPage from './component/products/ProductReviewPage'
 import Api from './Services/Api'
 import { useEffect } from 'react'
+import Refund_Policy from './pages/cms/Refund_Policy'
+import Return_Policy from './pages/cms/Return_Policy'
+import PrivacyPolicy from './pages/cms/Privacy_Policy'
+import Shipping_Policy from './pages/cms/Shipping_Policy'
+import Payment_Policy from './pages/cms/Payment_policy'
+import Terms_Condition from './pages/cms/Terms_Condition'
+import Customer_Service from './pages/cms/Customer_Service'
+import Whats_New from './pages/cms/Whats_New'
+
 
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState()
@@ -65,7 +74,7 @@ function App() {
           {/* product */}
           <Route path='/productslist' element={<ProductsList />}></Route>
           <Route path="/productpage/:id" element={<ProductPage />} ></Route>
-<Route path='/category/:category/:subcategory?' element={<CategoryProduct />}></Route>
+          <Route path='/category/:category/:subcategory?' element={<CategoryProduct />}></Route>
           {/* cart  */}
           <Route path='/addtocart' element={<CartPage />}></Route>
           <Route path='/buy-now' element={<BuyNow />}></Route>
@@ -79,6 +88,14 @@ function App() {
           <Route path='/help-center' element={<HelpCenter />}></Route>
           <Route path='/wishlist' element={<Wishlist />}></Route>
           <Route path="/productpage/:id/reviews" element={<ProductReviewsPage />} />
+          <Route path='/refundpolicy' element={<Refund_Policy />}></Route>
+          <Route path='/returnpolicy' element={<Return_Policy />}></Route>
+          <Route path='/privacypolicy' element={<PrivacyPolicy />}></Route>
+          <Route path="/shippingpolicy" element={<Shipping_Policy />}></Route>
+          <Route path="/paymentpolicy" element={<Payment_Policy />}></Route>
+          <Route path='/termscondition' element={<Terms_Condition />}></Route>
+          <Route path='/customerservice' element={<Customer_Service />}></Route>
+          <Route path='/whatsnew' element={<Whats_New />}></Route>
 
         </Routes>
         <ToastContainer
