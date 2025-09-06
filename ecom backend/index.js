@@ -31,6 +31,7 @@ const Terms_Con=require('./routes/TermsConditionRoute.js')
 const refundpolicy=require('./routes/refundPolicyRoutes.js')
 const customerservice=require('./routes/custerRoutes.js')
 const whatsnew=require('./routes/whatsnewRoutes.js')
+const dashboardRoutes = require('./routes/dashboard');
 // Initialize Express app
 const app = express();
 
@@ -100,6 +101,7 @@ app.use("/api/Terms_Con",Terms_Con);
 app.use("/api/refundpolicy",refundpolicy);
 app.use("/api/customer_service",customerservice);
 app.use("/api/whatsnew",whatsnew);
+app.use('/api/dashboard', dashboardRoutes);
 
 app.get("/Hlo",(req,res)=>{
   res.send("Hello from /ll");

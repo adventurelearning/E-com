@@ -3,7 +3,6 @@ import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'r
 import Sidebar from './components/Sidebar';
 import Topbar from './components/Topbar';
 import Dashboard from './pages/Dashboard';
-// import Users from './pages/User';
 import Products from './pages/Product/Products';
 import ProductList from './pages/Product/ProductList';
 import 'bootstrap/dist/css/bootstrap.min.css';
@@ -45,6 +44,7 @@ import Terms_Con from './pages/cms/Terms_Con';
 import RefundPolicy from './pages/cms/RefundPolicy';
 import Customer_Service from './pages/cms/Customer_Service';
 import Whats_new from './pages/cms/Whats_new';
+
 function AppContent() {
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const location = useLocation();
@@ -73,34 +73,58 @@ function AppContent() {
     setSidebarOpen(!sidebarOpen);
   };
 
-    const cld = new Cloudinary({ cloud: { cloudName: 'dsjpkktkj' } });
-  
+  const cld = new Cloudinary({ cloud: { cloudName: 'dsjpkktkj' } });
+
   // Use this sample image or upload your own via the Media Explorer
   const img = cld
-        .image('cld-sample-5')
-        .format('auto') // Optimize delivery by resizing and applying auto-format and auto-quality
-        .quality('auto')
-        .resize(auto().gravity(autoGravity()).width(500).height(500)); // Transform the image: auto-crop to square aspect_ratio
+    .image('cld-sample-5')
+    .format('auto') // Optimize delivery by resizing and applying auto-format and auto-quality
+    .quality('auto')
+    .resize(auto().gravity(autoGravity()).width(500).height(500)); // Transform the image: auto-crop to square aspect_ratio
 
   // return (<AdvancedImage cldImg={img}/>);
-// };
+  // };
+
+  // Prevent body scrolling when sidebar is open on mobile
+  useEffect(() => {
+    if (window.innerWidth < 768 && sidebarOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = 'auto';
+    }
+
+    return () => {
+      document.body.style.overflow = 'auto';
+    };
+  }, [sidebarOpen]);
 
   return (
-    <div style={{ display: 'flex' }}>
+    <div className="flex h-screen overflow-hidden">
       {/* Sidebar - Only show when authenticated and not on login page */}
       <ScrollToTop />
-      {isAuthenticated && !isLoginPage && sidebarOpen && (
-        <div style={{ width: '240px', transition: 'width 0.3s ease' }}>
-          <Sidebar
-            open={sidebarOpen}
-            toggleSidebar={toggleSidebar}
-            hasPermission={hasPermission}
-          />
-        </div>
+      {isAuthenticated && !isLoginPage && (
+        <>
+          {/* Mobile overlay */}
+          {sidebarOpen && window.innerWidth < 768 && (
+            <div
+              className="fixed inset-0 bg-black bg-opacity-50 z-20"
+              onClick={toggleSidebar}
+            />
+          )}
+
+          <div className={`${sidebarOpen ? 'translate-x-0' : '-translate-x-full'} 
+            md:translate-x-0 fixed md:relative h-full transition-transform duration-300 z-30`}>
+            <Sidebar
+              open={sidebarOpen}
+              toggleSidebar={toggleSidebar}
+              hasPermission={hasPermission}
+            />
+          </div>
+        </>
       )}
 
       {/* Main Content */}
-      <div className="flex-1 bg-gray-50">
+      <div className="flex-1 flex flex-col overflow-hidden">
         {/* Topbar - Only show when authenticated and not on login page */}
         {isAuthenticated && !isLoginPage && (
           <Topbar
@@ -109,12 +133,7 @@ function AppContent() {
           />
         )}
 
-        <div style={{
-          padding: isAuthenticated && !isLoginPage ? '20px' : '0px',
-          marginTop: isAuthenticated && !isLoginPage ? '50px' : '0px',
-          marginLeft: (isAuthenticated && !isLoginPage && sidebarOpen) ? '15px' : '0px',
-          transition: 'margin-left 0.3s ease'
-        }}>
+        <div className="flex-1 overflow-y-auto bg-gray-50 pt-5">
           <Routes>
             <Route path="/admin/login" element={<AdminLogin />} />
 
@@ -232,7 +251,7 @@ function AppContent() {
               </ProtectedRoute>
             } />
 
-             <Route path="/Settings" element={
+            <Route path="/Settings" element={
               <ProtectedRoute requiredPermission="Settings">
                 <Settings />
               </ProtectedRoute>
@@ -243,44 +262,44 @@ function AppContent() {
                 <ReturnPolicy />
               </ProtectedRoute>
             } />
-                <Route path="/privacy-policy" element={
+            <Route path="/privacy-policy" element={
               <ProtectedRoute requiredPermission="Suplier">
                 <PrivacyPolicy />
               </ProtectedRoute>
             } />
-             <Route path="/shipping-policy" element={
+            <Route path="/shipping-policy" element={
               <ProtectedRoute requiredPermission="Suplier">
                 <ShippingPolicy />
               </ProtectedRoute>
             } />
-              <Route path="/payment-policy" element={
+            <Route path="/payment-policy" element={
               <ProtectedRoute requiredPermission="Suplier">
                 <PaymentPolicy />
               </ProtectedRoute>
             } />
 
-             <Route path="/terms-conditions" element={
+            <Route path="/terms-conditions" element={
               <ProtectedRoute requiredPermission="Suplier">
                 <Terms_Con />
               </ProtectedRoute>
             } />
 
- <Route path="/refund-policy" element={
+            <Route path="/refund-policy" element={
               <ProtectedRoute requiredPermission="Suplier">
                 <RefundPolicy />
               </ProtectedRoute>
             } />
- <Route path="/customer-service" element={
+            <Route path="/customer-service" element={
               <ProtectedRoute requiredPermission="Suplier">
                 <Customer_Service />
               </ProtectedRoute>
             } />
- <Route path="/whats-new" element={
+            <Route path="/whats-new" element={
               <ProtectedRoute requiredPermission="Suplier">
                 <Whats_new />
               </ProtectedRoute>
             } />
-              <Route path="/Theme" element={
+            <Route path="/Theme" element={
               <ProtectedRoute requiredPermission="Theme">
                 <ThemePage />
               </ProtectedRoute>
@@ -292,7 +311,7 @@ function AppContent() {
               </ProtectedRoute>
             } />
 
-             <Route path="/footer" element={
+            <Route path="/footer" element={
               <ProtectedRoute requiredPermission="Footer">
                 <AdminFooter />
               </ProtectedRoute>

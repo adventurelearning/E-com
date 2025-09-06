@@ -368,76 +368,76 @@ const Product = () => {
   };
 
   return (
-    <div className="container mx-auto px-4 py-6">
+    <div className="container   py-4">
       <ToastContainer position="top-center" autoClose={3000} />
-      <div className="bg-white rounded-xl shadow-lg overflow-hidden">
-        <div className="bg-gradient-to-r from-purple-700 to-indigo-800 px-6 py-4 flex justify-between items-center">
-          <h2 className="text-xl font-bold text-white">{id ? 'Edit Product' : 'Add Product'}</h2>
+      <div className="bg-white rounded-lg shadow-md overflow-hidden">
+        <div className="bg-gradient-to-r from-purple-700 to-indigo-800 px-4 py-3 flex justify-between items-center">
+          <h2 className="text-lg font-bold text-white">{id ? 'Edit Product' : 'Add Product'}</h2>
           <button
-            className="flex items-center gap-1 bg-white bg-opacity-20 hover:bg-opacity-30 px-4 py-2 rounded-lg transition-all"
+            className="flex items-center gap-1 bg-white bg-opacity-20 hover:bg-opacity-30 px-3 py-1.5 rounded-md transition-all text-sm"
             onClick={() => navigate('/products')}
           >
-            <FiArrowLeft className="text-lg" /> Back to Products
+            <FiArrowLeft className="text-base" /> Back
           </button>
         </div>
 
-        <div className="p-6">
-          <form onSubmit={handleSubmit} className="space-y-6">
+        <div className="">
+          <form onSubmit={handleSubmit} className="space-y-4">
             {/* Basic Information */}
-            <div className="bg-white p-6 rounded-xl border border-purple-100 shadow-sm">
-              <h3 className="text-lg font-semibold text-purple-800 border-b border-purple-200 pb-3 mb-4">Basic Information</h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="bg-white p-4 rounded-lg border border-purple-100 shadow-xs">
+              <h3 className="text-base font-semibold text-purple-800 border-b border-purple-200 pb-2 mb-3">Basic Information</h3>
+              <div className="grid grid-cols-1 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Product Name *</label>
+                  <label className="block text-xs font-medium text-gray-700 mb-1">Product Name *</label>
                   <input
                     name="name"
-                    className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 ${errors.name ? 'border-red-500' : 'border-gray-300'
+                    className={`w-full px-3 py-1.5 border rounded-md focus:ring-1 focus:ring-purple-500 focus:border-purple-500 text-sm ${errors.name ? 'border-red-500' : 'border-gray-300'
                       }`}
                     value={product.name}
                     onChange={handleChange}
                     placeholder="Enter product name"
                   />
-                  {errors.name && <p className="mt-1 text-sm text-red-600">{errors.name}</p>}
+                  {errors.name && <p className="mt-1 text-xs text-red-600">{errors.name}</p>}
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Brand *</label>
+                  <label className="block text-xs font-medium text-gray-700 mb-1">Brand *</label>
                   <input
                     name="brand"
-                    className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 ${errors.brand ? 'border-red-500' : 'border-gray-300'
+                    className={`w-full px-3 py-1.5 border rounded-md focus:ring-1 focus:ring-purple-500 focus:border-purple-500 text-sm ${errors.brand ? 'border-red-500' : 'border-gray-300'
                       }`}
                     value={product.brand}
                     onChange={handleChange}
                     placeholder="Enter brand name"
                   />
 
-                  {errors.brand && <p className="mt-1 text-sm text-red-600">{errors.brand}</p>}
+                  {errors.brand && <p className="mt-1 text-xs text-red-600">{errors.brand}</p>}
                 </div>
 
-                <div className="md:col-span-2">
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Description *</label>
-                  <div className={`border border-gray-300 rounded-lg ${errors.description ? 'border-red-500' : ''}`}>
+                <div>
+                  <label className="block text-xs font-medium text-gray-700 mb-1">Description *</label>
+                  <div className={`border border-gray-300 rounded-md ${errors.description ? 'border-red-500' : ''}`}>
                     <TinyEditor
                       value={product.description}
                       onChange={handleEditorChange}
-                      height={400}
+                      height={300}
                     />
                   </div>
-                  {errors.description && <p className="mt-1 text-sm text-red-600">{errors.description}</p>}
+                  {errors.description && <p className="mt-1 text-xs text-red-600">{errors.description}</p>}
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Group ID</label>
+                  <label className="block text-xs font-medium text-gray-700 mb-1">Group ID</label>
                   <input
                     name="groupId"
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+                    className="w-full px-3 py-1.5 border border-gray-300 rounded-md focus:ring-1 focus:ring-purple-500 focus:border-purple-500 text-sm"
                     value={product.groupId}
                     onChange={handleChange}
                     placeholder="Enter group identifier"
                   />
-                  <p className="mt-1 text-sm text-gray-500">
+                  <p className="mt-1 text-xs text-gray-500">
                     Group products together (optional)
                   </p>
-                  <p className="text-sm text-gray-500 mt-2">
+                  <p className="text-xs text-gray-500 mt-1">
                     Products are grouped using a <strong>Group ID</strong> to represent color variations.
                     On the frontend, only the first product image from each group is shown to preview the color variant.
                   </p>
@@ -446,16 +446,16 @@ const Product = () => {
             </div>
 
             {/* Pricing */}
-            <div className="bg-white p-6 rounded-xl border border-purple-100 shadow-sm">
-              <h3 className="text-lg font-semibold text-purple-800 border-b border-purple-200 pb-3 mb-4">Pricing</h3>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="bg-white p-4 rounded-lg border border-purple-100 shadow-xs">
+              <h3 className="text-base font-semibold text-purple-800 border-b border-purple-200 pb-2 mb-3">Pricing</h3>
+              <div className="grid grid-cols-1 gap-4">
                 {/* Original Price */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-xs font-medium text-gray-700 mb-1">
                     Original Price *
                   </label>
                   <div className="relative">
-                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-purple-700">
+                    <div className="absolute inset-y-0 left-0 pl-2 flex items-center pointer-events-none text-purple-700 text-sm">
                       ₹
                     </div>
                     <input
@@ -463,23 +463,23 @@ const Product = () => {
                       type="number"
                       min="0"
                       step="0.01"
-                      className={`w-full pl-10 pr-4 py-2 border rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 ${errors.originalPrice ? 'border-red-500' : 'border-gray-300'
+                      className={`w-full pl-7 pr-3 py-1.5 border rounded-md focus:ring-1 focus:ring-purple-500 focus:border-purple-500 text-sm ${errors.originalPrice ? 'border-red-500' : 'border-gray-300'
                         }`}
                       value={product.originalPrice}
                       onChange={handleChange}
                       placeholder="Original price"
                     />
                   </div>
-                  {errors.originalPrice && <p className="mt-1 text-sm text-red-600">{errors.originalPrice}</p>}
+                  {errors.originalPrice && <p className="mt-1 text-xs text-red-600">{errors.originalPrice}</p>}
                 </div>
 
                 {/* Discount Price */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-xs font-medium text-gray-700 mb-1">
                     Discount Price
                   </label>
                   <div className="relative">
-                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-purple-700">
+                    <div className="absolute inset-y-0 left-0 pl-2 flex items-center pointer-events-none text-purple-700 text-sm">
                       ₹
                     </div>
                     <input
@@ -487,23 +487,23 @@ const Product = () => {
                       type="number"
                       min="0"
                       step="0.01"
-                      className={`w-full pl-10 pr-4 py-2 border rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 ${errors.discountPrice ? 'border-red-500' : 'border-gray-300'
+                      className={`w-full pl-7 pr-3 py-1.5 border rounded-md focus:ring-1 focus:ring-purple-500 focus:border-purple-500 text-sm ${errors.discountPrice ? 'border-red-500' : 'border-gray-300'
                         }`}
                       value={product.discountPrice}
                       onChange={handleChange}
                       placeholder="Discounted price"
                     />
                   </div>
-                  {errors.discountPrice && <p className="mt-1 text-sm text-red-600">{errors.discountPrice}</p>}
+                  {errors.discountPrice && <p className="mt-1 text-xs text-red-600">{errors.discountPrice}</p>}
                 </div>
 
                 {/* Special Price */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-xs font-medium text-gray-700 mb-1">
                     Special Price
                   </label>
                   <div className="relative">
-                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-purple-700">
+                    <div className="absolute inset-y-0 left-0 pl-2 flex items-center pointer-events-none text-purple-700 text-sm">
                       ₹
                     </div>
                     <input
@@ -511,70 +511,70 @@ const Product = () => {
                       type="number"
                       min="0"
                       step="0.01"
-                      className={`w-full pl-10 pr-4 py-2 border rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 ${errors.specialPrice ? 'border-red-500' : 'border-gray-300'
+                      className={`w-full pl-7 pr-3 py-1.5 border rounded-md focus:ring-1 focus:ring-purple-500 focus:border-purple-500 text-sm ${errors.specialPrice ? 'border-red-500' : 'border-gray-300'
                         }`}
                       value={product.specialPrice}
                       onChange={handleChange}
                       placeholder="Limited-time offer"
                     />
                   </div>
-                  {errors.specialPrice && <p className="mt-1 text-sm text-red-600">{errors.specialPrice}</p>}
+                  {errors.specialPrice && <p className="mt-1 text-xs text-red-600">{errors.specialPrice}</p>}
                 </div>
 
                 {/* Special Price Dates */}
-                <div className="md:col-span-3 grid grid-cols-1 md:grid-cols-2 gap-6 pt-4">
+                <div className="grid grid-cols-1 gap-4 pt-2">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                    <label className="block text-xs font-medium text-gray-700 mb-1">
                       Special Price Start Date
                     </label>
                     <div className="relative">
-                      <div className="absolute inset-y-0 left-0 pl-3 flex items-center text-purple-700">
+                      <div className="absolute inset-y-0 left-0 pl-2 flex items-center text-purple-700 text-sm">
                         <FiCalendar />
                       </div>
                       <input
                         type="datetime-local"
                         name="specialPriceStart"
-                        className={`w-full pl-10 pr-4 py-2 border rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 ${errors.specialPriceStart ? 'border-red-500' : 'border-gray-300'
+                        className={`w-full pl-8 pr-3 py-1.5 border rounded-md focus:ring-1 focus:ring-purple-500 focus:border-purple-500 text-sm ${errors.specialPriceStart ? 'border-red-500' : 'border-gray-300'
                           }`}
                         value={product.specialPriceStart}
                         onChange={handleChange}
                       />
                     </div>
-                    {errors.specialPriceStart && <p className="mt-1 text-sm text-red-600">{errors.specialPriceStart}</p>}
+                    {errors.specialPriceStart && <p className="mt-1 text-xs text-red-600">{errors.specialPriceStart}</p>}
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                    <label className="block text-xs font-medium text-gray-700 mb-1">
                       Special Price End Date
                     </label>
                     <div className="relative">
-                      <div className="absolute inset-y-0 left-0 pl-3 flex items-center text-purple-700">
+                      <div className="absolute inset-y-0 left-0 pl-2 flex items-center text-purple-700 text-sm">
                         <FiCalendar />
                       </div>
                       <input
                         type="datetime-local"
                         name="specialPriceEnd"
-                        className={`w-full pl-10 pr-4 py-2 border rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 ${errors.specialPriceEnd ? 'border-red-500' : 'border-gray-300'
+                        className={`w-full pl-8 pr-3 py-1.5 border rounded-md focus:ring-1 focus:ring-purple-500 focus:border-purple-500 text-sm ${errors.specialPriceEnd ? 'border-red-500' : 'border-gray-300'
                           }`}
                         value={product.specialPriceEnd}
                         onChange={handleChange}
                       />
                     </div>
-                    {errors.specialPriceEnd && <p className="mt-1 text-sm text-red-600">{errors.specialPriceEnd}</p>}
+                    {errors.specialPriceEnd && <p className="mt-1 text-xs text-red-600">{errors.specialPriceEnd}</p>}
                   </div>
                 </div>
               </div>
             </div>
 
             {/* Category & Stock */}
-            <div className="bg-white p-6 rounded-xl border border-purple-100 shadow-sm">
-              <h3 className="text-lg font-semibold text-purple-800 border-b border-purple-200 pb-3 mb-4">Category & Inventory</h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="bg-white p-4 rounded-lg border border-purple-100 shadow-xs">
+              <h3 className="text-base font-semibold text-purple-800 border-b border-purple-200 pb-2 mb-3">Category & Inventory</h3>
+              <div className="grid grid-cols-1 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Category *</label>
+                  <label className="block text-xs font-medium text-gray-700 mb-1">Category *</label>
                   <select
                     name="category"
-                    className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 ${errors.category ? 'border-red-500' : 'border-gray-300'
+                    className={`w-full px-3 py-1.5 border rounded-md focus:ring-1 focus:ring-purple-500 focus:border-purple-500 text-sm ${errors.category ? 'border-red-500' : 'border-gray-300'
                       }`}
                     value={product.category}
                     onChange={e => {
@@ -589,14 +589,14 @@ const Product = () => {
                       <option key={c._id} value={c._id}>{c.name}</option>
                     ))}
                   </select>
-                  {errors.category && <p className="mt-1 text-sm text-red-600">{errors.category}</p>}
+                  {errors.category && <p className="mt-1 text-xs text-red-600">{errors.category}</p>}
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Subcategory *</label>
+                  <label className="block text-xs font-medium text-gray-700 mb-1">Subcategory *</label>
                   <select
                     name="subcategory"
-                    className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 ${errors.subcategory ? 'border-red-500' : 'border-gray-300'
+                    className={`w-full px-3 py-1.5 border rounded-md focus:ring-1 focus:ring-purple-500 focus:border-purple-500 text-sm ${errors.subcategory ? 'border-red-500' : 'border-gray-300'
                       } ${!product.category ? 'bg-gray-100 cursor-not-allowed' : ''}`}
                     value={product.subcategory}
                     onChange={handleChange}
@@ -607,39 +607,39 @@ const Product = () => {
                       <option key={sc._id} value={sc._id}>{sc.name}</option>
                     ))}
                   </select>
-                  {errors.subcategory && <p className="mt-1 text-sm text-red-600">{errors.subcategory}</p>}
+                  {errors.subcategory && <p className="mt-1 text-xs text-red-600">{errors.subcategory}</p>}
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Total Stock *</label>
+                  <label className="block text-xs font-medium text-gray-700 mb-1">Total Stock *</label>
                   <input
                     name="stock"
                     type="number"
                     min="0"
-                    className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 ${errors.stock ? 'border-red-500' : 'border-gray-300'
+                    className={`w-full px-3 py-1.5 border rounded-md focus:ring-1 focus:ring-purple-500 focus:border-purple-500 text-sm ${errors.stock ? 'border-red-500' : 'border-gray-300'
                       }`}
                     value={product.stock}
                     onChange={handleChange}
                     placeholder="Total available stock"
                   />
-                  {errors.stock && <p className="mt-1 text-sm text-red-600">{errors.stock}</p>}
+                  {errors.stock && <p className="mt-1 text-xs text-red-600">{errors.stock}</p>}
                 </div>
               </div>
             </div>
 
             {/* Images */}
-            <div className="bg-white p-6 rounded-xl border border-purple-100 shadow-sm">
-              <h3 className="text-lg font-semibold text-purple-800 border-b border-purple-200 pb-3 mb-4">Product Images</h3>
-              <div className="mb-4">
-                <label className="block text-sm font-medium text-gray-700 mb-2">Upload Images *</label>
-                <div className="flex items-center gap-4">
+            <div className="bg-white p-4 rounded-lg border border-purple-100 shadow-xs">
+              <h3 className="text-base font-semibold text-purple-800 border-b border-purple-200 pb-2 mb-3">Product Images</h3>
+              <div className="mb-3">
+                <label className="block text-xs font-medium text-gray-700 mb-2">Upload Images *</label>
+                <div className="flex flex-col gap-2">
                   <label
-                    className={`flex items-center gap-2 px-4 py-2 rounded-lg cursor-pointer transition-all ${images.length >= 5
+                    className={`flex items-center gap-1 px-3 py-1.5 rounded-md cursor-pointer transition-all text-sm ${images.length >= 5
                       ? 'bg-gray-200 text-gray-500 cursor-not-allowed'
                       : 'bg-purple-100 text-purple-700 hover:bg-purple-200'
                       }`}
                   >
-                    <FiUpload className="text-lg" />
+                    <FiUpload className="text-base" />
                     Select Images
                     <input
                       type="file"
@@ -650,20 +650,20 @@ const Product = () => {
                       disabled={images.length >= 5}
                     />
                   </label>
-                  <span className="text-sm text-gray-500">
+                  <span className="text-xs text-gray-500">
                     {images.length} of 5 images selected
                   </span>
                 </div>
-                {errors.images && <p className="mt-2 text-sm text-red-600">{errors.images}</p>}
+                {errors.images && <p className="mt-1 text-xs text-red-600">{errors.images}</p>}
               </div>
 
-              <div className="flex flex-wrap gap-4">
+              <div className="flex flex-wrap gap-3">
                 {images.map((img, i) => (
-                  <div key={i} className="relative border border-purple-200 rounded-lg p-2 bg-purple-50">
+                  <div key={i} className="relative border border-purple-200 rounded-md p-1.5 bg-purple-50">
                     <div className="relative">
                       <img
                         src={img.url}
-                        className="w-24 h-24 object-contain rounded bg-gray-50"
+                        className="w-20 h-20 object-contain rounded bg-gray-50"
                         style={{
                           opacity: img.status === 'uploading' ? 0.7 : 1,
                         }}
@@ -671,27 +671,27 @@ const Product = () => {
                       />
                       {img.status === 'uploading' && (
                         <div className="absolute inset-0 flex items-center justify-center">
-                          <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-purple-600"></div>
+                          <div className="animate-spin rounded-full h-6 w-6 border-t-2 border-b-2 border-purple-600"></div>
                         </div>
                       )}
                       {img.status === 'error' && (
                         <div className="absolute inset-0 bg-red-100 bg-opacity-50 flex items-center justify-center rounded">
-                          <span className="text-red-600 font-semibold">Error</span>
+                          <span className="text-red-600 font-semibold text-xs">Error</span>
                         </div>
                       )}
                     </div>
 
                     <button
                       type="button"
-                      className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-600"
+                      className="absolute -top-1 -right-1 bg-red-500 text-white rounded-full p-0.5 hover:bg-red-600"
                       onClick={() => removeImage(i)}
                     >
-                      <FiX size={16} />
+                      <FiX size={14} />
                     </button>
                   </div>
                 ))}
               </div>
-              <p className="mt-3 text-sm text-gray-500">
+              <p className="mt-2 text-xs text-gray-500">
                 Max 5 images. Recommended size: 800x800px. Formats: JPG, PNG, WEBP.
               </p>
             </div>
@@ -747,27 +747,27 @@ const Product = () => {
             </div> */}
 
             {/* Specifications */}
-            <div className="bg-white p-6 rounded-xl border border-purple-100 shadow-sm">
-              <div className="flex justify-between items-center mb-4">
-                <h3 className="text-lg font-semibold text-purple-800">Specifications</h3>
+            <div className="bg-white p-4 rounded-lg border border-purple-100 shadow-xs">
+              <div className="flex justify-between items-center mb-3">
+                <h3 className="text-base font-semibold text-purple-800">Specifications</h3>
                 <button
                   type="button"
-                  className="bg-purple-100 text-purple-700 px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-purple-200"
+                  className="bg-purple-100 text-purple-700 px-3 py-1.5 rounded-md flex items-center gap-1 hover:bg-purple-200 text-sm"
                   onClick={() => setProduct(prev => ({
                     ...prev,
                     specifications: [...prev.specifications, { key: '', value: '' }]
                   }))}
                 >
-                  <FiPlus size={18} /> Add Specification
+                  <FiPlus size={16} /> Add
                 </button>
               </div>
 
               {product.specifications.length > 0 ? (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 gap-3">
                   {product.specifications.map((spec, i) => (
-                    <div key={i} className="border border-purple-200 rounded-lg p-4 bg-purple-50">
-                      <div className="flex justify-between items-center mb-3">
-                        <span className="font-medium text-purple-700">Specification #{i + 1}</span>
+                    <div key={i} className="border border-purple-200 rounded-md p-3 bg-purple-50">
+                      <div className="flex justify-between items-center mb-2">
+                        <span className="font-medium text-purple-700 text-sm">Spec #{i + 1}</span>
                         <button
                           type="button"
                           className="text-red-500 hover:text-red-700"
@@ -778,15 +778,15 @@ const Product = () => {
                             }));
                           }}
                         >
-                          <FiX size={18} />
+                          <FiX size={16} />
                         </button>
                       </div>
 
-                      <div className="mb-3">
-                        <label className="block text-sm text-gray-600 mb-1">Key</label>
+                      <div className="mb-2">
+                        <label className="block text-xs text-gray-600 mb-1">Key</label>
                         <input
                           type="text"
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+                          className="w-full px-2 py-1.5 border border-gray-300 rounded-md focus:ring-1 focus:ring-purple-500 focus:border-purple-500 text-sm"
                           placeholder="e.g. Material, Weight"
                           value={spec.key}
                           onChange={e => {
@@ -798,10 +798,10 @@ const Product = () => {
                       </div>
 
                       <div>
-                        <label className="block text-sm text-gray-600 mb-1">Value</label>
+                        <label className="block text-xs text-gray-600 mb-1">Value</label>
                         <input
                           type="text"
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+                          className="w-full px-2 py-1.5 border border-gray-300 rounded-md focus:ring-1 focus:ring-purple-500 focus:border-purple-500 text-sm"
                           placeholder="e.g. Cotton, 250g"
                           value={spec.value}
                           onChange={e => {
@@ -815,33 +815,33 @@ const Product = () => {
                   ))}
                 </div>
               ) : (
-                <div className="text-center py-8 bg-purple-50 rounded-lg border border-dashed border-purple-300">
-                  <p className="text-purple-500">No specifications added yet</p>
+                <div className="text-center py-4 bg-purple-50 rounded-md border border-dashed border-purple-300">
+                  <p className="text-purple-500 text-sm">No specifications added yet</p>
                 </div>
               )}
             </div>
 
             {/* Feature Descriptions */}
-            <div className="bg-white p-6 rounded-xl border border-purple-100 shadow-sm">
-              <div className="flex justify-between items-center mb-4">
-                <h3 className="text-lg font-semibold text-purple-800">Feature Descriptions</h3>
+            <div className="bg-white p-4 rounded-lg border border-purple-100 shadow-xs">
+              <div className="flex justify-between items-center mb-3">
+                <h3 className="text-base font-semibold text-purple-800">Feature Descriptions</h3>
                 <button
                   type="button"
-                  className="bg-purple-100 text-purple-700 px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-purple-200"
+                  className="bg-purple-100 text-purple-700 px-3 py-1.5 rounded-md flex items-center gap-1 hover:bg-purple-200 text-sm"
                   onClick={() => setProduct(prev => ({
                     ...prev,
                     featureDescriptions: [...prev.featureDescriptions, { title: '', description: '', image: '' }]
                   }))}
                 >
-                  <FiPlus size={18} /> Add Feature
+                  <FiPlus size={16} /> Add
                 </button>
               </div>
 
               {product.featureDescriptions.length > 0 ? (
                 product.featureDescriptions.map((feature, i) => (
-                  <div key={i} className="mb-6 border border-purple-200 rounded-lg p-5 bg-purple-50">
-                    <div className="flex justify-between items-center mb-4">
-                      <h4 className="font-medium text-purple-700">Feature #{i + 1}</h4>
+                  <div key={i} className="mb-4 border border-purple-200 rounded-md p-3 bg-purple-50">
+                    <div className="flex justify-between items-center mb-3">
+                      <h4 className="font-medium text-purple-700 text-sm">Feature #{i + 1}</h4>
                       <button
                         type="button"
                         className="text-red-500 hover:text-red-700"
@@ -852,14 +852,14 @@ const Product = () => {
                           }));
                         }}
                       >
-                        <FiX size={20} />
+                        <FiX size={18} />
                       </button>
                     </div>
-                    <div>
-                      <label className="block text-sm text-gray-600 mb-1">Feature Title *</label>
+                    <div className="mb-2">
+                      <label className="block text-xs text-gray-600 mb-1">Feature Title *</label>
                       <input
                         type="text"
-                        className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+                        className="w-full px-2 py-1.5 border border-gray-300 rounded-md focus:ring-1 focus:ring-purple-500 focus:border-purple-500 text-sm"
                         placeholder="Feature title"
                         value={feature.title}
                         onChange={e => {
@@ -869,12 +869,12 @@ const Product = () => {
                         }}
                       />
                     </div>
-                    <div className="mb-4">
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Description *</label>
+                    <div className="mb-3">
+                      <label className="block text-xs font-medium text-gray-700 mb-1">Description *</label>
                       <textarea
-                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
-                        rows="3"
-                        placeholder="Describe this feature in detail..."
+                        className="w-full px-2 py-1.5 border border-gray-300 rounded-md focus:ring-1 focus:ring-purple-500 focus:border-purple-500 text-sm"
+                        rows="2"
+                        placeholder="Describe this feature..."
                         value={feature.description}
                         onChange={e => {
                           const tmp = [...product.featureDescriptions];
@@ -885,25 +885,25 @@ const Product = () => {
                     </div>
 
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Feature Image (Optional)</label>
-                      <div className="flex flex-col md:flex-row gap-6">
+                      <label className="block text-xs font-medium text-gray-700 mb-1">Feature Image (Optional)</label>
+                      <div className="flex flex-col gap-3">
                         {feature.image ? (
                           <div className="flex-shrink-0 relative">
                             <img
                               src={feature.image}
-                              className="w-48 h-32 object-contain rounded-lg border border-purple-200 bg-white"
+                              className="w-full max-w-[192px] h-24 object-contain rounded-md border border-purple-200 bg-white"
                               alt="feature"
                             />
                             <button
                               type="button"
-                              className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1 hover:bg-red-600"
+                              className="absolute top-0.5 right-0.5 bg-red-500 text-white rounded-full p-0.5 hover:bg-red-600"
                               onClick={() => {
                                 const tmp = [...product.featureDescriptions];
                                 tmp[i].image = '';
                                 setProduct(prev => ({ ...prev, featureDescriptions: tmp }));
                               }}
                             >
-                              <FiX size={16} />
+                              <FiX size={14} />
                             </button>
                           </div>
                         ) : (
@@ -931,18 +931,18 @@ const Product = () => {
                             />
                             <label
                               htmlFor={`feature-image-${i}`}
-                              className="flex flex-col items-center justify-center w-48 h-32 border-2 border-dashed border-purple-300 rounded-lg bg-white text-purple-600 hover:bg-purple-50 cursor-pointer"
+                              className="flex flex-col items-center justify-center w-full max-w-[192px] h-24 border-2 border-dashed border-purple-300 rounded-md bg-white text-purple-600 hover:bg-purple-50 cursor-pointer text-xs"
                             >
-                              <FiUpload size={24} className="mb-2" />
-                              <span className="text-sm">Upload Image</span>
+                              <FiUpload size={18} className="mb-1" />
+                              <span className="text-xs">Upload Image</span>
                             </label>
                           </div>
                         )}
                         <div className="flex-1">
-                          <p className="text-sm text-gray-600">
-                            Recommended size: 600x400px<br />
+                          <p className="text-xs text-gray-600">
+                            Recommended: 600x400px<br />
                             Formats: JPG, PNG, WEBP<br />
-                            Max file size: 2MB
+                            Max size: 2MB
                           </p>
                         </div>
                       </div>
@@ -950,34 +950,34 @@ const Product = () => {
                   </div>
                 ))
               ) : (
-                <div className="text-center py-8 bg-purple-50 rounded-lg border border-dashed border-purple-300">
-                  <p className="text-purple-500">No feature descriptions added yet</p>
+                <div className="text-center py-4 bg-purple-50 rounded-md border border-dashed border-purple-300">
+                  <p className="text-purple-500 text-sm">No feature descriptions added yet</p>
                 </div>
               )}
             </div>
 
             {/* Size Chart */}
-            <div className="bg-white p-6 rounded-xl border border-purple-100 shadow-sm">
-              <div className="flex justify-between items-center mb-4">
-                <h3 className="text-lg font-semibold text-purple-800">Size Chart</h3>
+            <div className="bg-white p-4 rounded-lg border border-purple-100 shadow-xs">
+              <div className="flex justify-between items-center mb-3">
+                <h3 className="text-base font-semibold text-purple-800">Size Chart</h3>
                 <button
                   type="button"
-                  className="bg-purple-100 text-purple-700 px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-purple-200"
+                  className="bg-purple-100 text-purple-700 px-3 py-1.5 rounded-md flex items-center gap-1 hover:bg-purple-200 text-sm"
                   onClick={() => setProduct(prev => ({
                     ...prev,
                     sizeChart: [...prev.sizeChart, { label: '', stock: 0 }]
                   }))}
                 >
-                  <FiPlus size={18} /> Add Size
+                  <FiPlus size={16} /> Add
                 </button>
               </div>
 
               {product.sizeChart.length > 0 ? (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                <div className="grid grid-cols-1 gap-3">
                   {product.sizeChart.map((sz, i) => (
-                    <div key={i} className="border border-purple-200 rounded-lg p-4 bg-purple-50">
-                      <div className="flex justify-between items-center mb-3">
-                        <span className="font-medium text-purple-700">Size #{i + 1}</span>
+                    <div key={i} className="border border-purple-200 rounded-md p-3 bg-purple-50">
+                      <div className="flex justify-between items-center mb-2">
+                        <span className="font-medium text-purple-700 text-sm">Size #{i + 1}</span>
                         <button
                           type="button"
                           className="text-red-500 hover:text-red-700"
@@ -988,15 +988,15 @@ const Product = () => {
                             }));
                           }}
                         >
-                          <FiX size={18} />
+                          <FiX size={16} />
                         </button>
                       </div>
 
-                      <div className="mb-3">
-                        <label className="block text-sm text-gray-600 mb-1">Size Name</label>
+                      <div className="mb-2">
+                        <label className="block text-xs text-gray-600 mb-1">Size Name</label>
                         <input
                           type="text"
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+                          className="w-full px-2 py-1.5 border border-gray-300 rounded-md focus:ring-1 focus:ring-purple-500 focus:border-purple-500 text-sm"
                           placeholder="e.g. S, M, L"
                           value={sz.label}
                           onChange={e => {
@@ -1008,11 +1008,11 @@ const Product = () => {
                       </div>
 
                       <div>
-                        <label className="block text-sm text-gray-600 mb-1">Stock</label>
+                        <label className="block text-xs text-gray-600 mb-1">Stock</label>
                         <input
                           type="number"
                           min="0"
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+                          className="w-full px-2 py-1.5 border border-gray-300 rounded-md focus:ring-1 focus:ring-purple-500 focus:border-purple-500 text-sm"
                           placeholder="Available quantity"
                           value={sz.stock}
                           onChange={e => {
@@ -1026,44 +1026,44 @@ const Product = () => {
                   ))}
                 </div>
               ) : (
-                <div className="text-center py-8 bg-purple-50 rounded-lg border border-dashed border-purple-300">
-                  <p className="text-purple-500 mb-3">No sizes added yet</p>
+                <div className="text-center py-4 bg-purple-50 rounded-md border border-dashed border-purple-300">
+                  <p className="text-purple-500 text-sm mb-2">No sizes added yet</p>
                   <button
                     type="button"
-                    className="bg-purple-100 text-purple-700 px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-purple-200 mx-auto"
+                    className="bg-purple-100 text-purple-700 px-3 py-1.5 rounded-md flex items-center gap-1 hover:bg-purple-200 text-sm mx-auto"
                     onClick={() => setProduct(prev => ({
                       ...prev,
                       sizeChart: [...prev.sizeChart, { label: '', stock: 0 }]
                     }))}
                   >
-                    <FiPlus size={18} /> Add First Size
+                    <FiPlus size={16} /> Add First Size
                   </button>
                 </div>
               )}
             </div>
 
             {/* Rating Categories */}
-            <div className="bg-white p-6 rounded-xl border border-purple-100 shadow-sm">
-              <div className="flex justify-between items-center mb-4">
-                <h3 className="text-lg font-semibold text-purple-800">Rating Categories</h3>
+            <div className="bg-white p-4 rounded-lg border border-purple-100 shadow-xs">
+              <div className="flex justify-between items-center mb-3">
+                <h3 className="text-base font-semibold text-purple-800">Rating Categories</h3>
                 <button
                   type="button"
-                  className="bg-purple-100 text-purple-700 px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-purple-200"
+                  className="bg-purple-100 text-purple-700 px-3 py-1.5 rounded-md flex items-center gap-1 hover:bg-purple-200 text-sm"
                   onClick={() => setProduct(prev => ({
                     ...prev,
                     ratingAttributes: [...prev.ratingAttributes, '']
                   }))}
                 >
-                  <FiPlus size={18} /> Add Category
+                  <FiPlus size={16} /> Add
                 </button>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 gap-3">
                 {product.ratingAttributes?.map((category, i) => (
-                  <div key={i} className="flex items-center gap-3">
+                  <div key={i} className="flex items-center gap-2">
                     <input
                       type="text"
-                      className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+                      className="flex-1 px-3 py-1.5 border border-gray-300 rounded-md focus:ring-1 focus:ring-purple-500 focus:border-purple-500 text-sm"
                       value={category}
                       placeholder="Category name"
                       onChange={e => {
@@ -1074,51 +1074,50 @@ const Product = () => {
                     />
                     <button
                       type="button"
-                      className="text-red-500 hover:text-red-700 p-2"
+                      className="text-red-500 hover:text-red-700 p-1.5"
                       onClick={() => {
                         const filtered = product.ratingAttributes.filter((_, j) => j !== i);
                         setProduct(prev => ({ ...prev, ratingAttributes: filtered }));
                       }}
                     >
-                      <FiX size={20} />
+                      <FiX size={18} />
                     </button>
                   </div>
                 ))}
               </div>
 
-              <p className="mt-4 text-sm text-gray-600">
+              <p className="mt-3 text-xs text-gray-600">
                 These categories will appear in product reviews for customers to rate separately.
               </p>
             </div>
 
             {/* Submit */}
-            <div className="flex justify-end gap-4 pt-4 border-t border-purple-200">
+            <div className="flex flex-col gap-3 pt-3 border-t border-purple-200">
               <button
                 type="button"
-                className="px-6 py-2.5 bg-gray-200 text-gray-700 rounded-lg flex items-center gap-2 hover:bg-gray-300"
+                className="px-4 py-2 bg-gray-200 text-gray-700 rounded-md flex items-center justify-center gap-1 hover:bg-gray-300 text-sm"
                 onClick={() => navigate('/products')}
                 disabled={isSubmitting}
               >
-                <FiArrowLeft /> Cancel
+                <FiArrowLeft size={14} /> Cancel
               </button>
               <button
                 type="submit"
-                className="px-6 py-2.5 bg-gradient-to-r from-purple-600 to-indigo-700 text-white rounded-lg flex items-center gap-2 hover:from-purple-700 hover:to-indigo-800"
+                className="px-4 py-2 bg-gradient-to-r from-purple-600 to-indigo-700 text-white rounded-md flex items-center justify-center gap-1 hover:from-purple-700 hover:to-indigo-800 text-sm"
                 disabled={isSubmitting}
               >
                 {isSubmitting ? (
                   <>
-                    <span className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></span>
+                    <span className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></span>
                     Processing...
                   </>
                 ) : (
                   <>
-                    <FiSave /> {id ? 'Update Product' : 'Save Product'}
+                    <FiSave size={14} /> {id ? 'Update Product' : 'Save Product'}
                   </>
                 )}
               </button>
             </div>
-
           </form>
         </div>
       </div>
