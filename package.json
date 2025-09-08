@@ -1,0 +1,14 @@
+{
+  "name": "ecom",
+  "version": "1.0.0",
+  "scripts": {
+    "start": "concurrently \"npm run server\" \"npm run admin\" \"npm run client\"",
+    "server": "cd \"ecom backend\" && npm start",
+    "admin": "cd Admin && npm run dev",
+    "client": "cd Pro-Shopify && npm run dev"
+  },
+  "dependencies": {
+    "nodemon": "^3.1.10",
+    "concurrently": "^8.2.2"
+  }
+}
