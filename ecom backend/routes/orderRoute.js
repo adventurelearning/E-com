@@ -9,7 +9,8 @@ const PDFDocument = require('pdfkit');
 const fs = require('fs');
 const Razorpay = require('razorpay');
 const crypto = require('crypto');
-
+// Place order
+const sendMail = require("../utils/mailer");
 // Initialize Razorpay
 let razorpay;
 try {
@@ -106,108 +107,128 @@ router.post('/update-razorpay-payment', protect, async (req, res) => {
   }
 });
 
-// Place order
-router.post('/', protect, async (req, res) => {
-  const { shippingAddress, paymentMethod, mode, productId, total, quantity, razorpayPaymentId, razorpay_order_id } = req.body;
+
+
+router.post("/", protect, async (req, res) => {
+  const { 
+    shippingAddress, 
+    paymentMethod, 
+    mode, 
+    productId, 
+    total, 
+    quantity, 
+    razorpayPaymentId, 
+    razorpay_order_id 
+  } = req.body;
+
   const userId = req.user._id;
 
   try {
     const user = await User.findById(userId);
     let cart = await Cart.findOne({ user: userId });
 
-
-    // Validate payment for Razorpay
-    if (paymentMethod === 'razorpay' && !razorpayPaymentId) {
-      return res.status(400).json({ message: 'Razorpay payment ID required' });
+    // Razorpay validation
+    if (paymentMethod === "razorpay" && !razorpayPaymentId) {
+      return res.status(400).json({ message: "Razorpay payment ID required" });
     }
 
     // Address validation
-    if (!shippingAddress || 
-      !shippingAddress.fullName || 
+    if (
+      !shippingAddress ||
+      !shippingAddress.fullName ||
       !shippingAddress.phone ||
-      !shippingAddress.street || 
-      !shippingAddress.city || 
-      !shippingAddress.state || 
-      !shippingAddress.postalCode) {
-      return res.status(400).json({ message: 'Missing required shipping address fields' });
+      !shippingAddress.street ||
+      !shippingAddress.city ||
+      !shippingAddress.state ||
+      !shippingAddress.postalCode
+    ) {
+      return res
+        .status(400)
+        .json({ message: "Missing required shipping address fields" });
     }
 
-    // Check for duplicate address using correct fields
-    const isDuplicate = user.addresses.some(addr =>
-      addr.street === shippingAddress.street &&
-      addr.city === shippingAddress.city &&
-      addr.postalCode === shippingAddress.postalCode
+    // Duplicate address check
+    const isDuplicate = user.addresses.some(
+      (addr) =>
+        addr.street === shippingAddress.street &&
+        addr.city === shippingAddress.city &&
+        addr.postalCode === shippingAddress.postalCode
     );
 
-    // Create new address with correct structure
     if (!isDuplicate) {
-      user.addresses.forEach(addr => (addr.isDefault = false));
-
+      user.addresses.forEach((addr) => (addr.isDefault = false));
       user.addresses.push({
-        label: shippingAddress.label || 'Shipping',
+        label: shippingAddress.label || "Shipping",
         fullName: shippingAddress.fullName,
         phone: shippingAddress.phone,
         street: shippingAddress.street,
         city: shippingAddress.city,
         state: shippingAddress.state,
         postalCode: shippingAddress.postalCode,
-        country: shippingAddress.country || 'India',
+        country: shippingAddress.country || "India",
         isDefault: true,
       });
-
       await user.save();
     }
 
+    // Order items
     let items = [];
-    if (mode === 'buy-now') {
+    if (mode === "buy-now") {
       if (!productId || !quantity) {
-        return res.status(400).json({ message: 'Missing product or quantity for buy-now' });
+        return res
+          .status(400)
+          .json({ message: "Missing product or quantity for buy-now" });
       }
       items = [{ productId, quantity: Number(quantity) }];
     } else {
       if (!cart || cart.items.length === 0) {
-        return res.status(400).json({ message: 'Cart is empty' });
+        return res.status(400).json({ message: "Cart is empty" });
       }
       items = cart.items;
     }
 
-    // Order creation - ADD razorpay_order_id HERE
+    // Create Order
     const order = new Order({
       user: userId,
-      items: items.map(item => ({
+      items: items.map((item) => ({
         productId: item.productId,
-        quantity: item.quantity
+        quantity: item.quantity,
       })),
       shippingAddress: {
-        label: shippingAddress.label || 'Shipping',
+        label: shippingAddress.label || "Shipping",
         fullName: shippingAddress.fullName,
         phone: shippingAddress.phone,
         street: shippingAddress.street,
         city: shippingAddress.city,
         state: shippingAddress.state,
         postalCode: shippingAddress.postalCode,
-        country: shippingAddress.country || 'India',
-        isDefault: false
+        country: shippingAddress.country || "India",
+        isDefault: false,
       },
       paymentMethod,
-      status: 'pending',
+      status: "pending",
       total: total,
-      statusHistory: [{
-        status: 'pending',
-        changedAt: new Date(),
-        changedBy: userId,
-        note: 'Order created'
-      }],
-      razorpayPaymentId: paymentMethod === 'razorpay' ? razorpayPaymentId : null,
-      razorpay_order_id: paymentMethod === 'razorpay' ? razorpay_order_id : null // Add this line
+      statusHistory: [
+        {
+          status: "pending",
+          changedAt: new Date(),
+          changedBy: userId,
+          note: "Order created",
+        },
+      ],
+      razorpayPaymentId: paymentMethod === "razorpay" ? razorpayPaymentId : null,
+      razorpay_order_id:
+        paymentMethod === "razorpay" ? razorpay_order_id : null,
     });
 
     await order.save();
 
     // Cart cleanup
-    if (mode === 'buy-now') {
+    if (mode === "buy-now") {
       if (cart) {
-        const cartItemIndex = cart.items.findIndex(i => i.productId.toString() === productId);
+        const cartItemIndex = cart.items.findIndex(
+          (i) => i.productId.toString() === productId
+        );
         if (cartItemIndex !== -1) {
           const cartItem = cart.items[cartItemIndex];
           const cartQty = Number(cartItem.quantity);
@@ -232,17 +253,48 @@ router.post('/', protect, async (req, res) => {
       }
     }
 
-    res.status(201).json({
-      message: 'Order created successfully',
-      orderId: order._id,
-      shippingAddress: order.shippingAddress
-    });
+    // === 📧 Send Order Confirmation Mail ===
+    const itemsListHtml = items
+      .map(
+        (item) =>
+          `<li>Product: ${item.productId} | Quantity: ${item.quantity}</li>`
+      )
+      .join("");
 
+    await sendMail(
+      user.email,
+      "Your Order Confirmation",
+      `
+        <h2>Hi ${user.name},</h2>
+        <p>Thank you for your order. Here are the details:</p>
+        <ul>
+          ${itemsListHtml}
+        </ul>
+        <p><b>Total:</b> ₹${total}</p>
+        <p>We will ship your order to:</p>
+        <p>
+          ${shippingAddress.fullName}, <br/>
+          ${shippingAddress.street}, ${shippingAddress.city}, <br/>
+          ${shippingAddress.state} - ${shippingAddress.postalCode}, ${shippingAddress.country}
+        </p>
+        <br/>
+        <p>Thanks for shopping with us!</p>
+      `
+    );
+
+    res.status(201).json({
+      message: "Order created successfully & email sent",
+      orderId: order._id,
+      shippingAddress: order.shippingAddress,
+    });
   } catch (error) {
-    console.error('Order creation error:', error);
-    res.status(500).json({ message: 'Server error during order creation' });
+    console.error("Order creation error:", error);
+    res.status(500).json({ message: "Server error during order creation" });
   }
 });
+
+module.exports = router;
+
 
 router.get('/', protect, async (req, res) => {
   const orders = await Order.find({ user: req.user._id }).populate('items.productId').sort({ createdAt: -1 });

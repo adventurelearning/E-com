@@ -4,6 +4,7 @@ const mongoose = require("mongoose");
 const morgan = require("morgan");
 const multer = require("multer");
 const cors = require("cors");
+const nodemailer = require('nodemailer');
 const connectDB = require("./config/db");
 const errorHandler = require("./utils/errorHandler").errorHandler;
 // const { errorHandler } = require('./middlewares/error');
@@ -31,6 +32,9 @@ const Terms_Con=require('./routes/TermsConditionRoute.js')
 const refundpolicy=require('./routes/refundPolicyRoutes.js')
 const customerservice=require('./routes/custerRoutes.js')
 const whatsnew=require('./routes/whatsnewRoutes.js')
+const attribute=require('./routes/attributesRoute.js');
+const AttributeFamily = require('./routes/attributeFamRoute.js');
+
 const dashboardRoutes = require('./routes/dashboard');
 // Initialize Express app
 const app = express();
@@ -58,7 +62,7 @@ app.use(cors());
 app.use(express.json());
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
-const productRoutes = require("./routes/productRoutes");
+const productRoutes = require("./routes/productRoutes.js");
 const BannerRoutes = require("./routes/Banner");
 const AdminUserRoutes = require("./routes/adminRoutes");
 const SubBannerRoutes = require("./routes/SubBannerRoutes");
@@ -101,14 +105,49 @@ app.use("/api/Terms_Con",Terms_Con);
 app.use("/api/refundpolicy",refundpolicy);
 app.use("/api/customer_service",customerservice);
 app.use("/api/whatsnew",whatsnew);
-app.use('/api/dashboard', dashboardRoutes);
-
+app.use('/api/attributes',attribute);
+app.use('/api/attribute-families',AttributeFamily);
 app.get("/Hlo",(req,res)=>{
   res.send("Hello from /ll");
 })
+app.use('/api/dashboard', dashboardRoutes);
+
 // Error handling middleware
 app.use(errorHandler);
 
+// Debug: Check if env vars are loaded
+console.log('Checking env vars - USER:', process.env.EMAIL_USER ? 'SET' : 'MISSING');
+console.log('Checking env vars - PASS:', process.env.EMAIL_PASS ? 'SET' : 'MISSING');
+
+// Use hardcoded values if env vars aren't working
+const emailUser = process.env.EMAIL_USER || 'adventure.webapp@gmail.com';
+const emailPass = process.env.EMAIL_PASS || 'ampbpearilcejbbg';
+
+
+const transporter = nodemailer.createTransport({
+  service: 'gmail',
+  port: 535,
+  secure: false,
+  auth: {
+    user: emailUser,
+    pass: emailPass
+  }
+});
+
+const mailOptions = {
+  from: emailUser,
+  to: 'maniadventuretech@gmail.com',
+  subject: 'Test Email - Fixed',
+  text: 'This should work now!'
+};
+
+transporter.sendMail(mailOptions, (error, info) => {
+  if (error) {
+    console.error('❌ Final Error:', error);
+  } else {
+    console.log('✅ Success! Email sent:', info.response);
+  }
+});
 // Server
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {

@@ -44,6 +44,10 @@ import Terms_Con from './pages/cms/Terms_Con';
 import RefundPolicy from './pages/cms/RefundPolicy';
 import Customer_Service from './pages/cms/Customer_Service';
 import Whats_new from './pages/cms/Whats_new';
+import AttributeManager from './pages/Product/Atribute/AttributeManager';
+import AttributeFamilies from './pages/Product/Atribute/AttributeFamilies';
+import AttributeFamilyForm from './pages/Product/Atribute/AttributeFamilyCreate';
+import CategoryManager from './pages/Product/Atribute/CategoryManager';
 
 function AppContent() {
   const [sidebarOpen, setSidebarOpen] = useState(true);
@@ -84,6 +88,7 @@ function AppContent() {
 
   // return (<AdvancedImage cldImg={img}/>);
   // };
+
 
   // Prevent body scrolling when sidebar is open on mobile
   useEffect(() => {
@@ -316,7 +321,35 @@ function AppContent() {
                 <AdminFooter />
               </ProtectedRoute>
             } />
+            <Route path="/attributes" element={
+              <ProtectedRoute requiredPermission="product">
+                <AttributeManager />
+              </ProtectedRoute>
+            } />
 
+            <Route path="/attributeFam" element={
+              <ProtectedRoute requiredPermission="product">
+                <AttributeFamilyForm />
+              </ProtectedRoute>
+            } />
+
+              <Route path="/attribute-families" element={
+              <ProtectedRoute requiredPermission="product">
+                <AttributeFamilies />
+              </ProtectedRoute>
+            } />
+
+             <Route path="/attributeFam/:id" element={
+              <ProtectedRoute requiredPermission="product">
+                <AttributeFamilyForm />
+              </ProtectedRoute>
+            } />
+
+             <Route path="/categories" element={
+              <ProtectedRoute requiredPermission="product">
+                <CategoryManager />
+              </ProtectedRoute>
+            } />
             {/* Catch-all route */}
             <Route path="*" element={<NotFoundPage />} />
           </Routes>

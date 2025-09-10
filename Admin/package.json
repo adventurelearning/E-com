@@ -19,6 +19,7 @@
     "@mui/material": "^7.3.2",
     "@mui/x-data-grid": "^8.5.2",
     "@tinymce/tinymce-react": "^6.3.0",
+    "antd": "^5.27.3",
     "axios": "^1.10.0",
     "bootstrap": "^5.3.7",
     "chart.js": "^4.5.0",
