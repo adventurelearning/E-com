@@ -45,6 +45,10 @@ import Terms_Con from './pages/cms/Terms_Con';
 import RefundPolicy from './pages/cms/RefundPolicy';
 import Customer_Service from './pages/cms/Customer_Service';
 import Whats_new from './pages/cms/Whats_new';
+import AttributeManager from './pages/Product/Atribute/AttributeManager';
+import AttributeFamilies from './pages/Product/Atribute/AttributeFamilies';
+import AttributeFamilyForm from './pages/Product/Atribute/AttributeFamilyCreate';
+import CategoryManager from './pages/Product/Atribute/CategoryManager';
 function AppContent() {
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const location = useLocation();
@@ -73,17 +77,17 @@ function AppContent() {
     setSidebarOpen(!sidebarOpen);
   };
 
-    const cld = new Cloudinary({ cloud: { cloudName: 'dsjpkktkj' } });
-  
+  const cld = new Cloudinary({ cloud: { cloudName: 'dsjpkktkj' } });
+
   // Use this sample image or upload your own via the Media Explorer
   const img = cld
-        .image('cld-sample-5')
-        .format('auto') // Optimize delivery by resizing and applying auto-format and auto-quality
-        .quality('auto')
-        .resize(auto().gravity(autoGravity()).width(500).height(500)); // Transform the image: auto-crop to square aspect_ratio
+    .image('cld-sample-5')
+    .format('auto') // Optimize delivery by resizing and applying auto-format and auto-quality
+    .quality('auto')
+    .resize(auto().gravity(autoGravity()).width(500).height(500)); // Transform the image: auto-crop to square aspect_ratio
 
   // return (<AdvancedImage cldImg={img}/>);
-// };
+  // };
 
   return (
     <div style={{ display: 'flex' }}>
@@ -232,7 +236,7 @@ function AppContent() {
               </ProtectedRoute>
             } />
 
-             <Route path="/Settings" element={
+            <Route path="/Settings" element={
               <ProtectedRoute requiredPermission="Settings">
                 <Settings />
               </ProtectedRoute>
@@ -243,44 +247,44 @@ function AppContent() {
                 <ReturnPolicy />
               </ProtectedRoute>
             } />
-                <Route path="/privacy-policy" element={
+            <Route path="/privacy-policy" element={
               <ProtectedRoute requiredPermission="Suplier">
                 <PrivacyPolicy />
               </ProtectedRoute>
             } />
-             <Route path="/shipping-policy" element={
+            <Route path="/shipping-policy" element={
               <ProtectedRoute requiredPermission="Suplier">
                 <ShippingPolicy />
               </ProtectedRoute>
             } />
-              <Route path="/payment-policy" element={
+            <Route path="/payment-policy" element={
               <ProtectedRoute requiredPermission="Suplier">
                 <PaymentPolicy />
               </ProtectedRoute>
             } />
 
-             <Route path="/terms-conditions" element={
+            <Route path="/terms-conditions" element={
               <ProtectedRoute requiredPermission="Suplier">
                 <Terms_Con />
               </ProtectedRoute>
             } />
 
- <Route path="/refund-policy" element={
+            <Route path="/refund-policy" element={
               <ProtectedRoute requiredPermission="Suplier">
                 <RefundPolicy />
               </ProtectedRoute>
             } />
- <Route path="/customer-service" element={
+            <Route path="/customer-service" element={
               <ProtectedRoute requiredPermission="Suplier">
                 <Customer_Service />
               </ProtectedRoute>
             } />
- <Route path="/whats-new" element={
+            <Route path="/whats-new" element={
               <ProtectedRoute requiredPermission="Suplier">
                 <Whats_new />
               </ProtectedRoute>
             } />
-              <Route path="/Theme" element={
+            <Route path="/Theme" element={
               <ProtectedRoute requiredPermission="Theme">
                 <ThemePage />
               </ProtectedRoute>
@@ -292,12 +296,40 @@ function AppContent() {
               </ProtectedRoute>
             } />
 
-             <Route path="/footer" element={
+            <Route path="/footer" element={
               <ProtectedRoute requiredPermission="Footer">
                 <AdminFooter />
               </ProtectedRoute>
             } />
+            <Route path="/attributes" element={
+              <ProtectedRoute requiredPermission="product">
+                <AttributeManager />
+              </ProtectedRoute>
+            } />
 
+            <Route path="/attributeFam" element={
+              <ProtectedRoute requiredPermission="product">
+                <AttributeFamilyForm />
+              </ProtectedRoute>
+            } />
+
+              <Route path="/attribute-families" element={
+              <ProtectedRoute requiredPermission="product">
+                <AttributeFamilies />
+              </ProtectedRoute>
+            } />
+
+             <Route path="/attributeFam/:id" element={
+              <ProtectedRoute requiredPermission="product">
+                <AttributeFamilyForm />
+              </ProtectedRoute>
+            } />
+
+             <Route path="/categories" element={
+              <ProtectedRoute requiredPermission="product">
+                <CategoryManager />
+              </ProtectedRoute>
+            } />
             {/* Catch-all route */}
             <Route path="*" element={<NotFoundPage />} />
           </Routes>

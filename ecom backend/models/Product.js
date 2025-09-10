@@ -1,141 +1,172 @@
-// models/Product.js
 const mongoose = require('mongoose');
 
 const productSchema = new mongoose.Schema({
+  // Basic identification
+  sku: {
+    type: String,
+    required: true,
+    unique: true,
+    trim: true
+  },
+
   name: {
     type: String,
-    required: [true, 'Product name is required'],
-    trim: true,
-    maxlength: [100, 'Product name cannot exceed 100 characters']
+    required: true,
+    trim: true
   },
   description: {
     type: String,
-    required: [true, 'Product description is required'],
-    maxlength: [5000, 'Description cannot exceed 5000 characters'] // Increased character limit
+    required: true
   },
+  
+  // Pricing
   originalPrice: {
     type: Number,
-    required: [true, 'Original price is required'],
-    min: [0.01, 'Price must be at least 0.01']
+    required: true,
+    min: 0
   },
   discountPrice: {
     type: Number,
-    min: [0.01, 'Discount price must be at least 0.01'],
+    min: 0,
     default: 0
   },
   discountPercent: {
     type: Number,
-    min: [0, 'Discount percent must be >= 0'],
-    max: [100, 'Discount percent must be <= 100'],
+    min: 0,
+    max: 100,
     default: 0
   },
   specialPrice: {
     type: Number,
-    min: [0.01, 'Special price must be at least 0.01'],
+    min: 0,
     default: 0
   },
   specialPriceStart: {
-    type: Date,
-    default: null
+    type: Date
   },
   specialPriceEnd: {
-    type: Date,
-    default: null
+    type: Date
   },
+  
+  // Categorization
   category: {
     type: String,
-    required: [true, 'Product category is required']
+    required: true
   },
   subcategory: {
     type: String,
-    required: [true, 'Product subcategory is required']
+    required: true
   },
   brand: {
     type: String,
-    required: [true, 'Brand name is required'],
-    trim: true
+    required: true
   },
-  images: {
-    type: [String], // Array of image URLs
-    default: [],
+
+  
+  // Inventory
+  stock: {
+    type: Number,
+    required: true,
+    min: 0,
+    default: 0
+  },
+  
+  // Attribute family reference
+  attributeFamily: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'AttributeFamily',
+    // required: true
+  },
+  
+  // Dynamic attributes - stored as a nested structure
+  attributes: {
+    type: Map,
+    of: mongoose.Schema.Types.Mixed,
+    default: {}
+  },
+  
+  // Grouping
+  groupId: {
+    type: String,
+    index: true
+  },
+  
+  // Media
+  images: [{
+    type: String,
+    required: true,
     validate: {
-      validator: function (v) {
+      validator: function(v) {
         return v.length > 0;
       },
       message: 'At least one image is required'
     }
+  }],
+  
+  // Meta details for SEO
+  metaTitle: {
+    type: String,
+    trim: true
   },
-  colors: {
-    type: [String], // e.g., ["Red", "Blue", "Black"]
-    default: []
+  metaKeywords: {
+    type: String,
+    trim: true
   },
-  sizeChart: {
-    type: [
-      {
-        label: { type: String }, // e.g., "M", "28", "XL"
-        stock: { type: Number, min: 0 }
-
-      }
-    ],
-    default: []
+  metaDescription: {
+    type: String,
+    trim: true
   },
-  stock: {
-    type: Number,
-    required: [true, 'Total stock quantity is required'],
-    min: [0, 'Stock cannot be negative'],
-    default: 0
-  },
+  
+  // References
   addedBy: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'AdminUser',
-    // required: true
-  },
-  specifications: [{
-    key: { type: String, required: true },
-    value: { type: String, required: true }
-  }],
-  featureDescriptions: [{
-    title: { type: String },
-    description: { type: String, required: true },
-    image: { type: String } // URL for feature image
-  }],
-  averageRating: {
-    type: Number,
-    default: 0,
-    min: 0,
-    max: 5
+    ref: 'AdminUser'
   },
   reviews: [{
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Review'
   }],
-  ratingAttributes: {
+    ratingAttributes: {
     type: [String],
     default: ['Quality', 'Color', 'Design', 'Size']
   },
-  groupId: {
-    type: String,
-    index: true
+  // Metadata
+  averageRating: {
+    type: Number,
+    default: 0,
+    min: 0,
+    max: 5
   }
-}, { timestamps: true });
+}, { 
+  timestamps: true,
+  toJSON: { virtuals: true },
+  toObject: { virtuals: true }
+});
 
-// Pre-save hook to calculate discount percent
-productSchema.pre('save', function (next) {
-  if (this.isModified('originalPrice') || this.isModified('discountPrice')) {
-    if (this.discountPrice > 0 && this.originalPrice > this.discountPrice) {
-      this.discountPercent = Math.round(
-        ((this.originalPrice - this.discountPrice) / this.originalPrice) * 100
-      );
-    } else {
-      this.discountPercent = 0;
-    }
+// Virtual for checking if special price is active
+productSchema.virtual('isSpecialPriceActive').get(function() {
+  const now = new Date();
+  return this.specialPrice > 0 && 
+         this.specialPriceStart <= now && 
+         this.specialPriceEnd >= now;
+});
+
+// Indexes
+productSchema.index({ attributeFamily: 1 });
+productSchema.index({ sku: 1 });
+productSchema.index({ groupId: 1 });
+productSchema.index({ category: 1, subcategory: 1 });
+productSchema.index({ brand: 1 });
+productSchema.index({ createdAt: -1 });
+
+// Pre-save middleware to calculate discount percent
+productSchema.pre('save', function(next) {
+  if (this.originalPrice > 0 && this.discountPrice > 0 && this.discountPrice < this.originalPrice) {
+    this.discountPercent = Math.round(((this.originalPrice - this.discountPrice) / this.originalPrice) * 100);
+  } else {
+    this.discountPercent = 0;
   }
   next();
 });
-
-// Indexes for better query performance
-productSchema.index({ category: 1, subcategory: 1 });
-productSchema.index({ createdAt: -1 });
-productSchema.index({ brand: 1 });
 
 module.exports = mongoose.model('Product', productSchema);

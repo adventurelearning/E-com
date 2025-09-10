@@ -30,6 +30,7 @@ const CategoryProduct = () => {
   // Extract unique brands and subcategories from products
   const [brands, setBrands] = useState([]);
   const [subcategories, setSubcategories] = useState([]);
+console.log("Products in context:", product);
 
   const {
     addToWishlist,
