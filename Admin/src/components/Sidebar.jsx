@@ -119,6 +119,20 @@ const Sidebar = ({ open, toggleSidebar }) => {
           path: '/products',
           visible: true,
         },
+          {
+          title: 'Categories',
+          path: '/categories',
+          visible: true,
+        }, 
+          {
+          title: 'Attribute',
+          path: '/attributes',
+          visible: true,
+        },  {
+          title: 'Attribute Families',
+          path: '/attribute-families',
+          visible: true,
+        },
       ],
     },
     {

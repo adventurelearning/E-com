@@ -254,9 +254,9 @@ const BuyNow = () => {
         headers: { Authorization: `Bearer ${token}` }
       });
 
-      toast.success('Order placed successfully!');
-      navigate('/orders', { 
-        state: { 
+      toast.success('Excellent! Your order has been placed successfully! An email has been sent to you.');
+      navigate('/orders', {
+        state: {
           orderId: response.data.orderId,
           paymentMethod: paymentMethod 
         } 
