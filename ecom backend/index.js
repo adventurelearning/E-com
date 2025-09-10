@@ -32,6 +32,9 @@ const Terms_Con=require('./routes/TermsConditionRoute.js')
 const refundpolicy=require('./routes/refundPolicyRoutes.js')
 const customerservice=require('./routes/custerRoutes.js')
 const whatsnew=require('./routes/whatsnewRoutes.js')
+const attribute=require('./routes/attributesRoute.js');
+const AttributeFamily = require('./routes/attributeFamRoute.js');
+
 const dashboardRoutes = require('./routes/dashboard');
 // Initialize Express app
 const app = express();
@@ -59,7 +62,7 @@ app.use(cors());
 app.use(express.json());
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
-const productRoutes = require("./routes/productRoutes");
+const productRoutes = require("./routes/productRoutes.js");
 const BannerRoutes = require("./routes/Banner");
 const AdminUserRoutes = require("./routes/adminRoutes");
 const SubBannerRoutes = require("./routes/SubBannerRoutes");
@@ -102,6 +105,11 @@ app.use("/api/Terms_Con",Terms_Con);
 app.use("/api/refundpolicy",refundpolicy);
 app.use("/api/customer_service",customerservice);
 app.use("/api/whatsnew",whatsnew);
+app.use('/api/attributes',attribute);
+app.use('/api/attribute-families',AttributeFamily);
+app.get("/Hlo",(req,res)=>{
+  res.send("Hello from /ll");
+})
 app.use('/api/dashboard', dashboardRoutes);
 
 // Error handling middleware

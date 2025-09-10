@@ -5,39 +5,49 @@ const attributeSchema = new mongoose.Schema({
     type: String,
     required: true,
     unique: true,
-    trim: true
+    trim: true,
+    uppercase: true,
+    match: [/^[A-Z0-9_]+$/, 'Attribute code must contain only uppercase letters, numbers and underscores']
   },
-  name: {
+  label: {
     type: String,
     required: true,
-    trim: true
+    trim: true,
+    maxlength: 100
   },
   type: {
     type: String,
-    enum: ['text', 'number', 'boolean', 'select', 'multiselect', 'date', 'textarea'],
-    default: 'text'
-  },
-  isRequired: {
-    type: Boolean,
-    default: false
-  },
-  isFilterable: {
-    type: Boolean,
-    default: false
-  },
-  isComparable: {
-    type: Boolean,
-    default: false
+    required: true,
+    enum: [
+      'text', 'textarea', 'price', 'boolean', 
+      'select', 'multiselect', 'datetime', 'date',
+      'image', 'file', 'color', 'MCE Editer','keyvalue'
+    ]
   },
   options: [{
     value: String,
-    label: String
+    label: String,
+    sortOrder: Number
   }],
   validation: {
-    min: Number,
-    max: Number,
-    pattern: String
+    isRequired: { type: Boolean, default: false },
+    minLength: Number,
+    maxLength: Number,
+    minValue: Number,
+    maxValue: Number,
+    regex: String
+  },
+  configuration: {
+    isFilterable: { type: Boolean, default: false },
+    isComparable: { type: Boolean, default: false },
+    isVisible: { type: Boolean, default: true },
+    isSearchable: { type: Boolean, default: false },
+    sortOrder: { type: Number, default: 0 }
   }
 }, { timestamps: true });
+
+// Index for better query performance
+attributeSchema.index({ code: 1 });
+attributeSchema.index({ type: 1 });
 
 module.exports = mongoose.model('Attribute', attributeSchema);

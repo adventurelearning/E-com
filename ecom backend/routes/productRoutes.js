@@ -1,215 +1,128 @@
-// routes/productRoutes.js
+// routes/admin/products.js
 const express = require('express');
 const router = express.Router();
 const Product = require('../models/Product');
+const AttributeFamily = require('../models/AttributeFamily');
 const { protect, requireRole } = require('../middlewares/authMiddleware');
 
-// @desc    Get all products
-// @route   GET /api/products
-// @access  Public
+// Get all products with pagination
 router.get('/', async (req, res) => {
   try {
-    const products = await Product.find().sort({ createdAt: -1 });
-    res.json(products);
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: 'Server Error' });
+    const { page = 1, limit = 10, family, category } = req.query;
+    
+    const query = {};
+    if (family) query.attributeFamily = family;
+    if (category) query.categories = category;
+    
+    const products = await Product.find(query)
+      .populate('attributeFamily')
+      .limit(limit * 1)
+      .skip((page - 1) * limit)
+      .sort({ createdAt: -1 });
+    
+    const count = await Product.countDocuments(query);
+    
+    res.json({
+      products,
+      totalPages: Math.ceil(count / limit),
+      currentPage: page,
+      total: count
+    });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
   }
 });
 
-// @desc    Get single product
-// @route   GET /api/products/:id
-// @access  Public
+// Get product by ID
 router.get('/:id', async (req, res) => {
   try {
     const product = await Product.findById(req.params.id)
       .populate('addedBy', 'name email')
-      .populate('reviews');
-      
-    if (!product) return res.status(404).json({ message: 'Product not found' });
+  .populate({
+    path: 'attributeFamily',
+    populate: [
+      {
+        path: 'attributes.attribute', // populate Attribute model
+        // select: 'name code type inputType options' // choose fields you need
+      }
+    ]
+  })  .populate('reviews');
+    
+    if (!product) {
+      return res.status(404).json({ message: 'Product not found' });
+    }
     
     res.json(product);
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: 'Server Error' });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
   }
 });
 
-// @desc    Create a product
-// @route   POST /api/products
-// @access  Private/Admin
+// Create a new product
 router.post('/', protect, requireRole('admin'), async (req, res) => {
   try {
-    const {
-      name,
-      description,
-      originalPrice,
-      discountPrice,
-      category,
-      subcategory,
-      brand,
-      images,
-      colors,
-      sizeChart,
-      stock,
-      specifications,
-      featureDescriptions,
-      ratingAttributes,
-      groupId,
-      specialPrice,
-      specialPriceStart,
-      specialPriceEnd
-    } = req.body;
-console.log(req.body);
-
-    // Calculate discount percent
-    let discountPercent = 0;
-    if (discountPrice > 0 && originalPrice > discountPrice) {
-      discountPercent = Math.round(
-        ((originalPrice - discountPrice) / originalPrice) * 100
-      );
+    // Validate attribute family exists
+    const family = await AttributeFamily.findById(req.body.attributeFamily);
+    if (!family) {
+      return res.status(400).json({ message: 'Invalid attribute family' });
     }
-
-    const product = new Product({
-      name,
-      description,
-      originalPrice,
-      discountPrice,
-      discountPercent,
-      category,
-      subcategory,
-      brand,
-      images: images || [],
-      colors: colors || [],
-      sizeChart: sizeChart || [],
-      stock,
-      addedBy: req.user._id,
-      specifications,
-      featureDescriptions,
-      ratingAttributes,
-      groupId,
-      specialPrice,
-      specialPriceStart: specialPriceStart ? new Date(specialPriceStart) : null,
-      specialPriceEnd: specialPriceEnd ? new Date(specialPriceEnd) : null
-    });
-
-    const createdProduct = await product.save();
-    res.status(201).json(createdProduct);
-  } catch (err) {
-    console.error(err);
-    if (err.name === 'ValidationError') {
-      const messages = Object.values(err.errors).map(val => val.message);
-      return res.status(400).json({ message: messages.join(', ') });
-    }
-    res.status(500).json({ message: 'Server Error' });
+    
+    // Create product with all data from request
+    const product = new Product(req.body);
+    const savedProduct = await product.save();
+    
+    // Return populated product data
+    const populatedProduct = await Product.findById(savedProduct._id)
+      .populate('attributeFamily');
+    
+    res.status(201).json(populatedProduct);
+  } catch (error) {
+    console.log("Error creating product:", error);
+    res.status(400).json({ message: error.message });
   }
 });
 
-// @desc    Update a product
-// @route   PUT /api/products/:id
-// @access  Private/Admin
+// Update product
 router.put('/:id', protect, requireRole('admin'), async (req, res) => {
   try {
-    const {
-      name,
-      description,
-      originalPrice,
-      discountPrice,
-      category,
-      subcategory,
-      brand,
-      images,
-      colors,
-      sizeChart,
-      stock,
-      specifications,
-      featureDescriptions,
-      ratingAttributes,
-      groupId,
-      specialPrice,
-      specialPriceStart,
-      specialPriceEnd
-    } = req.body;
-console.log(req.body.specialPrice);
-
-    const product = await Product.findById(req.params.id);
-    if (!product) return res.status(404).json({ message: 'Product not found' });
-
-    // Calculate discount percent if prices change
-    let discountPercent = product.discountPercent;
-    if (originalPrice !== undefined || discountPrice !== undefined) {
-      const orig = originalPrice !== undefined ? originalPrice : product.originalPrice;
-      const disc = discountPrice !== undefined ? discountPrice : product.discountPrice;
-      
-      if (disc > 0 && orig > disc) {
-        discountPercent = Math.round(((orig - disc) / orig) * 100);
-      } else {
-        discountPercent = 0;
-      }
-    }
-
-    product.name = name || product.name;
-    product.description = description || product.description;
-    product.originalPrice = originalPrice !== undefined ? originalPrice : product.originalPrice;
-    product.discountPrice = discountPrice !== undefined ? discountPrice : product.discountPrice;
-    product.discountPercent = discountPercent;
-    product.category = category || product.category;
-    product.subcategory = subcategory || product.subcategory;
-    product.brand = brand || product.brand;
-    product.images = images || product.images;
-    product.colors = colors || product.colors;
-    
-    if (sizeChart) {
-      product.sizeChart = sizeChart.map(sz => ({
-        label: sz.label,
-        stock: sz.stock
-      }));
+    const product = await Product.findByIdAndUpdate(
+      req.params.id,
+      req.body,
+      { new: true, runValidators: true }
+    )
+      .populate('attributeFamily')    
+    if (!product) {
+      return res.status(404).json({ message: 'Product not found' });
     }
     
-    product.stock = stock !== undefined ? stock : product.stock;
-    product.specifications = specifications || product.specifications;
-    product.featureDescriptions = featureDescriptions || product.featureDescriptions;
-    product.ratingAttributes = ratingAttributes || product.ratingAttributes;
-    product.groupId = groupId || product.groupId;
-    product.specialPrice = specialPrice !== undefined ? specialPrice : product.specialPrice;
-    product.specialPriceStart = specialPriceStart ? new Date(specialPriceStart) : product.specialPriceStart;
-    product.specialPriceEnd = specialPriceEnd ? new Date(specialPriceEnd) : product.specialPriceEnd;
-
-    const updatedProduct = await product.save();
-    res.json(updatedProduct);
-  } catch (err) {
-    console.error(err);
-    if (err.name === 'ValidationError') {
-      const messages = Object.values(err.errors).map(val => val.message);
-      return res.status(400).json({ message: messages.join(', ') });
-    }
-    res.status(500).json({ message: 'Server Error' });
+    res.json(product);
+  } catch (error) {
+    res.status(400).json({ message: error.message });
   }
 });
 
-// @desc    Delete a product
-// @route   DELETE /api/products/:id
-// @access  Private/Admin
+// Delete product
 router.delete('/:id', protect, requireRole('admin'), async (req, res) => {
   try {
-    const product = await Product.findById(req.params.id);
-    if (!product) return res.status(404).json({ message: 'Product not found' });
-
-    await product.deleteOne();
-    res.json({ message: 'Product removed' });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: 'Server Error' });
+    const product = await Product.findByIdAndDelete(req.params.id);
+    
+    if (!product) {
+      return res.status(404).json({ message: 'Product not found' });
+    }
+    
+    res.json({ message: 'Product deleted successfully' });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
   }
 });
 
-// GET /products/group/:groupId
+// Get product variants by group ID
 router.get('/group/:groupId', async (req, res) => {
-  const { groupId } = req.params;
   try {
+    const { groupId } = req.params;
     const variants = await Product.find({ groupId });
     res.json(variants);
-  } catch (err) {
+  } catch (error) {
     res.status(500).json({ error: 'Server error' });
   }
 });
