@@ -80,6 +80,8 @@ router.post('/addresses', protect, async (req, res) => {
   }
 });
 
+
+
 // DELETE /api/users/addresses/:addressId
 router.delete('/addresses/:addressId', protect, async (req, res) => {
   try {

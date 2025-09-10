@@ -474,26 +474,26 @@ const Orders = () => {
               <CardContent sx={{ py: 1, '&:last-child': { pb: 1 } }}>
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap' }}>
                   <Box sx={{ flex: 1 }}>
-                    <Typography variant="body2" color="text.secondary" sx={{ display: 'flex', alignItems: 'center', mb: 0.5 }}>
+                    <Typography variant="body2" color="text.secondary" sx={{ display: 'flex', alignItems: 'center', mb: 0.5, fontSize: '0.75rem' }}>
                       {event.icon}
                       <Box component="span" sx={{ ml: 0.5 }}>
                         {dayjs(event.date).format('MMM D, YYYY h:mm A')}
                       </Box>
                     </Typography>
-                    <Typography variant="body2" fontWeight="600" gutterBottom>
+                    <Typography variant="body2" fontWeight="600" gutterBottom sx={{ fontSize: '0.875rem' }}>
                       {event.title}
                     </Typography>
-                    <Typography variant="body2" color="text.secondary">
+                    <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.75rem' }}>
                       {event.description}
                     </Typography>
                     {event.changedBy && (
-                      <Typography variant="caption" color="text.secondary" sx={{ display: 'flex', alignItems: 'center', mt: 0.5 }}>
+                      <Typography variant="caption" color="text.secondary" sx={{ display: 'flex', alignItems: 'center', mt: 0.5, fontSize: '0.7rem' }}>
                         <Person sx={{ fontSize: 14, mr: 0.5 }} />
                         Updated by: {event.changedBy}
                       </Typography>
                     )}
                     {event.trackingId && (
-                      <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 0.5 }}>
+                      <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 0.5, fontSize: '0.7rem' }}>
                         Tracking: {event.trackingCourier} - {event.trackingId}
                       </Typography>
                     )}
@@ -504,7 +504,7 @@ const Orders = () => {
                       size="small" 
                       color="info" 
                       variant="outlined"
-                      sx={{ fontWeight: 500, ml: 1 }}
+                      sx={{ fontWeight: 500, ml: 1, fontSize: '0.7rem' }}
                     />
                   )}
                 </Box>
@@ -518,7 +518,11 @@ const Orders = () => {
 
   // Responsive table cell rendering
   const renderTableCell = (content, align = 'left', sx = {}) => (
-    <TableCell align={align} sx={{ ...sx, py: isSmallScreen ? 1 : 2 }}>
+    <TableCell align={align} sx={{ 
+      ...sx, 
+      py: isSmallScreen ? 1 : 2,
+      fontSize: isExtraSmallScreen ? '0.7rem' : (isSmallScreen ? '0.8rem' : '1rem')
+    }}>
       {content}
     </TableCell>
   );
@@ -560,7 +564,7 @@ const Orders = () => {
                  gap={isSmallScreen ? 2 : 0}>
               
               <FormControl size="small" sx={{ minWidth: 180, mr: isSmallScreen ? 0 : 2, mb: isSmallScreen ? 2 : 0, width: isSmallScreen ? '100%' : 'auto' }}>
-                <InputLabel>Filter by Status</InputLabel>
+                <InputLabel sx={{ fontSize: isExtraSmallScreen ? '0.8rem' : '1rem' }}>Filter by Status</InputLabel>
                 <Select
                   value={statusFilter}
                   onChange={handleStatusFilterChange}
@@ -568,16 +572,17 @@ const Orders = () => {
                   sx={{
                     '& .MuiSelect-select': {
                       color: purpleTheme.primaryDark,
-                      fontWeight: 500
+                      fontWeight: 500,
+                      fontSize: isExtraSmallScreen ? '0.8rem' : '0.9rem'
                     }
                   }}
                 >
-                  <MenuItem value="all">All Statuses</MenuItem>
-                  <MenuItem value="pending">Pending</MenuItem>
-                  <MenuItem value="processing">Processing</MenuItem>
-                  <MenuItem value="shipped">Shipped</MenuItem>
-                  <MenuItem value="delivered">Delivered</MenuItem>
-                  <MenuItem value="cancelled">Cancelled</MenuItem>
+                  <MenuItem value="all" sx={{ fontSize: isExtraSmallScreen ? '0.8rem' : '0.9rem' }}>All Statuses</MenuItem>
+                  <MenuItem value="pending" sx={{ fontSize: isExtraSmallScreen ? '0.8rem' : '0.9rem' }}>Pending</MenuItem>
+                  <MenuItem value="processing" sx={{ fontSize: isExtraSmallScreen ? '0.8rem' : '0.9rem' }}>Processing</MenuItem>
+                  <MenuItem value="shipped" sx={{ fontSize: isExtraSmallScreen ? '0.8rem' : '0.9rem' }}>Shipped</MenuItem>
+                  <MenuItem value="delivered" sx={{ fontSize: isExtraSmallScreen ? '0.8rem' : '0.9rem' }}>Delivered</MenuItem>
+                  <MenuItem value="cancelled" sx={{ fontSize: isExtraSmallScreen ? '0.8rem' : '0.9rem' }}>Cancelled</MenuItem>
                 </Select>
               </FormControl>
 
@@ -592,7 +597,7 @@ const Orders = () => {
                   width: isSmallScreen ? '100%' : 220,
                   '& .MuiOutlinedInput-root': {
                     borderRadius: 2,
-                    fontSize: '0.9rem',
+                    fontSize: isExtraSmallScreen ? '0.8rem' : '0.9rem',
                     backgroundColor: 'white'
                   }
                 }}
@@ -600,7 +605,7 @@ const Orders = () => {
 
               {!isExtraSmallScreen && (
                 <Box display="flex" alignItems="center" ml={isSmallScreen ? 0 : 2} mt={isSmallScreen ? 2 : 0}>
-                  <Typography variant="body2" sx={{ mr: 1, color: 'text.secondary' }}>
+                  <Typography variant="body2" sx={{ mr: 1, color: 'text.secondary', fontSize: isSmallScreen ? '0.8rem' : '0.9rem' }}>
                     Sort by:
                   </Typography>
                   <Chip
@@ -610,7 +615,7 @@ const Orders = () => {
                     color="primary"
                     size="small"
                     icon={getSortIcon('createdAt')}
-                    sx={{ mr: 1 }}
+                    sx={{ mr: 1, fontSize: isSmallScreen ? '0.7rem' : '0.8rem' }}
                   />
                   <Chip
                     label="Total"
@@ -619,7 +624,7 @@ const Orders = () => {
                     color="primary"
                     size="small"
                     icon={getSortIcon('total')}
-                    sx={{ mr: 1 }}
+                    sx={{ mr: 1, fontSize: isSmallScreen ? '0.7rem' : '0.8rem' }}
                   />
                   <Chip
                     label="Items"
@@ -628,6 +633,7 @@ const Orders = () => {
                     color="primary"
                     size="small"
                     icon={getSortIcon('items')}
+                    sx={{ fontSize: isSmallScreen ? '0.7rem' : '0.8rem' }}
                   />
                 </Box>
               )}
@@ -638,7 +644,7 @@ const Orders = () => {
             <Box display="flex" alignItems="center" sx={{ ml: isSmallScreen ? 0 : 'auto' }} mt={isSmallScreen ? 2 : 0}>
               {!isExtraSmallScreen && (
                 <>
-                  <Typography variant="body2" sx={{ mr: 1, color: purpleTheme.primaryDark }}>
+                  <Typography variant="body2" sx={{ mr: 1, color: purpleTheme.primaryDark, fontSize: isSmallScreen ? '0.8rem' : '0.9rem' }}>
                     Rows:
                   </Typography>
                   <Select
@@ -650,7 +656,7 @@ const Orders = () => {
                       mr: 2,
                       '& .MuiSelect-select': {
                         padding: '6px 32px 6px 12px',
-                        fontSize: '0.875rem',
+                        fontSize: isSmallScreen ? '0.8rem' : '0.875rem',
                         color: purpleTheme.primaryDark,
                         fontWeight: 500
                       }
@@ -659,20 +665,20 @@ const Orders = () => {
                       PaperProps: {
                         sx: {
                           '& .MuiMenuItem-root': {
-                            fontSize: '0.875rem'
+                            fontSize: isSmallScreen ? '0.8rem' : '0.875rem'
                           }
                         }
                       }
                     }}
                   >
-                    <MenuItem value={5}>5</MenuItem>
-                    <MenuItem value={10}>10</MenuItem>
-                    <MenuItem value={25}>25</MenuItem>
+                    <MenuItem value={5} sx={{ fontSize: isSmallScreen ? '0.8rem' : '0.875rem' }}>5</MenuItem>
+                    <MenuItem value={10} sx={{ fontSize: isSmallScreen ? '0.8rem' : '0.875rem' }}>10</MenuItem>
+                    <MenuItem value={25} sx={{ fontSize: isSmallScreen ? '0.8rem' : '0.875rem' }}>25</MenuItem>
                   </Select>
                 </>
               )}
 
-              <Typography variant="body2" sx={{ mr: 2, color: purpleTheme.primaryDark }}>
+              <Typography variant="body2" sx={{ mr: 2, color: purpleTheme.primaryDark, fontSize: isSmallScreen ? '0.8rem' : '0.9rem' }}>
                 {`${page * rowsPerPage + 1}-${Math.min(page * rowsPerPage + rowsPerPage, filteredOrders.length)} of ${filteredOrders.length}`}
               </Typography>
 
@@ -723,7 +729,7 @@ const Orders = () => {
         
         {isExtraSmallScreen && (
           <Box mt={2}>
-            <Typography variant="body2" sx={{ mr: 1, color: 'text.secondary', mb: 1 }}>
+            <Typography variant="body2" sx={{ mr: 1, color: 'text.secondary', mb: 1, fontSize: '0.8rem' }}>
               Sort by:
             </Typography>
             <Box display="flex" flexWrap="wrap" gap={1}>
@@ -734,6 +740,7 @@ const Orders = () => {
                 color="primary"
                 size="small"
                 icon={getSortIcon('createdAt')}
+                sx={{ fontSize: '0.7rem' }}
               />
               <Chip
                 label="Total"
@@ -742,6 +749,7 @@ const Orders = () => {
                 color="primary"
                 size="small"
                 icon={getSortIcon('total')}
+                sx={{ fontSize: '0.7rem' }}
               />
               <Chip
                 label="Items"
@@ -750,6 +758,7 @@ const Orders = () => {
                 color="primary"
                 size="small"
                 icon={getSortIcon('items')}
+                sx={{ fontSize: '0.7rem' }}
               />
             </Box>
           </Box>
@@ -772,7 +781,7 @@ const Orders = () => {
                   bgcolor: purpleTheme.primary,
                   '& th': {
                     fontWeight: 'bold !important',
-                    fontSize: isSmallScreen ? '0.875rem' : '1rem',
+                    fontSize: isExtraSmallScreen ? '0.7rem' : (isSmallScreen ? '0.8rem' : '1rem'),
                     py: isSmallScreen ? 1 : 2,
                     whiteSpace: 'nowrap'
                   }
@@ -800,7 +809,8 @@ const Orders = () => {
                           {renderTableCell(
                             <Typography variant="body2" sx={{
                               fontFamily: 'monospace',
-                              color: purpleTheme.primaryDark
+                              color: purpleTheme.primaryDark,
+                              fontSize: isExtraSmallScreen ? '0.7rem' : (isSmallScreen ? '0.8rem' : '0.9rem')
                             }}>
                               {index + 1}
                             </Typography>
@@ -809,7 +819,8 @@ const Orders = () => {
                           {renderTableCell(
                             <Typography variant="body2" sx={{
                               fontFamily: 'monospace',
-                              color: purpleTheme.primaryDark
+                              color: purpleTheme.primaryDark,
+                              fontSize: isExtraSmallScreen ? '0.7rem' : (isSmallScreen ? '0.8rem' : '0.9rem')
                             }}>
                               #{order._id.substring(order._id.length - 6).toUpperCase()}
                             </Typography>
@@ -819,23 +830,23 @@ const Orders = () => {
                             <Box display="flex" alignItems="center">
                               <Avatar sx={{
                                 bgcolor: purpleTheme.primary,
-                                width: 36,
-                                height: 36,
+                                width: isExtraSmallScreen ? 28 : 36,
+                                height: isExtraSmallScreen ? 28 : 36,
                                 mr: 2,
-                                fontSize: '1rem'
+                                fontSize: isExtraSmallScreen ? '0.8rem' : '1rem'
                               }}>
                                 {order.user?.name?.charAt(0) || 'C'}
                               </Avatar>
                               <Box>
-                                <Typography fontWeight="600" fontSize={isSmallScreen ? '0.875rem' : '1rem'}>
+                                <Typography fontWeight="600" sx={{ fontSize: isExtraSmallScreen ? '0.75rem' : (isSmallScreen ? '0.8rem' : '1rem') }}>
                                   {order.user?.name || 'Unknown'}
                                 </Typography>
-                                <Typography variant="body2" color="textSecondary" fontSize={isSmallScreen ? '0.75rem' : '0.875rem'}>
+                                <Typography variant="body2" color="textSecondary" sx={{ fontSize: isExtraSmallScreen ? '0.65rem' : (isSmallScreen ? '0.7rem' : '0.875rem') }}>
                                   {order.user?.email || 'No email'}
                                 </Typography>
                                 <Box display="flex" alignItems="center" mt={0.5}>
-                                  <LocationOn fontSize="small" color="action" sx={{ mr: 0.5 }} />
-                                  <Typography variant="caption" color="textSecondary">
+                                  <LocationOn fontSize="small" color="action" sx={{ mr: 0.5, fontSize: isExtraSmallScreen ? '0.8rem' : '1rem' }} />
+                                  <Typography variant="caption" color="textSecondary" sx={{ fontSize: isExtraSmallScreen ? '0.6rem' : (isSmallScreen ? '0.65rem' : '0.75rem') }}>
                                     {order.shippingAddress?.city || 'Unknown city'}
                                   </Typography>
                                 </Box>
@@ -845,10 +856,10 @@ const Orders = () => {
                           
                           {renderTableCell(
                             <Box display="flex" flexDirection="column">
-                              <Typography fontWeight="500" fontSize={isSmallScreen ? '0.875rem' : '1rem'}>
+                              <Typography fontWeight="500" sx={{ fontSize: isExtraSmallScreen ? '0.7rem' : (isSmallScreen ? '0.8rem' : '1rem') }}>
                                 {dayjs(order.createdAt).format('MMMD,YYYY')}
                               </Typography>
-                              <Typography variant="body2" color="textSecondary" fontSize={isSmallScreen ? '0.75rem' : '0.875rem'}>
+                              <Typography variant="body2" color="textSecondary" sx={{ fontSize: isExtraSmallScreen ? '0.6rem' : (isSmallScreen ? '0.7rem' : '0.875rem') }}>
                                 {dayjs(order.createdAt).fromNow()}
                               </Typography>
                             </Box>
@@ -856,8 +867,8 @@ const Orders = () => {
                           
                           {renderTableCell(
                             <Box display="flex" alignItems="center">
-                              <Payment fontSize="small" sx={{ mr: 1, color: purpleTheme.primary }} />
-                              <Typography variant="body2" fontWeight="500" fontSize={isSmallScreen ? '0.875rem' : '1rem'}>
+                              <Payment fontSize="small" sx={{ mr: 1, color: purpleTheme.primary, fontSize: isExtraSmallScreen ? '0.8rem' : '1rem' }} />
+                              <Typography variant="body2" fontWeight="500" sx={{ fontSize: isExtraSmallScreen ? '0.7rem' : (isSmallScreen ? '0.8rem' : '1rem') }}>
                                 {paymentMethods[order.paymentMethod] || order.paymentMethod}
                               </Typography>
                             </Box>
@@ -874,7 +885,7 @@ const Orders = () => {
                               sx={{
                                 '& .MuiBadge-badge': {
                                   fontWeight: 'bold',
-                                  fontSize: '0.75rem',
+                                  fontSize: isExtraSmallScreen ? '0.6rem' : '0.75rem',
                                   backgroundColor: purpleTheme.primary
                                 }
                               }}
@@ -883,7 +894,7 @@ const Orders = () => {
                           )}
                           
                           {renderTableCell(
-                            <Typography fontWeight="bold" color="primary" sx={{ fontSize: isSmallScreen ? '0.875rem' : '1.1rem' }}>
+                            <Typography fontWeight="bold" color="primary" sx={{ fontSize: isExtraSmallScreen ? '0.8rem' : (isSmallScreen ? '0.9rem' : '1.1rem') }}>
                               ${order.total}
                             </Typography>,
                             'right'
@@ -895,22 +906,22 @@ const Orders = () => {
                               label={order.status.charAt(0).toUpperCase() + order.status.slice(1)}
                               color={statusColors[order.status]}
                               size="small"
-                              sx={{ fontSize: isSmallScreen ? '0.75rem' : '0.875rem' }}
+                              sx={{ fontSize: isExtraSmallScreen ? '0.6rem' : (isSmallScreen ? '0.7rem' : '0.875rem') }}
                             />
                           )}
                           
                           {renderTableCell(
                             order.trackingId ? (
                               <Box>
-                                <Typography variant="body2" fontWeight="500">
+                                <Typography variant="body2" fontWeight="500" sx={{ fontSize: isExtraSmallScreen ? '0.7rem' : (isSmallScreen ? '0.8rem' : '0.9rem') }}>
                                   {order.trackingCourier}
                                 </Typography>
-                                <Typography variant="caption" color="textSecondary">
+                                <Typography variant="caption" color="textSecondary" sx={{ fontSize: isExtraSmallScreen ? '0.6rem' : (isSmallScreen ? '0.7rem' : '0.8rem') }}>
                                   {order.trackingId}
                                 </Typography>
                               </Box>
                             ) : (
-                              <Typography variant="caption" color="textSecondary">
+                              <Typography variant="caption" color="textSecondary" sx={{ fontSize: isExtraSmallScreen ? '0.6rem' : (isSmallScreen ? '0.7rem' : '0.8rem') }}>
                                 Not shipped yet
                               </Typography>
                             )
@@ -922,26 +933,26 @@ const Orders = () => {
                                 value={order.status}
                                 onChange={(e) => handleStatusSelect(order, e.target.value)}
                                 sx={{
-                                  minWidth: 120,
+                                  minWidth: isExtraSmallScreen ? 80 : 120,
                                   fontWeight: '500',
                                   '& .MuiSelect-select': {
                                     color: purpleTheme.primaryDark,
-                                    fontSize: isSmallScreen ? '0.75rem' : '0.875rem'
+                                    fontSize: isExtraSmallScreen ? '0.7rem' : (isSmallScreen ? '0.75rem' : '0.875rem')
                                   }
                                 }}
                                 // IconComponent={MoreVert}
                                 renderValue={(selected) => (
                                   <Box display="flex" alignItems="center">
-                                    <Edit fontSize="small" sx={{ mr: 1, color: purpleTheme.primary }} />
-                                    <span style={{ fontSize: isSmallScreen ? '0.75rem' : '0.875rem' }}>Update</span>
+                                    <Edit fontSize="small" sx={{ mr: 1, color: purpleTheme.primary, fontSize: isExtraSmallScreen ? '0.8rem' : '1rem' }} />
+                                    <span style={{ fontSize: isExtraSmallScreen ? '0.7rem' : (isSmallScreen ? '0.75rem' : '0.875rem') }}>Update</span>
                                   </Box>
                                 )}
                               >
-                                <MenuItem value="pending" sx={{ fontSize: isSmallScreen ? '0.75rem' : '0.875rem' }}>Pending</MenuItem>
-                                <MenuItem value="processing" sx={{ fontSize: isSmallScreen ? '0.75rem' : '0.875rem' }}>Processing</MenuItem>
-                                <MenuItem value="shipped" sx={{ fontSize: isSmallScreen ? '0.75rem' : '0.875rem' }}>Shipped</MenuItem>
-                                <MenuItem value="delivered" sx={{ fontSize: isSmallScreen ? '0.75rem' : '0.875rem' }}>Delivered</MenuItem>
-                                <MenuItem value="cancelled" sx={{ fontSize: isSmallScreen ? '0.75rem' : '0.875rem' }}>Cancelled</MenuItem>
+                                <MenuItem value="pending" sx={{ fontSize: isExtraSmallScreen ? '0.7rem' : (isSmallScreen ? '0.75rem' : '0.875rem') }}>Pending</MenuItem>
+                                <MenuItem value="processing" sx={{ fontSize: isExtraSmallScreen ? '0.7rem' : (isSmallScreen ? '0.75rem' : '0.875rem') }}>Processing</MenuItem>
+                                <MenuItem value="shipped" sx={{ fontSize: isExtraSmallScreen ? '0.7rem' : (isSmallScreen ? '0.75rem' : '0.875rem') }}>Shipped</MenuItem>
+                                <MenuItem value="delivered" sx={{ fontSize: isExtraSmallScreen ? '0.7rem' : (isSmallScreen ? '0.75rem' : '0.875rem') }}>Delivered</MenuItem>
+                                <MenuItem value="cancelled" sx={{ fontSize: isExtraSmallScreen ? '0.7rem' : (isSmallScreen ? '0.75rem' : '0.875rem') }}>Cancelled</MenuItem>
                               </Select>
                             </FormControl>,
                             'center'
@@ -951,16 +962,16 @@ const Orders = () => {
                             <Button
                               variant="contained"
                               onClick={() => downloadInvoice(order._id)}
-                              startIcon={<Download fontSize="small" />}
+                              startIcon={<Download fontSize="small" sx={{ fontSize: isExtraSmallScreen ? '0.8rem' : '1rem' }} />}
                               sx={{
                                 background: `linear-gradient(135deg, ${purpleTheme.primary} 0%, ${purpleTheme.primaryDark} 100%)`,
                                 color: '#fff',
                                 borderRadius: '8px',
                                 fontWeight: 600,
-                                px: isSmallScreen ? 1.5 : 2.5,
-                                py: isSmallScreen ? 0.5 : 1,
+                                px: isExtraSmallScreen ? 1 : (isSmallScreen ? 1.5 : 2.5),
+                                py: isExtraSmallScreen ? 0.3 : (isSmallScreen ? 0.5 : 1),
                                 textTransform: 'none',
-                                fontSize: isSmallScreen ? '0.75rem' : '0.875rem',
+                                fontSize: isExtraSmallScreen ? '0.65rem' : (isSmallScreen ? '0.7rem' : '0.875rem'),
                                 boxShadow: '0 4px 6px rgba(0,0,0,0.1)',
                                 transition: 'all 0.3s ease',
                                 '&:hover': {
@@ -986,7 +997,10 @@ const Orders = () => {
                                 }
                               }}
                             >
-                              {expandedOrders[order._id] ? <ExpandLess /> : <ExpandMore />}
+                              {expandedOrders[order._id] ? 
+                                <ExpandLess sx={{ fontSize: isExtraSmallScreen ? '0.8rem' : '1rem' }} /> : 
+                                <ExpandMore sx={{ fontSize: isExtraSmallScreen ? '0.8rem' : '1rem' }} />
+                              }
                             </IconButton>,
                             'center'
                           )}
@@ -997,14 +1011,14 @@ const Orders = () => {
                           <TableCell style={{ padding: 0 }} colSpan={12}>
                             <Collapse in={expandedOrders[order._id]} timeout="auto" unmountOnExit>
                               <Box sx={{ margin: 1, p: 2, backgroundColor: 'grey.50', borderRadius: 2 }}>
-                                <Typography variant="h6" gutterBottom component="div" sx={{ display: 'flex', alignItems: 'center' }}>
-                                  <History sx={{ mr: 1 }} /> Order Timeline
+                                <Typography variant="h6" gutterBottom component="div" sx={{ display: 'flex', alignItems: 'center', fontSize: isExtraSmallScreen ? '0.9rem' : '1.25rem' }}>
+                                  <History sx={{ mr: 1, fontSize: isExtraSmallScreen ? '0.9rem' : '1.25rem' }} /> Order Timeline
                                 </Typography>
                                 
                                 {order.statusHistory && order.statusHistory.length > 0 ? (
                                   renderUnifiedTimeline(order)
                                 ) : (
-                                  <Typography variant="body2" color="textSecondary">
+                                  <Typography variant="body2" color="textSecondary" sx={{ fontSize: isExtraSmallScreen ? '0.75rem' : '0.875rem' }}>
                                     No status history available.
                                   </Typography>
                                 )}
@@ -1019,11 +1033,11 @@ const Orders = () => {
                     <TableRow>
                       <TableCell colSpan={12} align="center" sx={{ py: 6 }}>
                         <Box textAlign="center" p={2}>
-                          <LocalShipping sx={{ fontSize: 80, color: 'text.disabled', mb: 2 }} />
-                          <Typography variant="h6" color="textSecondary">
+                          <LocalShipping sx={{ fontSize: isExtraSmallScreen ? 60 : 80, color: 'text.disabled', mb: 2 }} />
+                          <Typography variant="h6" color="textSecondary" sx={{ fontSize: isExtraSmallScreen ? '0.9rem' : '1.25rem' }}>
                             No orders found
                           </Typography>
-                          <Typography variant="body2" color="textSecondary" mt={1}>
+                          <Typography variant="body2" color="textSecondary" mt={1} sx={{ fontSize: isExtraSmallScreen ? '0.75rem' : '0.875rem' }}>
                             Try changing your filters or check back later
                           </Typography>
                         </Box>
@@ -1042,45 +1056,47 @@ const Orders = () => {
                 sx={{
                   fontWeight: 'bold',
                   backgroundColor: purpleTheme.primary,
-                  color: 'white'
+                  color: 'white',
+                  fontSize: isExtraSmallScreen ? '0.7rem' : '0.875rem'
                 }}
               />
               <Chip
                 label={`Pending: ${orders.filter(o => o.status === 'pending').length}`}
                 color="warning"
                 variant="outlined"
-                sx={{ fontWeight: '500' }}
+                sx={{ fontWeight: '500', fontSize: isExtraSmallScreen ? '0.7rem' : '0.875rem' }}
               />
               <Chip
                 label={`Processing: ${orders.filter(o => o.status === 'processing').length}`}
                 color="info"
                 variant="outlined"
-                sx={{ fontWeight: '500' }}
+                sx={{ fontWeight: '500', fontSize: isExtraSmallScreen ? '0.7rem' : '0.875rem' }}
               />
               <Chip
                 label={`Shipped: ${orders.filter(o => o.status === 'shipped').length}`}
                 sx={{
                   fontWeight: '500',
                   backgroundColor: purpleTheme.secondary,
-                  color: purpleTheme.primaryDark
+                  color: purpleTheme.primaryDark,
+                  fontSize: isExtraSmallScreen ? '0.7rem' : '0.875rem'
                 }}
               />
               <Chip
                 label={`Delivered: ${orders.filter(o => o.status === 'delivered').length}`}
                 color="success"
                 variant="outlined"
-                sx={{ fontWeight: '500' }}
+                sx={{ fontWeight: '500', fontSize: isExtraSmallScreen ? '0.7rem' : '0.875rem' }}
               />
               <Chip
                 label={`Cancelled: ${orders.filter(o => o.status === 'cancelled').length}`}
                 color="error"
                 variant="outlined"
-                sx={{ fontWeight: '500' }}
+                sx={{ fontWeight: '500', fontSize: isExtraSmallScreen ? '0.7rem' : '0.875rem' }}
               />
             </Box>
 
             <Box>
-              <Typography variant="body2" color="textSecondary">
+              <Typography variant="body2" color="textSecondary" sx={{ fontSize: isExtraSmallScreen ? '0.7rem' : '0.875rem' }}>
                 Showing {Math.min(paginatedOrders.length, rowsPerPage)} of {filteredOrders.length} orders
                 </Typography>
             </Box>
@@ -1090,9 +1106,9 @@ const Orders = () => {
 
       {/* Tracking Dialog */}
       <Dialog open={trackingDialog.open} onClose={() => setTrackingDialog({...trackingDialog, open: false})}>
-        <DialogTitle>Add Tracking Information</DialogTitle>
+        <DialogTitle sx={{ fontSize: isExtraSmallScreen ? '1rem' : '1.25rem' }}>Add Tracking Information</DialogTitle>
         <DialogContent>
-          <Typography variant="body2" color="textSecondary" gutterBottom>
+          <Typography variant="body2" color="textSecondary" gutterBottom sx={{ fontSize: isExtraSmallScreen ? '0.75rem' : '0.875rem' }}>
             Order #{trackingDialog.order?._id?.substring(trackingDialog.order?._id.length - 6).toUpperCase()}
           </Typography>
           <TextField
@@ -1104,6 +1120,12 @@ const Orders = () => {
             value={trackingDialog.trackingId}
             onChange={(e) => setTrackingDialog({...trackingDialog, trackingId: e.target.value})}
             sx={{ mb: 2 }}
+            InputProps={{
+              sx: { fontSize: isExtraSmallScreen ? '0.8rem' : '0.9rem' }
+            }}
+            InputLabelProps={{
+              sx: { fontSize: isExtraSmallScreen ? '0.8rem' : '0.9rem' }
+            }}
           />
           <TextField
             margin="dense"
@@ -1113,6 +1135,12 @@ const Orders = () => {
             value={trackingDialog.trackingCourier}
             onChange={(e) => setTrackingDialog({...trackingDialog, trackingCourier: e.target.value})}
             sx={{ mb: 2 }}
+            InputProps={{
+              sx: { fontSize: isExtraSmallScreen ? '0.8rem' : '0.9rem' }
+            }}
+            InputLabelProps={{
+              sx: { fontSize: isExtraSmallScreen ? '0.8rem' : '0.9rem' }
+            }}
           />
           <TextField
             margin="dense"
@@ -1123,10 +1151,21 @@ const Orders = () => {
             rows={3}
             value={trackingDialog.note}
             onChange={(e) => setTrackingDialog({...trackingDialog, note: e.target.value})}
+            InputProps={{
+              sx: { fontSize: isExtraSmallScreen ? '0.8rem' : '0.9rem' }
+            }}
+            InputLabelProps={{
+              sx: { fontSize: isExtraSmallScreen ? '0.8rem' : '0.9rem' }
+            }}
           />
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setTrackingDialog({...trackingDialog, open: false})}>Cancel</Button>
+          <Button 
+            onClick={() => setTrackingDialog({...trackingDialog, open: false})}
+            sx={{ fontSize: isExtraSmallScreen ? '0.7rem' : '0.875rem' }}
+          >
+            Cancel
+          </Button>
           <Button 
             onClick={() => handleStatusChange(
               trackingDialog.order._id, 
@@ -1139,6 +1178,7 @@ const Orders = () => {
             )}
             disabled={!trackingDialog.trackingId || !trackingDialog.trackingCourier}
             variant="contained"
+            sx={{ fontSize: isExtraSmallScreen ? '0.7rem' : '0.875rem' }}
           >
             Mark as Shipped
           </Button>
@@ -1158,7 +1198,8 @@ const Orders = () => {
           sx={{
             width: '100%',
             fontWeight: '500',
-            backgroundColor: purpleTheme.primary
+            backgroundColor: purpleTheme.primary,
+            fontSize: isExtraSmallScreen ? '0.8rem' : '0.9rem'
           }}
         >
           {snackbar.message}

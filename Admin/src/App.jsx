@@ -3,7 +3,6 @@ import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'r
 import Sidebar from './components/Sidebar';
 import Topbar from './components/Topbar';
 import Dashboard from './pages/Dashboard';
-// import Users from './pages/User';
 import Products from './pages/Product/Products';
 import ProductList from './pages/Product/ProductList';
 import 'bootstrap/dist/css/bootstrap.min.css';
@@ -49,6 +48,7 @@ import AttributeManager from './pages/Product/Atribute/AttributeManager';
 import AttributeFamilies from './pages/Product/Atribute/AttributeFamilies';
 import AttributeFamilyForm from './pages/Product/Atribute/AttributeFamilyCreate';
 import CategoryManager from './pages/Product/Atribute/CategoryManager';
+
 function AppContent() {
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const location = useLocation();
@@ -89,22 +89,47 @@ function AppContent() {
   // return (<AdvancedImage cldImg={img}/>);
   // };
 
+
+  // Prevent body scrolling when sidebar is open on mobile
+  useEffect(() => {
+    if (window.innerWidth < 768 && sidebarOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = 'auto';
+    }
+
+    return () => {
+      document.body.style.overflow = 'auto';
+    };
+  }, [sidebarOpen]);
+
   return (
-    <div style={{ display: 'flex' }}>
+    <div className="flex h-screen overflow-hidden">
       {/* Sidebar - Only show when authenticated and not on login page */}
       <ScrollToTop />
-      {isAuthenticated && !isLoginPage && sidebarOpen && (
-        <div style={{ width: '240px', transition: 'width 0.3s ease' }}>
-          <Sidebar
-            open={sidebarOpen}
-            toggleSidebar={toggleSidebar}
-            hasPermission={hasPermission}
-          />
-        </div>
+      {isAuthenticated && !isLoginPage && (
+        <>
+          {/* Mobile overlay */}
+          {sidebarOpen && window.innerWidth < 768 && (
+            <div
+              className="fixed inset-0 bg-black bg-opacity-50 z-20"
+              onClick={toggleSidebar}
+            />
+          )}
+
+          <div className={`${sidebarOpen ? 'translate-x-0' : '-translate-x-full'} 
+            md:translate-x-0 fixed md:relative h-full transition-transform duration-300 z-30`}>
+            <Sidebar
+              open={sidebarOpen}
+              toggleSidebar={toggleSidebar}
+              hasPermission={hasPermission}
+            />
+          </div>
+        </>
       )}
 
       {/* Main Content */}
-      <div className="flex-1 bg-gray-50">
+      <div className="flex-1 flex flex-col overflow-hidden">
         {/* Topbar - Only show when authenticated and not on login page */}
         {isAuthenticated && !isLoginPage && (
           <Topbar
@@ -113,12 +138,7 @@ function AppContent() {
           />
         )}
 
-        <div style={{
-          padding: isAuthenticated && !isLoginPage ? '20px' : '0px',
-          marginTop: isAuthenticated && !isLoginPage ? '50px' : '0px',
-          marginLeft: (isAuthenticated && !isLoginPage && sidebarOpen) ? '15px' : '0px',
-          transition: 'margin-left 0.3s ease'
-        }}>
+        <div className="flex-1 overflow-y-auto bg-gray-50 pt-5">
           <Routes>
             <Route path="/admin/login" element={<AdminLogin />} />
 
