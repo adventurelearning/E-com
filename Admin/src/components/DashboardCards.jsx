@@ -1,119 +1,94 @@
 // src/components/DashboardCards.jsx
 import React from 'react';
 import {
-  Grid,
-  Paper,
-  Typography,
-  Box,
-  useTheme,
-  useMediaQuery
-} from '@mui/material';
-import {
-  AttachMoney as AttachMoneyIcon,
-  ShoppingCart as ShoppingCartIcon,
-  People as PeopleIcon,
-  TrendingUp as TrendingUpIcon,
-  TrendingDown as TrendingDownIcon
+  CurrencyRupee,
+  People,
+  ShoppingCart,
+  TrendingDown,
+  TrendingUp
 } from '@mui/icons-material';
 
 const DashboardCards = ({ data }) => {
-  const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
-
   const cardData = [
     {
       title: 'Total Revenue',
       value: `₹${data?.totalRevenue?.toLocaleString('en-IN') || '0'}`,
-      icon: <AttachMoneyIcon color='black' />,
-      subtitle: 'All-time sales'
+      icon: <CurrencyRupee className="h-4 w-4" />,
+      subtitle: 'All-time sales',
+      trend: '+12% from last month',
+      trendPositive: true,
+      bgColor: 'bg-blue-50',
+      textColor: 'text-blue-600',
+      borderColor: 'border-blue-100'
     },
     {
       title: 'Total Orders',
       value: data?.totalOrders?.toLocaleString('en-IN') || '0',
-      icon: <ShoppingCartIcon color='black' />,
-      subtitle: 'Completed orders'
+      icon: <ShoppingCart className="h-4 w-4" />,
+      subtitle: 'Completed orders',
+      trend: '+8% from last month',
+      trendPositive: true,
+      bgColor: 'bg-green-50',
+      textColor: 'text-green-600',
+      borderColor: 'border-green-100'
     },
     {
       title: 'Total Users',
       value: data?.totalUsers?.toLocaleString('en-IN') || '0',
-      icon: <PeopleIcon color='black' />,
-      subtitle: 'Registered customers'
+      icon: <People className="h-4 w-4" />,
+      subtitle: 'Registered customers',
+      trend: '+5% from last month',
+      trendPositive: true,
+      bgColor: 'bg-purple-50',
+      textColor: 'text-purple-600',
+      borderColor: 'border-purple-100'
     },
     {
       title: 'Monthly Growth',
       value: `${data?.growth?.toFixed(1)}%`,
-      icon: data?.growth >= 0 ? <TrendingUpIcon color='black' /> : <TrendingDownIcon color='black' />,
-      subtitle: 'vs previous month'
+      icon: data?.growth >= 0 ? 
+        <TrendingUp className="h-4 w-4" /> : 
+        <TrendingDown className="h-4 w-4" />,
+      subtitle: 'vs previous month',
+      trend: data?.growth >= 0 ? 'On track' : 'Needs attention',
+      trendPositive: data?.growth >= 0,
+      bgColor: data?.growth >= 0 ? 'bg-green-50' : 'bg-yellow-50',
+      textColor: data?.growth >= 0 ? 'text-green-600' : 'text-yellow-600',
+      borderColor: data?.growth >= 0 ? 'border-green-100' : 'border-yellow-100'
     }
   ];
 
   return (
-    <Grid container spacing={isMobile ? 4 : 6}>
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
+      
       {cardData.map((card, index) => (
-        <Grid
-          // item
-          // xs={6}  
-          // sm={6}  
-          // md={4}   
-          // lg={3}   
+        <div
           key={index}
+          className={`bg-white p-3 rounded-lg border ${card.borderColor} shadow-sm hover:shadow-md transition-shadow`}
         >
-          <Paper
-            sx={{
-              p: { xs: 1.5, sm: 2, md: 2.5 },
-              backgroundColor: theme.palette.primary.main,
-              color: "white",
-              borderRadius: 2,
-              boxShadow: 3,
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "center",
-              height: { xs: 110, sm: 130, md: 150 }, // ✅ fixed height for all cards
-            }}
-          >
-            <Box>
-              <Typography
-                variant="subtitle2"
-                sx={{
-                  opacity: 0.85,
-                  fontSize: { xs: "0.65rem", sm: "0.75rem", md: "0.875rem" },
-                }}
-              >
-                {card.title}
-              </Typography>
-
-              <Typography
-                variant="h4"
-                sx={{
-                  fontSize: { xs: "1.2rem", sm: "1.5rem", md: "2rem" },
-                  fontWeight: "bold",
-                  lineHeight: 1.2,
-                }}
-              >
+          <div className="flex justify-between items-start">
+            <div>
+              <p className="text-xs text-gray-500 font-medium">{card.title}</p>
+              <p className={`text-lg font-semibold ${card.textColor} mt-1`}>
                 {card.value}
-              </Typography>
-
-              <Typography
-                variant="caption"
-                sx={{
-                  opacity: 0.8,
-                  fontSize: { xs: "0.6rem", sm: "0.7rem", md: "0.8rem" },
-                }}
-              >
-                {card.subtitle}
-              </Typography>
-            </Box>
-
-            <Box sx={{ opacity: 0.9 }}>
+              </p>
+            </div>
+            <div className={`p-2 rounded-full ${card.bgColor}`}>
               {React.cloneElement(card.icon, {
-                sx: { fontSize: { xs: 32, sm: 40, md: 64 } },
+                className: `h-4 w-4 ${card.textColor}`
               })}
-            </Box>
-          </Paper>
-        </Grid>
+            </div>
+          </div>
+          
+          <div className="flex justify-between items-center">
+            <p className="text-xs text-gray-400 mt-3">{card.subtitle}</p>
+            <span className={`text-xs ${card.trendPositive ? 'text-green-500' : 'text-yellow-500'}`}>
+              {card.trend}
+            </span>
+          </div>
+        </div>
       ))}
-    </Grid>
-
+    </div>
   );
 };
 

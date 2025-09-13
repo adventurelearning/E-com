@@ -40,7 +40,7 @@ const UserSchema = new mongoose.Schema(
     },
     uid: { type: String, unique: true, sparse: true }, // Firebase UID
     photoURL: String,
-    authProvider: { type: String, enum: ['local', 'google', 'facebook'], default: 'local' },
+    authProvider: { type: String, enum: ['local', 'google', 'facebook','admin'], default: 'local' },
     addresses: [
       {
         label: { type: String, required: true }, // Home, Work, etc.

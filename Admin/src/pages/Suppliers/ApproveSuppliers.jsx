@@ -132,9 +132,9 @@ const PendingProductsPage = () => {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="text-sm text-gray-900">
-                        ${product.discountPrice.toFixed(2)}
+                        ₹{product.discountPrice.toFixed(2)}
                         <span className="ml-2 text-xs text-gray-500 line-through">
-                          ${product.originalPrice.toFixed(2)}
+                          ₹{product.originalPrice.toFixed(2)}
                         </span>
                       </div>
                       <div className="text-sm text-red-600">

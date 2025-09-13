@@ -1,7 +1,7 @@
 import { useContext, useState, useEffect } from 'react';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import { ProductContext } from '../../context/ProductDetail';
-import { FaSpinner, FaExclamationTriangle, FaFilter, FaChevronDown, FaChevronUp, FaTimes } from 'react-icons/fa';
+import { FaSpinner, FaExclamationTriangle, FaFilter, FaChevronDown, FaChevronUp, FaTimes, FaPlay } from 'react-icons/fa';
 import { FaHeart, FaRegHeart, FaStar, FaShoppingCart, FaSearch } from 'react-icons/fa';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useWishlist } from '../../context/WishlistContext';
@@ -44,6 +44,21 @@ console.log("Products in context:", product);
   const normalizeString = (str) => {
     if (!str) return '';
     return str.toLowerCase().replace(/[-\s]+/g, ' ').trim();
+  };
+
+  // Function to determine media type
+  const getMediaType = (url) => {
+    if (!url) return 'image';
+    
+    if (url.includes('/video/upload/')) {
+      return 'video';
+    } else if (url.includes('/image/upload/')) {
+      return 'image';
+    } else {
+      // fallback by extension if Cloudinary prefix is missing
+      const isVideo = /\.(mp4|mov|avi|mkv|webm)$/i.test(url);
+      return isVideo ? 'video' : 'image';
+    }
   };
 
   useEffect(() => {
@@ -188,7 +203,7 @@ console.log("Products in context:", product);
     );
   }
 
-  const resetFilters = () => {
+  const resetFilters = () =>{
     setPriceFilter('');
     setBrandFilter('');
     setSelectedSubcategory('');
@@ -600,7 +615,7 @@ console.log("Products in context:", product);
                       />
                       <label htmlFor="price-discount" className="cursor-pointer">
                         Discounted Items
-                      </label>
+                        </label>
                     </div>
                   </div>
                 )}
@@ -721,21 +736,43 @@ console.log("Products in context:", product);
                         </button>
                       </div>
 
-                      {/* Image */}
+                      {/* Image/Video */}
                       <div
                         className="relative h-40 sm:h-48 w-full bg-gray-100 rounded-md overflow-hidden cursor-pointer"
                         onClick={() => handleClick(product._id)}
                       >
-                        <img
-                          src={
-                            Array.isArray(product.images) && product.images.length > 0
-                              ? product.images[0]
-                              : "https://via.placeholder.com/300x300?text=No+Image"
-                          }
-                          alt={product.name}
-                          className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
-                          loading="lazy"
-                        />
+                        {product.images && product.images.length > 0 ? (
+                          getMediaType(product.images[0]) === 'video' ? (
+                            <>
+                              <video
+                                src={product.images[0]}
+                                className="h-full w-full object-cover"
+                                muted
+                                loop
+                                playsInline
+                              />
+                              <div className="absolute inset-0 flex items-center justify-center">
+                                <div className="bg-black bg-opacity-50 rounded-full p-2">
+                                  <FaPlay className="text-white text-lg" />
+                                </div>
+                              </div>
+                            </>
+                          ) : (
+                            <img
+                              src={product.images[0]}
+                              alt={product.name}
+                              className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+                              loading="lazy"
+                            />
+                          )
+                        ) : (
+                          <img
+                            src="https://via.placeholder.com/300x300?text=No+Image"
+                            alt="No product image"
+                            className="h-full w-full object-cover"
+                          />
+                        )}
+
                         {product.discountPrice &&
                           product.discountPrice < product.originalPrice && (
                             <span className="absolute top-2 right-2 bg-green-600 text-white text-[10px] sm:text-xs font-bold px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-full">

@@ -3,12 +3,19 @@ import { useParams, Link, useNavigate } from 'react-router-dom';
 import {
   FaHeart, FaRegHeart, FaStar, FaShoppingCart,
   FaChevronLeft, FaChevronRight, FaTruck,
-  FaShieldAlt, FaExchangeAlt, FaCheck, FaPlus, FaMinus
+  FaShieldAlt, FaExchangeAlt, FaCheck, FaPlus, FaMinus, FaPlay
 } from 'react-icons/fa';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Rating } from 'react-simple-star-rating';
 import { toast } from 'react-toastify';
 import Api from '../../Services/Api';
+import { useCart } from '../../context/CartContext';
+import { useWishlist } from '../../context/WishlistContext';
+import Lightbox from 'yet-another-react-lightbox';
+import Thumbnails from 'yet-another-react-lightbox/plugins/thumbnails';
+import Zoom from 'yet-another-react-lightbox/plugins/zoom';
+import 'yet-another-react-lightbox/styles.css';
+import 'yet-another-react-lightbox/plugins/thumbnails.css';
 
 const ProductPage = () => {
   const { id } = useParams();
@@ -22,6 +29,32 @@ const ProductPage = () => {
   const [activeTab, setActiveTab] = useState('description');
   const [generalAttributes, setGeneralAttributes] = useState([]);
   const [otherAttributes, setOtherAttributes] = useState({});
+  const [similarProducts, setSimilarProducts] = useState([]);
+  const [similarLoading, setSimilarLoading] = useState(false);
+  const [lightboxOpen, setLightboxOpen] = useState(false);
+  const [lightboxIndex, setLightboxIndex] = useState(0);
+
+  const { fetchCartCount } = useCart();
+  const {
+    wishlistCount,
+    addToWishlist,
+    removeFromWishlist,
+    isInWishlist,
+    fetchWishlistCount
+  } = useWishlist();
+
+  // Function to determine media type
+  const getMediaType = (url) => {
+    if (url.includes('/video/upload/')) {
+      return 'video';
+    } else if (url.includes('/image/upload/')) {
+      return 'image';
+    } else {
+      // fallback by extension if Cloudinary prefix is missing
+      const isVideo = /\.(mp4|mov|avi|mkv|webm)$/i.test(url);
+      return isVideo ? 'video' : 'image';
+    }
+  };
 
   // Function to safely render HTML content
   const createMarkup = (htmlContent) => {
@@ -68,273 +101,267 @@ const ProductPage = () => {
   };
 
   // Enhanced function to find attribute values
-const findAttributeValue = (attributeId, attributeCode, productAttributes) => {
-  console.log(`Finding value for attributeId: ${attributeId}, attributeCode: ${attributeCode}`);
-  console.log("Product attributes:", productAttributes);
+  const findAttributeValue = (attributeId, attributeCode, productAttributes) => {
+    console.log(`Finding value for attributeId: ${attributeId}, attributeCode: ${attributeCode}`);
+    console.log("Product attributes:", productAttributes);
 
-  const values = [];
+    const values = [];
 
-  // Direct attributes
-  if (productAttributes[attributeId] !== undefined) {
-    values.push(productAttributes[attributeId]);
-  }
+    // Direct attributes
+    if (productAttributes[attributeId] !== undefined) {
+      values.push(productAttributes[attributeId]);
+    }
 
-  if (productAttributes[attributeCode] !== undefined) {
-    values.push(productAttributes[attributeCode]);
-  }
+    if (productAttributes[attributeCode] !== undefined) {
+      values.push(productAttributes[attributeCode]);
+    }
 
-  // From spec array
-  if (Array.isArray(productAttributes.spec)) {
-    for (const specItem of productAttributes.spec) {
-      if (specItem[attributeId] !== undefined) {
-        values.push(specItem[attributeId]);
-      }
-      if (specItem[attributeCode] !== undefined) {
-        values.push(specItem[attributeCode]);
+    // From spec array
+    if (Array.isArray(productAttributes.spec)) {
+      for (const specItem of productAttributes.spec) {
+        if (specItem[attributeId] !== undefined) {
+          values.push(specItem[attributeId]);
+        }
+        if (specItem[attributeCode] !== undefined) {
+          values.push(specItem[attributeCode]);
+        }
       }
     }
-  }
 
-  // From futures array
-  if (Array.isArray(productAttributes.futures)) {
-    for (const futureItem of productAttributes.futures) {
-      if (futureItem[attributeId] !== undefined) {
-        values.push(futureItem[attributeId]);
-      }
-      if (futureItem[attributeCode] !== undefined) {
-        values.push(futureItem[attributeCode]);
+    // From futures array
+    if (Array.isArray(productAttributes.futures)) {
+      for (const futureItem of productAttributes.futures) {
+        if (futureItem[attributeId] !== undefined) {
+          values.push(futureItem[attributeId]);
+        }
+        if (futureItem[attributeCode] !== undefined) {
+          values.push(futureItem[attributeCode]);
+        }
       }
     }
-  }
 
-  // If nothing found, return null, else return full array
-  if (values.length === 0) {
-    return null;
-  }
-  return values.length === 1 ? values[0] : values;
-};
-
+    // If nothing found, return null, else return full array
+    if (values.length === 0) {
+      return null;
+    }
+    return values.length === 1 ? values[0] : values;
+  };
 
   // Function to process attributes
-// Function to process attributes
-const processAttributes = (product, attributeFamily) => {
-  console.log('Processing attributes for product:', product);
-  console.log('Attribute family:', attributeFamily);
+  const processAttributes = (product, attributeFamily) => {
+    console.log('Processing attributes for product:', product);
+    console.log('Attribute family:', attributeFamily);
 
-  if (!attributeFamily || !product.attributes) {
-    return { general: [], other: {} };
-  }
-
-  const generalAttrs = [];
-  const otherAttrs = {};
-
-  // Initialize groups with isRepeatable property
-  attributeFamily.groups.forEach(group => {
-    if (group.code !== 'general') {
-      otherAttrs[group.code] = {
-        name: group.name,
-        isRepeatable: group.isRepeatable || false,
-        items: [] // This will hold arrays of attributes for each repeatable item
-      };
+    if (!attributeFamily || !product.attributes) {
+      return { general: [], other: {} };
     }
-  });
 
-  // Process each attribute configuration
-  attributeFamily.attributes.forEach(attrConfig => {
-    const attribute = attrConfig.attribute;
-    const groupCode = attrConfig.group;
-    const attributeId = attribute._id;
-    const attributeCode = attribute.code;
+    const generalAttrs = [];
+    const otherAttrs = {};
 
-    // Find the attribute value
-    const attributeValue = findAttributeValue(attributeId, attributeCode, product.attributes);
+    // Initialize groups with isRepeatable property
+    attributeFamily.groups.forEach(group => {
+      if (group.code !== 'general') {
+        otherAttrs[group.code] = {
+          name: group.name,
+          isRepeatable: group.isRepeatable || false,
+          items: [] // This will hold arrays of attributes for each repeatable item
+        };
+      }
+    });
 
-    // If we found a value, add it to the appropriate group
-    if (attributeValue !== null && attributeValue !== undefined && attributeValue !== '') {
-      const attributeWithValue = {
-        ...attribute,
-        value: attributeValue
-      };
+    // Process each attribute configuration
+    attributeFamily.attributes.forEach(attrConfig => {
+      const attribute = attrConfig.attribute;
+      const groupCode = attrConfig.group;
+      const attributeId = attribute._id;
+      const attributeCode = attribute.code;
 
-      if (groupCode === 'general') {
-        generalAttrs.push(attributeWithValue);
-      } else if (otherAttrs[groupCode]) {
-        // For repeatable groups, we need to structure the data differently
-        if (otherAttrs[groupCode].isRepeatable && Array.isArray(attributeValue)) {
-          // Initialize items array if needed
-          if (otherAttrs[groupCode].items.length === 0) {
-            attributeValue.forEach((_, index) => {
-              otherAttrs[groupCode].items.push([]);
-            });
-          }
-          
-          // Add attribute to each item
-          attributeValue.forEach((value, index) => {
-            if (index < otherAttrs[groupCode].items.length) {
-              otherAttrs[groupCode].items[index].push({
-                ...attribute,
-                value: value
+      // Find the attribute value
+      const attributeValue = findAttributeValue(attributeId, attributeCode, product.attributes);
+
+      // If we found a value, add it to the appropriate group
+      if (attributeValue !== null && attributeValue !== undefined && attributeValue !== '') {
+        const attributeWithValue = {
+          ...attribute,
+          value: attributeValue
+        };
+
+        if (groupCode === 'general') {
+          generalAttrs.push(attributeWithValue);
+        } else if (otherAttrs[groupCode]) {
+          // For repeatable groups, we need to structure the data differently
+          if (otherAttrs[groupCode].isRepeatable && Array.isArray(attributeValue)) {
+            // Initialize items array if needed
+            if (otherAttrs[groupCode].items.length === 0) {
+              attributeValue.forEach((_, index) => {
+                otherAttrs[groupCode].items.push([]);
               });
             }
-          });
-        } else {
-          // For non-repeatable groups, use the flat attributes array
-          if (!otherAttrs[groupCode].attributes) {
-            otherAttrs[groupCode].attributes = [];
+            
+            // Add attribute to each item
+            attributeValue.forEach((value, index) => {
+              if (index < otherAttrs[groupCode].items.length) {
+                otherAttrs[groupCode].items[index].push({
+                  ...attribute,
+                  value: value
+                });
+              }
+            });
+          } else {
+            // For non-repeatable groups, use the flat attributes array
+            if (!otherAttrs[groupCode].attributes) {
+              otherAttrs[groupCode].attributes = [];
+            }
+            otherAttrs[groupCode].attributes.push(attributeWithValue);
           }
-          otherAttrs[groupCode].attributes.push(attributeWithValue);
         }
       }
-    }
-  });
+    });
 
-  // Remove empty groups
-  Object.keys(otherAttrs).forEach(groupCode => {
-    if (otherAttrs[groupCode].isRepeatable) {
-      if (otherAttrs[groupCode].items.length === 0) {
-        delete otherAttrs[groupCode];
+    // Remove empty groups
+    Object.keys(otherAttrs).forEach(groupCode => {
+      if (otherAttrs[groupCode].isRepeatable) {
+        if (otherAttrs[groupCode].items.length === 0) {
+          delete otherAttrs[groupCode];
+        }
+      } else {
+        if (otherAttrs[groupCode].attributes.length === 0) {
+          delete otherAttrs[groupCode];
+        }
       }
-    } else {
-      if (otherAttrs[groupCode].attributes.length === 0) {
-        delete otherAttrs[groupCode];
-      }
-    }
-  });
+    });
 
-  console.log('Processed attributes:', { general: generalAttrs, other: otherAttrs });
+    console.log('Processed attributes:', { general: generalAttrs, other: otherAttrs });
 
-  return { general: generalAttrs, other: otherAttrs };
-};
-
+    return { general: generalAttrs, other: otherAttrs };
+  };
 
   // Function to render attribute based on type
-const renderAttributeValue = (attribute, isRepeatable = false) => {
-  if (!attribute || attribute.value === undefined || attribute.value === null) {
-    return <span className="text-gray-400">N/A</span>;
-  }
+  const renderAttributeValue = (attribute, isRepeatable = false) => {
+    if (!attribute || attribute.value === undefined || attribute.value === null) {
+      return <span className="text-gray-400">N/A</span>;
+    }
 
-  // Handle repeatable attributes
-  if (isRepeatable && Array.isArray(attribute.value)) {
-    return (
-      <div className="space-y-4">
-        {attribute.value.map((value, index) => {
-          const singleValueAttribute = { ...attribute, value };
-          console.log("Rendering repeatable attribute value:", singleValueAttribute);
-          
-          return (
-            <div key={index}>
-              {renderAttributeValue(singleValueAttribute, false)}
-            </div>
-          );
-        })}
-      </div>
-    );
-  }
-
-  // Handle regular attributes based on type
-  switch (attribute.type) {
-    case 'image':
+    // Handle repeatable attributes
+    if (isRepeatable && Array.isArray(attribute.value)) {
       return (
-        <div className="mt-2">
-          <img
-            src={attribute.value}
-            alt={attribute.label}
-            className="w-fit max-h-48 object-contain rounded-lg shadow-sm border border-gray-200 bg-white"
-          />
+        <div className="space-y-4">
+          {attribute.value.map((value, index) => {
+            const singleValueAttribute = { ...attribute, value };
+            console.log("Rendering repeatable attribute value:", singleValueAttribute);
+            
+            return (
+              <div key={index}>
+                {renderAttributeValue(singleValueAttribute, false)}
+              </div>
+            );
+          })}
         </div>
       );
+    }
 
-    case 'MCE Editer':
-      return <div className="attribute-html-content" dangerouslySetInnerHTML={createMarkup(attribute.value)} />;
+    // Handle regular attributes based on type
+    switch (attribute.type) {
+      case 'image':
+        return (
+          <div className="mt-2">
+            <img
+              src={attribute.value}
+              alt={attribute.label}
+              className="w-fit max-h-48 object-contain rounded-lg shadow-sm border border-gray-200 bg-white"
+            />
+          </div>
+        );
 
-    case 'boolean':
-      return (
-        <div className={`px-2 py-1 rounded-full text-xs font-medium inline-block ${attribute.value ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
-          {attribute.value ? 'Yes' : 'No'}
-        </div>
-      );
+      case 'MCE Editer':
+        return <div className="attribute-html-content" dangerouslySetInnerHTML={createMarkup(attribute.value)} />;
 
-    case 'select':
-      if (attribute.options?.length > 0) {
-        const selectedOption = attribute.options.find(opt => opt.value === attribute.value);
-        return selectedOption ? selectedOption.label : attribute.value;
-      }
-      return attribute.value;
+      case 'boolean':
+        return (
+          <div className={`px-2 py-1 rounded-full text-xs font-medium inline-block ${attribute.value ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
+            {attribute.value ? 'Yes' : 'No'}
+          </div>
+        );
 
-    case 'multiselect':
-      if (Array.isArray(attribute.value)) {
+      case 'select':
         if (attribute.options?.length > 0) {
+          const selectedOption = attribute.options.find(opt => opt.value === attribute.value);
+          return selectedOption ? selectedOption.label : attribute.value;
+        }
+        return attribute.value;
+
+      case 'multiselect':
+        if (Array.isArray(attribute.value)) {
+          if (attribute.options?.length > 0) {
+            return (
+              <div className="flex flex-wrap gap-1">
+                {attribute.value.map(val => {
+                  const selectedOption = attribute.options.find(opt => opt.value === val);
+                  return (
+                    <span key={val} className="px-2 py-1 bg-blue-100 text-blue-800 rounded-full text-xs">
+                      {selectedOption ? selectedOption.label : val}
+                    </span>
+                  );
+                })}
+              </div>
+            );
+          }
           return (
             <div className="flex flex-wrap gap-1">
-              {attribute.value.map(val => {
-                const selectedOption = attribute.options.find(opt => opt.value === val);
-                return (
-                  <span key={val} className="px-2 py-1 bg-blue-100 text-blue-800 rounded-full text-xs">
-                    {selectedOption ? selectedOption.label : val}
-                  </span>
-                );
-              })}
+              {attribute.value.map(val => (
+                <span key={val} className="px-2 py-1 bg-gray-100 text-gray-800 rounded-full text-xs">
+                  {val}
+                </span>
+              ))}
             </div>
           );
         }
-        return (
-          <div className="flex flex-wrap gap-1">
-            {attribute.value.map(val => (
-              <span key={val} className="px-2 py-1 bg-gray-100 text-gray-800 rounded-full text-xs">
-                {val}
-              </span>
-            ))}
-          </div>
-        );
-      }
-      return attribute.value;
+        return attribute.value;
 
-    case 'date':
-    case 'datetime':
-      return new Date(attribute.value).toLocaleDateString();
+      case 'date':
+      case 'datetime':
+        return new Date(attribute.value).toLocaleDateString();
 
-    case 'keyvalue':
-      if (Array.isArray(attribute.value)) {
-console.log("Rendering keyvalue attribute:", attribute);
+      case 'keyvalue':
+        if (Array.isArray(attribute.value)) {
+          console.log("Rendering keyvalue attribute:", attribute);
 
-        return (
-          <div className="border rounded-lg overflow-hidden mt-2">
-            {attribute.value.map((item, idx) => (
-              <div key={idx} className={`grid grid-cols-1 sm:grid-cols-3 gap-2 p-3 ${idx % 2 === 0 ? 'bg-gray-50' : 'bg-white'}`}>
-                <div className="text-sm text-gray-600 font-medium sm:col-span-1 break-words">
-                  {item.key}:
+          return (
+            <div className="border rounded-lg overflow-hidden mt-2">
+              {attribute.value.map((item, idx) => (
+                <div key={idx} className={`grid grid-cols-1 sm:grid-cols-3 gap-2 p-3 ${idx % 2 === 0 ? 'bg-gray-50' : 'bg-white'}`}>
+                  <div className="text-sm text-gray-600 font-medium sm:col-span-1 break-words">
+                    {item.key}:
+                  </div>
+                  <div className="text-gray-800 font-medium sm:col-span-2 break-words">
+                    {item.value}
+                  </div>
                 </div>
-                <div className="text-gray-800 font-medium sm:col-span-2 break-words">
-                  {item.value}
-                </div>
-              </div>
-            ))}
-          </div>
-        );
-      }
+              ))}
+            </div>
+          );
+        }
 
-      if (typeof attribute.value === 'object' && attribute.value !== null) {
-        return (
-          <div className="border rounded-lg overflow-hidden mt-2">
-            {Object.entries(attribute.value).map(([key, value], idx) => (
-              <div key={key} className={`grid grid-cols-1 sm:grid-cols-3 gap-2 p-3 ${idx % 2 === 0 ? 'bg-gray-50' : 'bg-white'}`}>
-                {/* <div className="text-sm text-gray-600 font-medium sm:col-span-1 break-words">
-                  {key}:
-                </div> */}
-                <div className="text-gray-800 font-medium sm:col-span-2 break-words">
-                  {value}
+        if (typeof attribute.value === 'object' && attribute.value !== null) {
+          return (
+            <div className="border rounded-lg overflow-hidden mt-2">
+              {Object.entries(attribute.value).map(([key, value], idx) => (
+                <div key={key} className={`grid grid-cols-1 sm:grid-cols-3 gap-2 p-3 ${idx % 2 === 0 ? 'bg-gray-50' : 'bg-white'}`}>
+                  <div className="text-gray-800 font-medium sm:col-span-2 break-words">
+                    {value}
+                  </div>
                 </div>
-              </div>
-            ))}
-          </div>
-        );
-      }
-      return attribute.value;
+              ))}
+            </div>
+          );
+        }
+        return attribute.value;
 
-    default:
-      return attribute.value;
-  }
-};
+      default:
+        return attribute.value;
+    }
+  };
 
   useEffect(() => {
     const fetchProductData = async () => {
@@ -386,8 +413,12 @@ console.log("Rendering keyvalue attribute:", attribute);
           warranty: productData.warranty || '1 Year Manufacturer Warranty',
           returnPolicy: productData.returnPolicy || '30 Days Return Policy'
         };
+        fetchSimilarProducts(enhancedProduct.category, id, enhancedProduct.name);
 
         setProduct(enhancedProduct);
+
+
+
       } catch (err) {
         console.error('Failed to fetch product:', err);
         toast.error('Failed to load product details');
@@ -395,7 +426,37 @@ console.log("Rendering keyvalue attribute:", attribute);
         setLoading(false);
       }
     };
-
+    const fetchSimilarProducts = async (category, currentProductId, currentProductName) => {
+      try {
+        setSimilarLoading(true);
+        const response = await Api.get('/products');
+        console.log("All products for similar fetch:", response.data.products);
+        
+        const filteredProducts = response.data.products
+          .filter(p => p.category === category &&
+            p.id !== currentProductId &&
+            p.name !== currentProductName)
+          .slice(0, 4)
+          .map(p => {
+            const displayPrice = getDisplayPrice(p);
+            return {
+              ...p,
+              images: p.images || ['https://via.placeholder.com/300'],
+              rating: p.averageRating || (Math.random() * 1 + 3.5).toFixed(1),
+              reviews: p.reviews?.length || Math.floor(Math.random() * 200),
+              discountPercent: displayPrice.discountPercent,
+              discountPrice: displayPrice.price,
+              originalPrice: displayPrice.originalPrice
+            };
+          });
+          console.log("Similar products:", filteredProducts);
+        setSimilarProducts(filteredProducts);
+      } catch (err) {
+        console.error('Error fetching similar products:', err);
+      } finally {
+        setSimilarLoading(false);
+      }
+    };
     fetchProductData();
   }, [id]);
 
@@ -405,17 +466,38 @@ console.log("Rendering keyvalue attribute:", attribute);
         productId: id,
         quantity,
       });
-
+      fetchCartCount(); // Update cart count in context
       toast.success('Product added to cart!');
     } catch (error) {
       toast.error(error.response?.data?.message || 'Failed to add to cart');
     }
   };
-
   const toggleFavorite = async () => {
-    setIsFavorite(!isFavorite);
-    toast.success(isFavorite ? 'Removed from favorites' : 'Added to favorites');
+    const token = localStorage.getItem('token');
+    if (!token) {
+      navigate('/login', { state: { from: `/productpage/${id}` } });
+      return;
+    }
+
+    try {
+      if (isFavorite) {
+        // Find the wishlist item ID to remove
+        const wishlistItems = []; // You need to get wishlist items from context
+        const itemToRemove = wishlistItems.find(item => item.product._id === id);
+        if (itemToRemove) {
+          await removeFromWishlist(itemToRemove._id);
+        }
+      } else {
+        await addToWishlist(id);
+      }
+      setIsFavorite(!isFavorite);
+      fetchWishlistCount();
+    } catch (error) {
+      console.error('Error toggling wishlist:', error);
+      toast.error('Failed to update wishlist');
+    }
   };
+
 
   const nextImage = () => {
     setCurrentImageIndex((prev) => (prev + 1) % product.images.length);
@@ -456,6 +538,114 @@ console.log("Rendering keyvalue attribute:", attribute);
 
   return (
     <div className="bg-gray-50 min-h-screen">
+      {/* Lightbox Component */}
+      {product && (
+        <Lightbox
+          open={lightboxOpen}
+          close={() => setLightboxOpen(false)}
+          index={lightboxIndex}
+          slides={product.images.map(img => ({ 
+            src: img, 
+            type: getMediaType(img) === 'video' ? 'video' : 'image'
+          }))}
+          plugins={[Thumbnails, Zoom]}
+          zoom={{
+            maxZoomPixelRatio: 5,
+            zoomInMultiplier: 2,
+            scrollToZoom: true
+          }}
+          thumbnails={{
+            position: 'bottom',
+            width: 80,
+            height: 60,
+            gap: 10,
+            showToggle: true,
+            border: 0
+          }}
+          on={{
+            view: ({ index }) => setLightboxIndex(index),
+          }}
+          controller={{ closeOnBackdropClick: true }}
+          carousel={{
+            padding: 0,
+            spacing: 0
+          }}
+          styles={{
+            container: { backgroundColor: 'rgba(0, 0, 0, 0.92)' },
+            thumbnail: { borderRadius: '4px', border: '2px solid transparent' },
+            thumbnailActive: { borderColor: 'primary' }
+          }}
+          render={{
+            slide: ({ slide }) => {
+              if (slide.type === 'video') {
+                return (
+                  <div className="flex items-center justify-center h-full w-full">
+                    <video 
+                      controls 
+                      autoPlay 
+                      className="max-h-full max-w-full"
+                      style={{ objectFit: 'contain' }}
+                    >
+                      <source src={slide.src} type="video/mp4" />
+                      Your browser does not support the video tag.
+                    </video>
+                  </div>
+                );
+              }
+              return null
+            },
+            iconClose: () => (
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="h-6 w-6 text-white"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M6 18L18 6M6 6l12 12"
+                />
+              </svg>
+            ),
+            iconZoomIn: () => (
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="h-5 w-5"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zm-7-3v3m0 0v3m0-3h3m-3-3H7"
+                />
+              </svg>
+            ),
+            iconZoomOut: () => (
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="h-5 w-5"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zm-4 0H7"
+                />
+              </svg>
+            )
+          }}
+        />
+      )}
+
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Breadcrumbs */}
         <nav className="flex mb-6" aria-label="Breadcrumb">
@@ -490,27 +680,57 @@ console.log("Rendering keyvalue attribute:", attribute);
           <div className="bg-white p-4 rounded-2xl shadow-lg border border-gray-200 relative">
             {product.images && product.images.length > 0 ? (
               <>
-                {/* Product Image Section */}
+                {/* Product Media Section */}
                 <div className="relative aspect-square w-full rounded-xl overflow-hidden group">
                   <AnimatePresence mode="wait">
-                    <motion.img
-                      key={currentImageIndex}
-                      src={product.images[currentImageIndex]}
-                      alt={product.name}
-                      className="h-64 sm:h-80 md:h-full w-full object-contain"
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      exit={{ opacity: 0 }}
-                      transition={{ duration: 0.3 }}
-                    />
+                    {getMediaType(product.images[currentImageIndex]) === 'video' ? (
+                      <motion.div
+                        key={currentImageIndex}
+                        className="h-64 sm:h-80 md:h-full w-full flex items-center justify-center bg-black relative"
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        transition={{ duration: 0.3 }}
+                        onClick={() => {
+                          setLightboxIndex(currentImageIndex);
+                          setLightboxOpen(true);
+                        }}
+                      >
+                        <video
+                          src={product.images[currentImageIndex]}
+                          className="h-full w-full object-contain rounded-lg"
+                          controls
+                          autoPlay
+                          muted
+                          loop
+                        />
+                      </motion.div>
+                    ) : (
+                      <motion.img
+                        key={currentImageIndex}
+                        src={product.images[currentImageIndex]}
+                        alt={product.name}
+                        className="h-64 sm:h-80 md:h-full w-full object-contain cursor-zoom-in"
+                        onClick={() => {
+                          setLightboxIndex(currentImageIndex);
+                          setLightboxOpen(true);
+                        }}
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        transition={{ duration: 0.3 }}
+                      />
+                    )}
                   </AnimatePresence>
 
                   {/* Discount Badge */}
                   {displayPrice.discountPercent > 0 && (
-                    <div className={`absolute top-4 left-4 text-white text-sm font-bold px-3 py-1 rounded-full shadow-md ${isSpecialActive
-                      ? "bg-gradient-to-r from-orange-500 to-red-500"
-                      : "bg-gradient-to-r bg-primary to-pink-600"
-                      }`}>
+                    <div
+                      className={`absolute top-4 left-4 text-white text-sm font-bold px-3 py-1 rounded-full shadow-md ${isSpecialActive
+                        ? "bg-gradient-to-r from-orange-500 to-red-500"
+                        : "bg-gradient-to-r bg-primary to-pink-600"
+                        }`}
+                    >
                       {displayPrice.discountPercent}% OFF
                       {isSpecialActive && <span className="ml-1">(Special)</span>}
                     </div>
@@ -536,14 +756,14 @@ console.log("Rendering keyvalue attribute:", attribute);
                       <button
                         onClick={prevImage}
                         className="absolute left-4 top-1/2 -translate-y-1/2 bg-white/90 text-gray-800 p-2 rounded-full shadow-lg hover:bg-white transition-all transform hover:scale-110"
-                        aria-label="Previous image"
+                        aria-label="Previous media"
                       >
                         <FaChevronLeft className="text-sm" />
                       </button>
                       <button
                         onClick={nextImage}
                         className="absolute right-4 top-1/2 -translate-y-1/2 bg-white/90 text-gray-800 p-2 rounded-full shadow-lg hover:bg-white transition-all transform hover:scale-110"
-                        aria-label="Next image"
+                        aria-label="Next media"
                       >
                         <FaChevronRight className="text-sm" />
                       </button>
@@ -554,20 +774,33 @@ console.log("Rendering keyvalue attribute:", attribute);
                 {/* Thumbnail Navigation */}
                 {product.images.length > 1 && (
                   <div className="flex gap-3 mt-4 overflow-x-auto py-2 scrollbar-hide">
-                    {product.images.map((image, index) => (
+                    {product.images.map((media, index) => (
                       <button
                         key={index}
                         onClick={() => setCurrentImageIndex(index)}
-                        className={`flex-shrink-0 h-16 w-16 border-2 rounded-md overflow-hidden transition-all ${index === currentImageIndex
+                        className={`flex-shrink-0 h-16 w-16 border-2 rounded-md overflow-hidden transition-all relative ${index === currentImageIndex
                           ? "border-primary scale-105 shadow-md"
                           : "border-gray-200 hover:border-gray-300"
                           }`}
                       >
-                        <img
-                          src={image}
-                          alt={`Thumbnail ${index + 1}`}
-                          className="h-full w-full object-cover"
-                        />
+                        {getMediaType(media) === 'video' ? (
+                          <>
+                            <video
+                              src={media}
+                              muted
+                              className="h-full w-full object-cover"
+                            />
+                            <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-30">
+                              <FaPlay className="text-white text-xs" />
+                            </div>
+                          </>
+                        ) : (
+                          <img
+                            src={media}
+                            alt={`Thumbnail ${index + 1}`}
+                            className="h-full w-full object-cover"
+                          />
+                        )}
                       </button>
                     ))}
                   </div>
@@ -575,9 +808,10 @@ console.log("Rendering keyvalue attribute:", attribute);
               </>
             ) : (
               <div className="aspect-square w-full rounded-xl bg-gray-100 flex items-center justify-center">
-                <span className="text-gray-400">No image available</span>
+                <span className="text-gray-400">No media available</span>
               </div>
             )}
+
 
             {/* Quantity Selector & Buttons */}
             <div className="mt-8 space-y-4">
@@ -613,9 +847,26 @@ console.log("Rendering keyvalue attribute:", attribute);
                   Add to Cart
                 </motion.button>
 
+
                 <motion.button
-                  onClick={handleAddToCart}
-                  className="flex-1 bg-gradient-to-r bg-primary to-blue-600 hover:bg-primary hover:to-blue-700 text-white px-6 py-3 rounded-lg transition-colors font-medium"
+                  onClick={() => {
+                    handleAddToCart();
+                    navigate("/buy-now", {
+                      state: {
+                        product: {
+                          _id: id,
+                          name: product.name,
+                          images: product.images,
+                          originalPrice: product.originalPrice,
+                          discountPrice: displayPrice.price,
+                          discountPercent: displayPrice.discountPercent,
+                          isSpecial: displayPrice.isSpecial,
+                        },
+                        quantity,
+                      },
+                    });
+                  }}
+                  className="flex-1 bg-gradient-to-r from-primary to-secondary hover:from-secondary hover:to-secondary text-white px-4 sm:px-6 py-2 sm:py-3 rounded-lg transition-colors font-medium text-sm sm:text-base"
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
                 >
@@ -685,7 +936,6 @@ console.log("Rendering keyvalue attribute:", attribute);
                   {generalAttributes.map((attribute) => (
                     <div key={attribute._id} className="flex flex-col">
                       <span className="text-sm text-gray-500">{attribute.label}:</span>
-                      {/* // In both attribute rendering sections, change from span to div: */}
                       <div className="text-gray-800 font-medium">
                         {renderAttributeValue(attribute)}
                       </div>
@@ -893,6 +1143,14 @@ console.log("Rendering keyvalue attribute:", attribute);
                           <p className="text-gray-700 mt-3">{review.comment}</p>
                         </div>
                       ))}
+                      <div className="text-center mt-6">
+                      <button
+                        onClick={() => navigate(`/productpage/${product._id}/reviews`)}
+                        className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+                      >
+                        See Detailed reviews
+                      </button>
+                      </div>
                     </div>
                   ) : (
                     <div className="text-center py-8">
@@ -903,6 +1161,100 @@ console.log("Rendering keyvalue attribute:", attribute);
               </div>
             )}
           </div>
+        </div>
+
+        {/* Similar Products Section */}
+        <div className="mt-12 bg-white p-6 rounded-2xl shadow-lg border border-gray-200">
+          <h2 className="text-xl sm:text-2xl font-bold mb-6 pb-2 border-b border-gray-200">
+            Similar Products
+          </h2>
+
+          {similarLoading ? (
+            <div className="flex justify-center py-12">
+              <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-primary"></div>
+            </div>
+          ) : similarProducts.length > 0 ? (
+            <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6">
+              {similarProducts.map((item) => {
+                const itemDisplayPrice = getDisplayPrice(item);
+                const isItemSpecialActive = isSpecialPriceActive(item);
+
+                return (
+                  <motion.div
+                    key={item.id}
+                    className="relative border rounded-xl overflow-hidden hover:shadow-lg transition-shadow bg-white group"
+                    whileHover={{ y: -5 }}
+                    transition={{ duration: 0.2 }}
+                  >
+                    <Link to={`/productpage/${item._id}`} className="block">
+                      <div className="relative h-36 sm:h-48 bg-gray-100 flex items-center justify-center p-3 sm:p-4">
+                        <img
+                          src={item.images[0]}
+                          alt={item.name}
+                          className="h-full w-full object-contain transition-transform duration-300 group-hover:scale-105"
+                        />
+                        {itemDisplayPrice.discountPercent > 0 && (
+                          <div
+                            className={`absolute top-2 sm:top-3 left-2 sm:left-3 text-white text-[10px] sm:text-xs font-bold px-1.5 sm:px-2 py-0.5 sm:py-1 rounded ${isItemSpecialActive ? "bg-orange-500" : "bg-primary"
+                              }`}
+                          >
+                            {itemDisplayPrice.discountPercent}% OFF
+                            {isItemSpecialActive && (
+                              <span className="ml-1 text-[10px] sm:text-xs">Special</span>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                      <div className="p-2 sm:p-4">
+                        <h3 className="font-medium text-gray-900 line-clamp-2 text-sm sm:text-base h-10 sm:h-12 mb-1 sm:mb-2">
+                          {item.name}
+                        </h3>
+                        <div className="flex items-center mb-1 sm:mb-2">
+                          <Rating
+                            initialValue={item.averageRating}
+                            readonly
+                            size={12}
+                            className="mr-1 sm:mr-2"
+                            SVGstyle={{ display: "inline-block" }}
+                          />
+                          <span className="text-gray-600 text-xs sm:text-sm">
+                            ({item.reviews?.length || 0})
+                          </span>
+                        </div>
+                        <div className="space-y-0.5 sm:space-y-1">
+                          <span className="text-base sm:text-lg font-bold text-gray-900">
+                            ₹{(itemDisplayPrice.price || 0).toLocaleString()}
+                          </span>
+                          {itemDisplayPrice.originalPrice && (
+                            <div className="flex items-center gap-1 sm:gap-2">
+                              <span className="text-gray-500 line-through text-xs sm:text-sm">
+                                ₹{itemDisplayPrice.originalPrice.toLocaleString()}
+                              </span>
+                              {itemDisplayPrice.discountPercent > 0 && (
+                                <span
+                                  className={`text-xs sm:text-sm ${isItemSpecialActive ? "text-orange-600" : "text-primary"
+                                    }`}
+                                >
+                                  {itemDisplayPrice.discountPercent}% off
+                                </span>
+                              )}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </Link>
+                  </motion.div>
+                );
+              })}
+            </div>
+          ) : (
+            <div className="text-center py-12">
+              <p className="text-gray-500 mb-4">No similar products found</p>
+              <Link to="/products" className="text-primary hover:underline font-medium">
+                Browse all products
+              </Link>
+            </div>
+          )}
         </div>
       </div>
     </div>

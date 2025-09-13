@@ -140,9 +140,14 @@ const Sidebar = ({ open, toggleSidebar }) => {
       icon: <GrConfigure />,
       visible: hasRole('Sales'),
       subItems: [
-        {
-          title: 'Orders',
-          path: '/orders',
+        // {
+        //   title: 'Orders',
+        //   path: '/orders',
+        //   visible: true,
+        // },
+                {
+          title: 'Sales Overview',
+          path: '/SalesReport',
           visible: true,
         },
          {

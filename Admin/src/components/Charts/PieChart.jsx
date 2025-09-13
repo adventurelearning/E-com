@@ -65,8 +65,8 @@ const PieChart = ({ data }) => {
   return (
     <div
       style={{
-        height: isMobile ? "200px" : "350px", // smaller height on mobile
-        width: isMobile ? "300px" : "490px", // responsive full width
+      height: isMobile ? "150px" : "200px", // smaller chart on mobile
+        width:  isMobile ? "200px" : "450px", // full width instead of fixed 440px
       }}
     >
       <Pie options={options} data={chartData} />
