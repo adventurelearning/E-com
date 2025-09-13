@@ -22,7 +22,7 @@ const ProductList = () => {
       try {
         // Fetch products
         const { data: productsData } = await Api.get('/products');
-        
+
         setProducts(productsData.products || []);
         setFilteredProducts(productsData.products || []);
 
@@ -82,7 +82,16 @@ const ProductList = () => {
   };
 
   const allCategories = ['All', ...new Set(products.map(product => product.category))];
-  const allSubcategories = ['All', ...new Set(products.map(product => product.subcategory))];
+
+  // Get subcategories only for the selected category
+  const categorySubcategories = selectedCategory === 'All'
+    ? []
+    : products
+      .filter(product => product.category === selectedCategory)
+      .map(product => product.subcategory);
+
+  const allSubcategories = ['All', ...new Set(categorySubcategories)];
+
 
   if (loading) {
     return (
@@ -95,7 +104,7 @@ const ProductList = () => {
   return (
     <div className="container mx-auto px-4 py-6">
       <ToastContainer position="top-center" autoClose={3000} />
-      
+
       <div className="bg-white rounded-xl shadow-lg overflow-hidden">
         <div className="bg-gradient-to-r from-purple-700 to-indigo-800 px-6 py-4 flex justify-between items-center">
           <h2 className="text-xl font-bold text-white">Product Inventory</h2>
@@ -166,7 +175,7 @@ const ProductList = () => {
                   disabled={selectedCategory === 'All'}
                 >
                   <option value="All">All Subcategories</option>
-                  {selectedCategory !== 'All' && allSubcategories.filter(sub => sub !== 'All').map(subcategory => (
+                  {allSubcategories.filter(sub => sub !== 'All').map(subcategory => (
                     <option key={subcategory} value={subcategory}>{subcategory}</option>
                   ))}
                 </select>
@@ -239,8 +248,8 @@ const ProductList = () => {
                           )}
                         </td>
                         <td className="py-3 px-4 text-sm text-gray-700">{product.stock}</td>
-                        <td className="py-3 px-4">
-                          <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${product.stock > 0 ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
+                        <td className="">
+                          <span className={` py-1 px-2 text-xs font-semibold rounded-full ${product.stock > 0 ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
                             {product.stock > 0 ? 'In Stock' : 'Out of Stock'}
                           </span>
                         </td>

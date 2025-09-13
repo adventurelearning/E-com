@@ -382,7 +382,7 @@ const Banner = () => {
                                 <div className="p-4">
                                     <h3 className="text-lg font-semibold">{product.title}</h3>
                                     <p className="text-gray-600">{product.subtitle}</p>
-                                    <p className="text-blue-600 font-bold mt-2">${product.price}</p>
+                                    <p className="text-blue-600 font-bold mt-2">₹{product.price}</p>
                                     {product.isFeatured && (
                                         <span className="inline-block bg-yellow-100 text-yellow-800 text-xs px-2 py-1 rounded-full mt-2">
                                             Featured

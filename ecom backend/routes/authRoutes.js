@@ -7,7 +7,7 @@ const OtpToken = require('../models/OtpToken');
 const asyncHandler = require('../utils/asyncHandler');
 const ErrorResponse = require('../utils/errorHandler').ErrorResponse;
 const nodemailer = require('nodemailer');
-const { protect ,requireRole} = require('../middlewares/authMiddleware');
+const { protect, requireRole } = require('../middlewares/authMiddleware');
 const Order = require('../models/Order');
 
 // ✅ Send email helper (now supports HTML)
@@ -49,7 +49,7 @@ router.post('/signup', asyncHandler(async (req, res, next) => {
 
   await OtpToken.create({ userId: user._id, otp, expiresAt: expiry });
 
-    const html = `
+  const html = `
     <div style="font-family: Arial, sans-serif; line-height: 1.5;">
       <h2 style="color: #333;">Verify your email</h2>
       <p>Hello ${name},</p>
@@ -64,7 +64,7 @@ router.post('/signup', asyncHandler(async (req, res, next) => {
     </div>
   `;
 
-  await sendEmail(email, 'Verify your email', `Your OTP is: ${otp}`,html);
+  await sendEmail(email, 'Verify your email', `Your OTP is: ${otp}`, html);
 
   res.status(201).json({ success: true, message: 'OTP sent to your email.' });
 }));
@@ -147,7 +147,7 @@ router.get('/users', protect, requireRole('admin'), async (req, res) => {
     .lean();
 
   const total = await User.countDocuments();
-  
+
   res.json({
     users,
     pagination: {
@@ -167,7 +167,7 @@ router.get('/users/:id', protect, requireRole('admin'), async (req, res) => {
   const orders = await Order.find({ user: req.params.id })
     .sort('-createdAt')
     .limit(5);
-console.log("Recent orders for user:", user._id, orders);
+  console.log("Recent orders for user:", user._id, orders);
 
   res.json({ ...user, recentOrders: orders });
 });
@@ -175,7 +175,7 @@ console.log("Recent orders for user:", user._id, orders);
 // 🔐 Update user status
 router.put('/users/:id', protect, requireRole('admin'), async (req, res) => {
   const { isActive, isVerified } = req.body;
-  
+
   const user = await User.findById(req.params.id);
   if (!user) return res.status(404).json({ message: 'User not found' });
 
@@ -290,5 +290,23 @@ router.post('/google', asyncHandler(async (req, res, next) => {
     }
   });
 }));
+
+router.post('/users/create-user', protect, requireRole('admin'), async (req, res) => {
+  try {
+    const { name, email, password, isVerified, authProvider } = req.body;
+    if (!name || !email || !password) {
+      return res.status(400).json({ message: 'Name,email and password are required' })
+    }
+    const existingUser = await User.find({ email });
+    if (existingUser.length) {
+      return res.status(400).json({ message: 'Email already in use' })
+    }
+    const user = await User.create({ name, email, password, isVerified, authProvider });
+    res.status(201).json({ message: 'User created successfully', user })
+  } catch (err) {
+    console.error('Create user error:', err);
+    res.status(500).json({ message: 'Server error' });
+  }
+})
 
 module.exports = router;

@@ -96,8 +96,8 @@ const LineChart = ({ data }) => {
   return (
     <div
       style={{
-        height: isMobile ? "200px" : "300px", // smaller chart on mobile
-        width:  isMobile ? "300px" : "500px", // full width instead of fixed 440px
+        height: isMobile ? "150px" : "200px", // smaller chart on mobile
+        width:  isMobile ? "200px" : "450px", // full width instead of fixed 440px
       }}
     >
       <Line options={options} data={chartData} />
