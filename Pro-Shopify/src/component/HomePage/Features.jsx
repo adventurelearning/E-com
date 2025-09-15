@@ -16,7 +16,7 @@ const Features = () => {
     },
     {
       title: "Free shipping",
-      description: "On orders over $50",
+      description: "On orders over ₹50",
       icon: (
         <path
           strokeLinecap="round"

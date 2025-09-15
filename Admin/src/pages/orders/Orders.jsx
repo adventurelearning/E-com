@@ -1,53 +1,46 @@
 import React, { useState, useEffect } from 'react';
-import {
-  Paper, Table, TableBody, TableCell, TableContainer,
-  TableHead, TableRow, TableSortLabel,
-  Select, MenuItem, FormControl, InputLabel, Chip,
-  IconButton, Tooltip, Typography, Box,
-  LinearProgress, Snackbar, Alert, Avatar, Badge, Button,
-  TextField, useMediaQuery, useTheme, Dialog, DialogTitle,
-  DialogContent, DialogActions, Collapse, Card, CardContent,
-  Accordion, AccordionSummary, AccordionDetails,
-  CircularProgress, Grid
-} from '@mui/material';
-import {
-  CheckCircle, Cancel, LocalShipping,
-  Refresh, FilterList, MoreVert, Edit,
-  HourglassEmpty, Payment, LocationOn, ArrowUpward, ArrowDownward,
-  ArrowBackIosNew, ArrowForwardIos, Download, ExpandMore, ExpandLess,
-  History, Person, Info, CalendarToday, Schedule,
-  Place, Assignment, Warning
-} from '@mui/icons-material';
-import { styled } from '@mui/material/styles';
 import dayjs from 'dayjs';
 import relativeTime from 'dayjs/plugin/relativeTime';
 import Api from '../../Services/Api';
 
 dayjs.extend(relativeTime);
 
-// Purple theme colors
-const purpleTheme = {
-  primary: '#7e57c2',
-  primaryLight: '#b085f5',
-  primaryDark: '#4d2c91',
-  secondary: '#f3e5f5',
-};
-
 // Status configuration
 const statusColors = {
-  pending: 'warning',
-  processing: 'info',
-  shipped: 'primary',
-  delivered: 'success',
-  cancelled: 'error'
+  pending: 'bg-yellow-100 text-yellow-800',
+  processing: 'bg-blue-100 text-blue-800',
+  shipped: 'bg-purple-100 text-purple-800',
+  delivered: 'bg-green-100 text-green-800',
+  cancelled: 'bg-red-100 text-red-800'
 };
 
 const statusIcons = {
-  pending: <HourglassEmpty fontSize="small" />,
-  processing: <Refresh fontSize="small" />,
-  shipped: <LocalShipping fontSize="small" />,
-  delivered: <CheckCircle fontSize="small" />,
-  cancelled: <Cancel fontSize="small" />
+  pending: (
+    <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clipRule="evenodd" />
+    </svg>
+  ),
+  processing: (
+    <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+      <path fillRule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z" clipRule="evenodd" />
+    </svg>
+  ),
+  shipped: (
+    <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+      <path d="M8 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zM15 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0z" />
+      <path d="M3 4a1 1 0 00-1 1v10a1 1 0 001 1h1.05a2.5 2.5 0 014.9 0H10a1 1 0 001-1v-1h4.05a2.5 2.5 0 014.9 0H20a1 1 0 001-1v-6a1 1 0 00-.293-.707l-4-4A1 1 0 0016 3H3a1 1 0 00-1 1zm14.707 3L17 5.414V7h2.293l-2-2zM16 9v2h2V9h-2z" />
+    </svg>
+  ),
+  delivered: (
+    <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+      <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+    </svg>
+  ),
+  cancelled: (
+    <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+      <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
+    </svg>
+  )
 };
 
 const paymentMethods = {
@@ -58,25 +51,11 @@ const paymentMethods = {
   cod: 'Cash on Delivery'
 };
 
-const StyledTableRow = styled(TableRow)(({ theme }) => ({
-  '&:nth-of-type(odd)': {
-    backgroundColor: theme.palette.action.hover,
-  },
-  '&:hover': {
-    backgroundColor: purpleTheme.secondary,
-    transition: 'background-color 0.3s ease',
-  },
-}));
-
 const Orders = () => {
-  const theme = useTheme();
-  const isSmallScreen = useMediaQuery(theme.breakpoints.down('md'));
-  const isExtraSmallScreen = useMediaQuery(theme.breakpoints.down('sm'));
-  
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(0);
-  const [rowsPerPage, setRowsPerPage] = useState(5);
+  const [rowsPerPage, setRowsPerPage] = useState(10);
   const [statusFilter, setStatusFilter] = useState('all');
   const [sortField, setSortField] = useState('createdAt');
   const [sortDirection, setSortDirection] = useState('desc');
@@ -105,6 +84,8 @@ const Orders = () => {
       try {
         const response = await Api.get('/orders/userOrders/all');
         setOrders(response.data);
+        console.log(response.data);
+
       } catch (error) {
         console.error('Error fetching orders:', error);
         setSnackbar({
@@ -123,17 +104,17 @@ const Orders = () => {
   // Function to fetch tracking details
   const fetchTrackingDetails = async (orderId, trackingCourier, trackingId) => {
     setTrackingLoading(prev => ({ ...prev, [orderId]: true }));
-    
+
     try {
       const response = await Api.post('/tracking', {
         courier: trackingCourier,
         trackingNumber: trackingId,
         orderId: orderId,
       });
-      
-      setTrackingData(prev => ({ 
-        ...prev, 
-        [orderId]: response.data 
+
+      setTrackingData(prev => ({
+        ...prev,
+        [orderId]: response.data
       }));
     } catch (err) {
       console.error('Error fetching tracking details:', err);
@@ -147,7 +128,7 @@ const Orders = () => {
     }
   };
 
-  const handleChangePage = (event, newPage) => {
+  const handleChangePage = (newPage) => {
     setPage(newPage);
   };
 
@@ -169,11 +150,11 @@ const Orders = () => {
 
   const handleStatusChange = async (orderId, newStatus, trackingInfo = null, note = '') => {
     try {
-      const payload = { 
+      const payload = {
         status: newStatus,
         note: note || `Status changed to ${newStatus}`
       };
-      
+
       // Include tracking info if provided
       if (trackingInfo) {
         payload.trackingId = trackingInfo.trackingId;
@@ -217,7 +198,7 @@ const Orders = () => {
   };
 
   // Open tracking dialog when changing status to shipped
-  const handleStatusSelect = (order, newStatus) =>{
+  const handleStatusSelect = (order, newStatus) => {
     if (newStatus === 'shipped') {
       setTrackingDialog({
         open: true,
@@ -235,12 +216,12 @@ const Orders = () => {
   const toggleOrderExpansion = async (order) => {
     const orderId = order._id;
     const isExpanding = !expandedOrders[orderId];
-    
+
     setExpandedOrders(prev => ({
       ...prev,
       [orderId]: isExpanding
     }));
-    
+
     // If expanding and order has tracking info, fetch tracking details
     if (isExpanding && order.trackingId && order.trackingCourier && !trackingData[orderId]) {
       await fetchTrackingDetails(orderId, order.trackingCourier, order.trackingId);
@@ -287,7 +268,15 @@ const Orders = () => {
   // Function to get sort direction icon
   const getSortIcon = (field) => {
     if (sortField !== field) return null;
-    return sortDirection === 'asc' ? <ArrowUpward fontSize="small" /> : <ArrowDownward fontSize="small" />;
+    return sortDirection === 'asc' ? (
+      <svg className="w-4 h-4 ml-1" fill="currentColor" viewBox="0 0 20 20">
+        <path fillRule="evenodd" d="M14.707 12.707a1 1 0 01-1.414 0L10 9.414l-3.293 3.293a1 1 0 01-1.414-1.414l4-4a1 1 0 011.414 0l4 4a1 1 0 010 1.414z" clipRule="evenodd" />
+      </svg>
+    ) : (
+      <svg className="w-4 h-4 ml-1" fill="currentColor" viewBox="0 0 20 20">
+        <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
+      </svg>
+    );
   };
 
   const downloadInvoice = async (id) => {
@@ -319,17 +308,42 @@ const Orders = () => {
   const getStatusIcon = (status) => {
     switch (status?.toLowerCase()) {
       case 'pending':
-        return <HourglassEmpty sx={{ fontSize: 16 }} />;
+        return (
+          <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clipRule="evenodd" />
+          </svg>
+        );
       case 'processing':
-        return <Refresh sx={{ fontSize: 16 }} />;
+        return (
+          <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+            <path fillRule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z" clipRule="evenodd" />
+          </svg>
+        );
       case 'shipped':
-        return <LocalShipping sx={{ fontSize: 16 }} />;
+        return (
+          <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+            <path d="M8 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zM15 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0z" />
+            <path d="M3 4a1 1 0 00-1 1v10a1 1 0 001 1h1.05a2.5 2.5 0 014.9 0H10a1 1 0 001-1v-1h4.05a2.5 2.5 0 014.9 0H20a1 1 0 001-1v-6a1 1 0 00-.293-.707l-4-4A1 1 0 0016 3H3a1 1 0 00-1 1zm14.707 3L17 5.414V7h2.293l-2-2zM16 9v2h2V9h-2z" />
+          </svg>
+        );
       case 'delivered':
-        return <CheckCircle sx={{ fontSize: 16 }} />;
+        return (
+          <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+            <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+          </svg>
+        );
       case 'cancelled':
-        return <Cancel sx={{ fontSize: 16 }} />;
+        return (
+          <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+            <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
+          </svg>
+        );
       default:
-        return <Info sx={{ fontSize: 16 }} />;
+        return (
+          <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+            <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+          </svg>
+        );
     }
   };
 
@@ -345,7 +359,7 @@ const Orders = () => {
   // Format date for display
   const formatDate = (dateString) => {
     if (!dateString) return 'N/A';
-    
+
     try {
       const date = new Date(dateString);
       return date.toLocaleString(undefined, {
@@ -363,7 +377,7 @@ const Orders = () => {
   // Create unified timeline for an order
   const createUnifiedTimeline = (order) => {
     const timeline = [];
-    
+
     // Add order creation
     timeline.push({
       type: 'system',
@@ -371,9 +385,13 @@ const Orders = () => {
       description: 'Order was placed successfully.',
       date: order.createdAt,
       status: 'created',
-      icon: <CalendarToday sx={{ fontSize: 16 }} />
+      icon: (
+        <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+          <path fillRule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clipRule="evenodd" />
+        </svg>
+      )
     });
-    
+
     // Add status history from database
     if (order.statusHistory && order.statusHistory.length > 0) {
       order.statusHistory.forEach(item => {
@@ -390,7 +408,7 @@ const Orders = () => {
         });
       });
     }
-    
+
     // Add tracking events if available
     const orderTrackingData = trackingData[order._id];
     if (orderTrackingData && orderTrackingData.data && orderTrackingData.data.tracking.checkpoints) {
@@ -406,7 +424,7 @@ const Orders = () => {
         });
       });
     }
-    
+
     // Sort timeline by date
     timeline.sort((a, b) => new Date(a.date) - new Date(b.date));
     return timeline;
@@ -415,796 +433,537 @@ const Orders = () => {
   const getTrackingIcon = (tag) => {
     switch (tag?.toLowerCase()) {
       case 'delivered':
-        return <CheckCircle sx={{ fontSize: 16 }} />;
+        return (
+          <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+            <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+          </svg>
+        );
       case 'intransit':
-        return <LocalShipping sx={{ fontSize: 16 }} />;
       case 'outfordelivery':
-        return <LocalShipping sx={{ fontSize: 16 }} />;
+        return (
+          <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+            <path d="M8 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zM15 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0z" />
+            <path d="M3 4a1 1 0 00-1 1v10a1 1 0 001 1h1.05a2.5 2.5 0 014.9 0H10a1 1 0 001-1v-1h4.05a2.5 2.5 0 014.9 0H20a1 1 0 001-1v-6a1 1 0 00-.293-.707l-4-4A1 1 0 0016 3H3a1 1 0 00-1 1zm14.707 3L17 5.414V7h2.293l-2-2zM16 9v2h2V9h-2z" />
+          </svg>
+        );
       case 'exception':
-        return <Info sx={{ fontSize: 16 }} />;
       case 'inforeceived':
-        return <Info sx={{ fontSize: 16 }} />;
       default:
-        return <Info sx={{ fontSize: 16 }} />;
+        return (
+          <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+            <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+          </svg>
+        );
     }
   };
-
 
   // Render unified timeline for an order
   const renderUnifiedTimeline = (order) => {
     const timeline = createUnifiedTimeline(order);
-    
+
     return (
-      <Box sx={{ 
-        position: 'relative',
-        pl: 2,
-        ml: 1,
-        borderLeft: '2px dashed',
-        borderColor: 'primary.light'
-      }}>
+      <div className="relative pl-4 ml-1 border-l-2 border-dashed border-purple-300">
         {timeline.map((event, index) => (
-          <Box 
-            key={index} 
-            sx={{ 
-              position: 'relative',
-              mb: 2,
-              '&::before': {
-                content: '""',
-                position: 'absolute',
-                left: -21,
-                top: 4,
-                width: 12,
-                height: 12,
-                borderRadius: '50%',
-                backgroundColor: index === timeline.length - 1 ? 'success.main' : 'primary.main',
-                border: '2px solid',
-                borderColor: 'white',
-                boxShadow: '0 0 0 1px primary.main',
-                zIndex: 2
-              }
-            }}
+          <div
+            key={index}
+            className="relative mb-4"
           >
-            <Card sx={{ 
-              borderRadius: '8px',
-              boxShadow: index === timeline.length - 1 ? '0 2px 8px rgba(0,0,0,0.1)' : '0 1px 4px rgba(0,0,0,0.05)',
-              border: index === timeline.length - 1 ? '1px solid' : '1px solid',
-              borderColor: index === timeline.length - 1 ? 'success.light' : 'grey.200',
-              backgroundColor: index === timeline.length - 1 ? 'success.10' : 'background.paper'
-            }}>
-              <CardContent sx={{ py: 1, '&:last-child': { pb: 1 } }}>
-                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap' }}>
-                  <Box sx={{ flex: 1 }}>
-                    <Typography variant="body2" color="text.secondary" sx={{ display: 'flex', alignItems: 'center', mb: 0.5, fontSize: '0.75rem' }}>
+            <div className="absolute -left-[21px] top-1 w-3 h-3 rounded-full bg-purple-100 border-2 border-white z-10"></div>
+            <div className={`rounded-md shadow-sm border ${index === timeline.length - 1 ? 'border-green-300 bg-green-50' : 'border-gray-200'}`}>
+              <div className="p-2">
+                <div className="flex justify-between items-start flex-wrap">
+                  <div className="flex-1">
+                    <div className="flex items-center text-gray-500 text-xs mb-1">
                       {event.icon}
-                      <Box component="span" sx={{ ml: 0.5 }}>
-                        {dayjs(event.date).format('MMM D, YYYY h:mm A')}
-                      </Box>
-                    </Typography>
-                    <Typography variant="body2" fontWeight="600" gutterBottom sx={{ fontSize: '0.875rem' }}>
+                      <span className="ml-1">{dayjs(event.date).format('MMM D, YYYY h:mm A')}</span>
+                    </div>
+                    <div className="text-sm font-semibold mb-1">
                       {event.title}
-                    </Typography>
-                    <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.75rem' }}>
+                    </div>
+                    <div className="text-xs text-gray-500">
                       {event.description}
-                    </Typography>
+                    </div>
                     {event.changedBy && (
-                      <Typography variant="caption" color="text.secondary" sx={{ display: 'flex', alignItems: 'center', mt: 0.5, fontSize: '0.7rem' }}>
-                        <Person sx={{ fontSize: 14, mr: 0.5 }} />
+                      <div className="flex items-center mt-1 text-xs text-gray-500">
+                        <svg className="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                          <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" />
+                        </svg>
                         Updated by: {event.changedBy}
-                      </Typography>
+                      </div>
                     )}
                     {event.trackingId && (
-                      <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 0.5, fontSize: '0.7rem' }}>
+                      <div className="mt-1 text-xs text-gray-500">
                         Tracking: {event.trackingCourier} - {event.trackingId}
-                      </Typography>
+                      </div>
                     )}
-                  </Box>
+                  </div>
                   {event.isTracking && (
-                    <Chip 
-                      label="Tracking" 
-                      size="small" 
-                      color="info" 
-                      variant="outlined"
-                      sx={{ fontWeight: 500, ml: 1, fontSize: '0.7rem' }}
-                    />
+                    <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800 ml-2">
+                      Tracking
+                    </span>
                   )}
-                </Box>
-              </CardContent>
-            </Card>
-          </Box>
+                </div>
+              </div>
+            </div>
+          </div>
         ))}
-      </Box>
+      </div>
     );
   };
 
-  // Responsive table cell rendering
-  const renderTableCell = (content, align = 'left', sx = {}) => (
-    <TableCell align={align} sx={{ 
-      ...sx, 
-      py: isSmallScreen ? 1 : 2,
-      fontSize: isExtraSmallScreen ? '0.7rem' : (isSmallScreen ? '0.8rem' : '1rem')
-    }}>
-      {content}
-    </TableCell>
-  );
-
   return (
-    <div
-      style={{
-        padding: isExtraSmallScreen ? '8px' : '14px',
-        width: '100%',
-        maxWidth: '1050px',
-        margin: '0 auto',
-        boxSizing: 'border-box'
-      }}
-    >
-      <Paper sx={{
-        mb: 3,
-        p: 2,
-        borderRadius: 3,
-        boxShadow: 3,
-        borderLeft: `4px solid ${purpleTheme.primary}`
-      }}>
-        <Box display="flex" justifyContent="space-between" alignItems="flex-start" flexWrap="wrap">
-          <Box display="flex" alignItems="center" mb={{ xs: 2, sm: 0 }} flexWrap="wrap">
-            {isSmallScreen ? (
-              <IconButton 
-                onClick={() => setShowFilters(!showFilters)}
-                sx={{ mr: 1, color: purpleTheme.primary }}
-              >
-                <FilterList />
-              </IconButton>
-            ) : (
-              <FilterList sx={{ mr: 1, color: purpleTheme.primary }} />
-            )}
-            
-            <Box display={isSmallScreen && !showFilters ? 'none' : 'flex'} 
-                 flexDirection={isSmallScreen ? 'column' : 'row'} 
-                 alignItems={isSmallScreen ? 'flex-start' : 'center'}
-                 width={isSmallScreen ? '100%' : 'auto'}
-                 gap={isSmallScreen ? 2 : 0}>
-              
-              <FormControl size="small" sx={{ minWidth: 180, mr: isSmallScreen ? 0 : 2, mb: isSmallScreen ? 2 : 0, width: isSmallScreen ? '100%' : 'auto' }}>
-                <InputLabel sx={{ fontSize: isExtraSmallScreen ? '0.8rem' : '1rem' }}>Filter by Status</InputLabel>
-                <Select
+    <div className="p-3 w-full max-w-screen-2xl mx-auto box-border mt-3">
+      {/* Filter Bar */}
+      <div className="mb-4 p-3 rounded-lg shadow-md border-l-4 border-purple-600 bg-white">
+        <div className="flex justify-between items-start flex-wrap gap-2">
+          <div className="flex items-center flex-wrap gap-2">
+            <button
+              onClick={() => setShowFilters(!showFilters)}
+              className="p-1 text-purple-600 hover:bg-purple-100 rounded"
+            >
+              <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M3 3a1 1 0 011-1h12a1 1 0 011 1v3a1 1 0 01-.293.707L12 11.414V15a1 1 0 01-.293.707l-2 2A1 1 0 018 17v-5.586L3.293 6.707A1 1 0 013 6V3z" clipRule="evenodd" />
+              </svg>
+            </button>
+
+            <div className={`flex flex-row items-center flex-wrap gap-2 ${!showFilters ? 'hidden md:flex' : ''}`}>
+              <div className="relative">
+                <select
                   value={statusFilter}
                   onChange={handleStatusFilterChange}
-                  label="Filter by Status"
-                  sx={{
-                    '& .MuiSelect-select': {
-                      color: purpleTheme.primaryDark,
-                      fontWeight: 500,
-                      fontSize: isExtraSmallScreen ? '0.8rem' : '0.9rem'
-                    }
-                  }}
+                  className="pl-3 pr-10 py-1.5 text-sm text-purple-800 font-medium border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
                 >
-                  <MenuItem value="all" sx={{ fontSize: isExtraSmallScreen ? '0.8rem' : '0.9rem' }}>All Statuses</MenuItem>
-                  <MenuItem value="pending" sx={{ fontSize: isExtraSmallScreen ? '0.8rem' : '0.9rem' }}>Pending</MenuItem>
-                  <MenuItem value="processing" sx={{ fontSize: isExtraSmallScreen ? '0.8rem' : '0.9rem' }}>Processing</MenuItem>
-                  <MenuItem value="shipped" sx={{ fontSize: isExtraSmallScreen ? '0.8rem' : '0.9rem' }}>Shipped</MenuItem>
-                  <MenuItem value="delivered" sx={{ fontSize: isExtraSmallScreen ? '0.8rem' : '0.9rem' }}>Delivered</MenuItem>
-                  <MenuItem value="cancelled" sx={{ fontSize: isExtraSmallScreen ? '0.8rem' : '0.9rem' }}>Cancelled</MenuItem>
-                </Select>
-              </FormControl>
+                  <option value="all">All Statuses</option>
+                  <option value="pending">Pending</option>
+                  <option value="processing">Processing</option>
+                  <option value="shipped">Shipped</option>
+                  <option value="delivered">Delivered</option>
+                  <option value="cancelled">Cancelled</option>
+                </select>
+              </div>
 
-              <TextField
-                size="small"
-                variant="outlined"
+              <input
+                type="text"
                 placeholder="Search by email"
                 value={searchEmail}
                 onChange={(e) => setSearchEmail(e.target.value)}
-                sx={{
-                  ml: isSmallScreen ? 0 : 2,
-                  width: isSmallScreen ? '100%' : 220,
-                  '& .MuiOutlinedInput-root': {
-                    borderRadius: 2,
-                    fontSize: isExtraSmallScreen ? '0.8rem' : '0.9rem',
-                    backgroundColor: 'white'
-                  }
-                }}
+                className="px-3 py-1.5 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 w-44"
               />
 
-              {!isExtraSmallScreen && (
-                <Box display="flex" alignItems="center" ml={isSmallScreen ? 0 : 2} mt={isSmallScreen ? 2 : 0}>
-                  <Typography variant="body2" sx={{ mr: 1, color: 'text.secondary', fontSize: isSmallScreen ? '0.8rem' : '0.9rem' }}>
-                    Sort by:
-                  </Typography>
-                  <Chip
-                    label="Date"
-                    onClick={() => handleSort('createdAt')}
-                    variant={sortField === 'createdAt' ? 'filled' : 'outlined'}
-                    color="primary"
-                    size="small"
-                    icon={getSortIcon('createdAt')}
-                    sx={{ mr: 1, fontSize: isSmallScreen ? '0.7rem' : '0.8rem' }}
-                  />
-                  <Chip
-                    label="Total"
-                    onClick={() => handleSort('total')}
-                    variant={sortField === 'total' ? 'filled' : 'outlined'}
-                    color="primary"
-                    size="small"
-                    icon={getSortIcon('total')}
-                    sx={{ mr: 1, fontSize: isSmallScreen ? '0.7rem' : '0.8rem' }}
-                  />
-                  <Chip
-                    label="Items"
-                    onClick={() => handleSort('items')}
-                    variant={sortField === 'items' ? 'filled' : 'outlined'}
-                    color="primary"
-                    size="small"
-                    icon={getSortIcon('items')}
-                    sx={{ fontSize: isSmallScreen ? '0.7rem' : '0.8rem' }}
-                  />
-                </Box>
-              )}
-            </Box>
-          </Box>
+              <div className="flex items-center gap-1">
+                <span className="text-sm text-gray-600">Sort:</span>
+                <button
+                  onClick={() => handleSort('createdAt')}
+                  className={`px-2 py-1 flex text-xs rounded-full ${sortField === 'createdAt' ? 'bg-purple-100 text-purple-600' : 'bg-white text-purple-800 border border-purple-600'}`}
+                >
+                  Date {getSortIcon('createdAt')}
+                </button>
+                <button
+                  onClick={() => handleSort('total')}
+                  className={`px-2 py-1 flex text-xs rounded-full ${sortField === 'total' ? 'bg-purple-100 text-purple-600' : 'bg-white text-purple-800 border border-purple-600'}`}
+                >
+                  Total {getSortIcon('total')}
+                </button>
+                <button
+                  onClick={() => handleSort('items')}
+                  className={`px-2 py-1 flex text-xs rounded-full ${sortField === 'items' ? 'bg-purple-100 text-purple-600' : 'bg-white text-purple-800 border border-purple-600'}`}
+                >
+                  Items {getSortIcon('items')}
+                </button>
+              </div>
+            </div>
+          </div>
 
-          <Box display="flex" alignItems="center" flexWrap="wrap" justifyContent={isSmallScreen ? 'space-between' : 'flex-end'} width={isSmallScreen ? '100%' : 'auto'}>
-            <Box display="flex" alignItems="center" sx={{ ml: isSmallScreen ? 0 : 'auto' }} mt={isSmallScreen ? 2 : 0}>
-              {!isExtraSmallScreen && (
-                <>
-                  <Typography variant="body2" sx={{ mr: 1, color: purpleTheme.primaryDark, fontSize: isSmallScreen ? '0.8rem' : '0.9rem' }}>
-                    Rows:
-                  </Typography>
-                  <Select
-                    value={rowsPerPage}
-                    onChange={handleChangeRowsPerPage}
-                    size="small"
-                    sx={{
-                      width: 80,
-                      mr: 2,
-                      '& .MuiSelect-select': {
-                        padding: '6px 32px 6px 12px',
-                        fontSize: isSmallScreen ? '0.8rem' : '0.875rem',
-                        color: purpleTheme.primaryDark,
-                        fontWeight: 500
-                      }
-                    }}
-                    MenuProps={{
-                      PaperProps: {
-                        sx: {
-                          '& .MuiMenuItem-root': {
-                            fontSize: isSmallScreen ? '0.8rem' : '0.875rem'
-                          }
-                        }
-                      }
-                    }}
-                  >
-                    <MenuItem value={5} sx={{ fontSize: isSmallScreen ? '0.8rem' : '0.875rem' }}>5</MenuItem>
-                    <MenuItem value={10} sx={{ fontSize: isSmallScreen ? '0.8rem' : '0.875rem' }}>10</MenuItem>
-                    <MenuItem value={25} sx={{ fontSize: isSmallScreen ? '0.8rem' : '0.875rem' }}>25</MenuItem>
-                  </Select>
-                </>
-              )}
-
-              <Typography variant="body2" sx={{ mr: 2, color: purpleTheme.primaryDark, fontSize: isSmallScreen ? '0.8rem' : '0.9rem' }}>
-                {`${page * rowsPerPage + 1}-${Math.min(page * rowsPerPage + rowsPerPage, filteredOrders.length)} of ${filteredOrders.length}`}
-              </Typography>
-
-              <IconButton
-                onClick={() => setPage(old => Math.max(old - 1, 0))}
-                disabled={page === 0}
-                size="small"
-                sx={{
-                  mr: 1,
-                  backgroundColor: purpleTheme.secondary,
-                  '&:hover': { backgroundColor: purpleTheme.primaryLight },
-                  '&:disabled': { opacity: 0.5 }
-                }}
+          <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1">
+              <span className="text-sm text-purple-800">Rows:</span>
+              <select
+                value={rowsPerPage}
+                onChange={handleChangeRowsPerPage}
+                className=" py-1 text-sm text-purple-800 font-medium border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 w-16"
               >
-                <ArrowBackIosNew fontSize="small" sx={{ color: purpleTheme.primaryDark }} />
-              </IconButton>
+                <option value={5}>5</option>
+                <option value={10}>10</option>
+                <option value={25}>25</option>
+              </select>
+            </div>
 
-              <IconButton
-                onClick={() => setPage(old => old + 1)}
-                disabled={page >= Math.ceil(filteredOrders.length / rowsPerPage) - 1}
-                size="small"
-                sx={{
-                  backgroundColor: purpleTheme.secondary,
-                  '&:hover': { backgroundColor: purpleTheme.primaryLight }
-                }}
-              >
-                <ArrowForwardIos fontSize="small" sx={{ color: purpleTheme.primaryDark }} />
-              </IconButton>
-            </Box>
 
-            <Tooltip title="Refresh orders">
-              <IconButton
-                color="primary"
-                onClick={() => window.location.reload()}
-                sx={{
-                  ml: 1,
-                  backgroundColor: purpleTheme.secondary,
-                  '&:hover': {
-                    backgroundColor: purpleTheme.primaryLight,
-                  }
-                }}
-              >
-                <Refresh sx={{ color: purpleTheme.primaryDark }} />
-              </IconButton>
-            </Tooltip>
-          </Box>
-        </Box>
-        
-        {isExtraSmallScreen && (
-          <Box mt={2}>
-            <Typography variant="body2" sx={{ mr: 1, color: 'text.secondary', mb: 1, fontSize: '0.8rem' }}>
-              Sort by:
-            </Typography>
-            <Box display="flex" flexWrap="wrap" gap={1}>
-              <Chip
-                label="Date"
-                onClick={() => handleSort('createdAt')}
-                variant={sortField === 'createdAt' ? 'filled' : 'outlined'}
-                color="primary"
-                size="small"
-                icon={getSortIcon('createdAt')}
-                sx={{ fontSize: '0.7rem' }}
-              />
-              <Chip
-                label="Total"
-                onClick={() => handleSort('total')}
-                variant={sortField === 'total' ? 'filled' : 'outlined'}
-                color="primary"
-                size="small"
-                icon={getSortIcon('total')}
-                sx={{ fontSize: '0.7rem' }}
-              />
-              <Chip
-                label="Items"
-                onClick={() => handleSort('items')}
-                variant={sortField === 'items' ? 'filled' : 'outlined'}
-                color="primary"
-                size="small"
-                icon={getSortIcon('items')}
-                sx={{ fontSize: '0.7rem' }}
-              />
-            </Box>
-          </Box>
-        )}
-      </Paper>
+
+            <button
+              onClick={() => window.location.reload()}
+              className="p-1 bg-purple-100 text-purple-800 rounded hover:bg-purple-200"
+              title="Refresh orders"
+            >
+              <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z" clipRule="evenodd" />
+              </svg>
+            </button>
+          </div>
+        </div>
+      </div>
+      <div className="m-4 flex justify-between flex-wrap gap-2">
+        <div className="flex flex-wrap gap-1">
+          <span className="px-2 py-1 bg-purple-100 text-purple-600 text-xs font-bold rounded-full">
+            Total: {orders.length}
+          </span>
+          <span className="px-2 py-1 bg-yellow-100 text-yellow-800 text-xs font-medium border border-yellow-300 rounded-full">
+            Pending: {orders.filter(o => o.status === 'pending').length}
+          </span>
+          <span className="px-2 py-1 bg-blue-100 text-blue-800 text-xs font-medium border border-blue-300 rounded-full">
+            Processing: {orders.filter(o => o.status === 'processing').length}
+          </span>
+          <span className="px-2 py-1 bg-purple-100 text-purple-800 text-xs font-medium border border-purple-300 rounded-full">
+            Shipped: {orders.filter(o => o.status === 'shipped').length}
+          </span>
+          <span className="px-2 py-1 bg-green-100 text-green-800 text-xs font-medium border border-green-300 rounded-full">
+            Delivered: {orders.filter(o => o.status === 'delivered').length}
+          </span>
+          <span className="px-2 py-1 bg-red-100 text-red-800 text-xs font-medium border border-red-300 rounded-full">
+            Cancelled: {orders.filter(o => o.status === 'cancelled').length}
+          </span>
+        </div>
+
+        <div>
+          <span className="text-xs text-gray-500">
+            Showing {Math.min(paginatedOrders.length, rowsPerPage)} of {filteredOrders.length} orders
+          </span>
+        </div>
+      </div>
 
       {loading ? (
-        <LinearProgress color="primary" sx={{ height: 6, borderRadius: 3 }} />
+        <div className="h-1 bg-purple-100 rounded-full"></div>
       ) : (
         <>
-          <Paper sx={{
-            borderRadius: 3,
-            boxShadow: 3,
-            overflow: 'auto',
-            border: `1px solid ${purpleTheme.secondary}`
-          }}>
-            <TableContainer sx={{ overflowX: 'auto', maxWidth: '100%' }}>
-              <Table sx={{ minWidth: isSmallScreen ? 800 : 'auto' }}>
-                <TableHead sx={{
-                  bgcolor: purpleTheme.primary,
-                  '& th': {
-                    fontWeight: 'bold !important',
-                    fontSize: isExtraSmallScreen ? '0.7rem' : (isSmallScreen ? '0.8rem' : '1rem'),
-                    py: isSmallScreen ? 1 : 2,
-                    whiteSpace: 'nowrap'
-                  }
-                }}>
-                  <TableRow>
-                    {renderTableCell('S.no', 'left', { color: 'common.white' })}
-                    {renderTableCell('Order ID', 'left', { color: 'common.white' })}
-                    {renderTableCell('Customer', 'left', { color: 'common.white' })}
-                    {renderTableCell('Date', 'left', { color: 'common.white' })}
-                    {renderTableCell('Payment', 'left', { color: 'common.white' })}
-                    {renderTableCell('Items', 'center', { color: 'common.white' })}
-                    {renderTableCell('Total', 'right', { color: 'common.white' })}
-                    {renderTableCell('Status', 'left', { color: 'common.white' })}
-                    {renderTableCell('Tracking', 'left', { color: 'common.white' })}
-                    {renderTableCell('Actions', 'center', { color: 'common.white' })}
-                    {renderTableCell('Invoice', 'center', { color: 'common.white' })}
-                    {renderTableCell('History', 'center', { color: 'common.white' })}
-                  </TableRow>
-                </TableHead>
-                <TableBody>
+          <div className="rounded-lg shadow-md border border-purple-100 bg-white overflow-auto">
+            <div className="overflow-x-auto">
+              <table className="min-w-full">
+                <thead className="bg-purple-100 text-purple-600">
+                  <tr>
+                    <th className="px-3 py-2 text-left text-xs font-bold">#</th>
+                    <th className="px-3 py-2 text-left text-xs font-bold">Order ID</th>
+                    <th className="px-3 py-2 text-left text-xs font-bold">Customer</th>
+                    <th className="px-3 py-2 text-left text-xs font-bold">Date</th>
+                    <th className="px-3 py-2 text-left text-xs font-bold">Payment</th>
+                    <th className="px-3 py-2 text-center text-xs font-bold">Items</th>
+                    <th className="px-3 py-2 text-right text-xs font-bold">Total</th>
+                    <th className="px-3 py-2 text-left text-xs font-bold">Status</th>
+                    <th className="px-3 py-2 text-left text-xs font-bold">Tracking</th>
+                    <th className="px-3 py-2 text-center text-xs font-bold">Actions</th>
+                    <th className="px-3 py-2 text-center text-xs font-bold">Invoice</th>
+                    <th className="px-3 py-2 text-center text-xs font-bold">History</th>
+                  </tr>
+                </thead>
+                <tbody>
                   {paginatedOrders.length > 0 ? (
                     paginatedOrders.map((order, index) => (
                       <React.Fragment key={order._id}>
-                        <StyledTableRow>
-                          {renderTableCell(
-                            <Typography variant="body2" sx={{
-                              fontFamily: 'monospace',
-                              color: purpleTheme.primaryDark,
-                              fontSize: isExtraSmallScreen ? '0.7rem' : (isSmallScreen ? '0.8rem' : '0.9rem')
-                            }}>
-                              {index + 1}
-                            </Typography>
-                          )}
-                          
-                          {renderTableCell(
-                            <Typography variant="body2" sx={{
-                              fontFamily: 'monospace',
-                              color: purpleTheme.primaryDark,
-                              fontSize: isExtraSmallScreen ? '0.7rem' : (isSmallScreen ? '0.8rem' : '0.9rem')
-                            }}>
-                              #{order._id.substring(order._id.length - 6).toUpperCase()}
-                            </Typography>
-                          )}
-                          
-                          {renderTableCell(
-                            <Box display="flex" alignItems="center">
-                              <Avatar sx={{
-                                bgcolor: purpleTheme.primary,
-                                width: isExtraSmallScreen ? 28 : 36,
-                                height: isExtraSmallScreen ? 28 : 36,
-                                mr: 2,
-                                fontSize: isExtraSmallScreen ? '0.8rem' : '1rem'
-                              }}>
-                                {order.user?.name?.charAt(0) || 'C'}
-                              </Avatar>
-                              <Box>
-                                <Typography fontWeight="600" sx={{ fontSize: isExtraSmallScreen ? '0.75rem' : (isSmallScreen ? '0.8rem' : '1rem') }}>
+                        <tr className={`${index % 2 === 0 ? 'bg-gray-50' : 'bg-white'} hover:bg-purple-100 transition-colors`}>
+                          <td className="px-3 py-2 whitespace-nowrap text-sm text-purple-800 font-mono">
+                            {index + 1}
+                          </td>
+
+                          <td className="px-3 py-2 whitespace-nowrap text-sm text-purple-800 font-mono">
+                            #{order._id.substring(order._id.length - 6).toUpperCase()}
+                          </td>
+
+                          <td className="px-3 py-2 whitespace-nowrap">
+                            <div className="flex items-center">
+                              <div className="w-7 h-7 rounded-full bg-purple-100 flex items-center justify-center text-purple-600 text-xs font-bold mr-2 overflow-hidden">
+                                {order.user?.photoURL ? (
+                                  // <img
+                                  //   src={order.user.photoURL}
+                                  //   alt={order.user?.name || 'User'}
+                                  //   className="w-full h-full object-cover"
+                                  // />
+                                  order.user?.name?.charAt(0) || 'C'
+
+                                ) : (
+                                  order.user?.name?.charAt(0) || 'C'
+                                )}
+                              </div>
+
+                              <div>
+                                <div className="text-sm font-medium">
                                   {order.user?.name || 'Unknown'}
-                                </Typography>
-                                <Typography variant="body2" color="textSecondary" sx={{ fontSize: isExtraSmallScreen ? '0.65rem' : (isSmallScreen ? '0.7rem' : '0.875rem') }}>
+                                </div>
+                                <div className="">
                                   {order.user?.email || 'No email'}
-                                </Typography>
-                                <Box display="flex" alignItems="center" mt={0.5}>
-                                  <LocationOn fontSize="small" color="action" sx={{ mr: 0.5, fontSize: isExtraSmallScreen ? '0.8rem' : '1rem' }} />
-                                  <Typography variant="caption" color="textSecondary" sx={{ fontSize: isExtraSmallScreen ? '0.6rem' : (isSmallScreen ? '0.65rem' : '0.75rem') }}>
-                                    {order.shippingAddress?.city || 'Unknown city'}
-                                  </Typography>
-                                </Box>
-                              </Box>
-                            </Box>
-                          )}
-                          
-                          {renderTableCell(
-                            <Box display="flex" flexDirection="column">
-                              <Typography fontWeight="500" sx={{ fontSize: isExtraSmallScreen ? '0.7rem' : (isSmallScreen ? '0.8rem' : '1rem') }}>
-                                {dayjs(order.createdAt).format('MMMD,YYYY')}
-                              </Typography>
-                              <Typography variant="body2" color="textSecondary" sx={{ fontSize: isExtraSmallScreen ? '0.6rem' : (isSmallScreen ? '0.7rem' : '0.875rem') }}>
+                                </div>
+                              </div>
+                            </div>
+                          </td>
+
+                          <td className="px-3 py-2 whitespace-nowrap">
+                            <div className="flex flex-col">
+                              <div className="text-sm font-medium">
+                                {dayjs(order.createdAt).format('MMM D, YY')}
+                              </div>
+                              <div className="text-xs text-gray-500">
                                 {dayjs(order.createdAt).fromNow()}
-                              </Typography>
-                            </Box>
-                          )}
-                          
-                          {renderTableCell(
-                            <Box display="flex" alignItems="center">
-                              <Payment fontSize="small" sx={{ mr: 1, color: purpleTheme.primary, fontSize: isExtraSmallScreen ? '0.8rem' : '1rem' }} />
-                              <Typography variant="body2" fontWeight="500" sx={{ fontSize: isExtraSmallScreen ? '0.7rem' : (isSmallScreen ? '0.8rem' : '1rem') }}>
+                              </div>
+                            </div>
+                          </td>
+
+                          <td className="px-3 py-2 whitespace-nowrap">
+                            <div className="flex items-center">
+                              <svg className="w-4 h-4 mr-1 text-purple-600" fill="currentColor" viewBox="0 0 20 20">
+                                <path d="M4 4a2 2 0 00-2 2v1h16V6a2 2 0 00-2-2H4z" />
+                                <path fillRule="evenodd" d="M18 9H2v5a2 2 0 002 2h12a2 2 0 002-2V9zM4 13a1 1 0 011-1h1a1 1 0 110 2H5a1 1 0 01-1-1zm5-1a1 1 0 100 2h1a1 1 0 100-2H9z" clipRule="evenodd" />
+                              </svg>
+                              <div className="text-sm font-medium">
                                 {paymentMethods[order.paymentMethod] || order.paymentMethod}
-                              </Typography>
-                            </Box>
-                          )}
-                          
-                          {renderTableCell(
-                            <Badge
-                              badgeContent={getItemCount(order.items)}
-                              color="primary"
-                              anchorOrigin={{
-                                vertical: 'top',
-                                horizontal: 'left',
-                              }}
-                              sx={{
-                                '& .MuiBadge-badge': {
-                                  fontWeight: 'bold',
-                                  fontSize: isExtraSmallScreen ? '0.6rem' : '0.75rem',
-                                  backgroundColor: purpleTheme.primary
-                                }
-                              }}
-                            />,
-                            'center'
-                          )}
-                          
-                          {renderTableCell(
-                            <Typography fontWeight="bold" color="primary" sx={{ fontSize: isExtraSmallScreen ? '0.8rem' : (isSmallScreen ? '0.9rem' : '1.1rem') }}>
-                              ${order.total}
-                            </Typography>,
-                            'right'
-                          )}
-                          
-                          {renderTableCell(
-                            <Chip
-                              icon={statusIcons[order.status]}
-                              label={order.status.charAt(0).toUpperCase() + order.status.slice(1)}
-                              color={statusColors[order.status]}
-                              size="small"
-                              sx={{ fontSize: isExtraSmallScreen ? '0.6rem' : (isSmallScreen ? '0.7rem' : '0.875rem') }}
-                            />
-                          )}
-                          
-                          {renderTableCell(
-                            order.trackingId ? (
-                              <Box>
-                                <Typography variant="body2" fontWeight="500" sx={{ fontSize: isExtraSmallScreen ? '0.7rem' : (isSmallScreen ? '0.8rem' : '0.9rem') }}>
+                              </div>
+                            </div>
+                          </td>
+
+                          <td className="px-3 py-2 whitespace-nowrap text-center">
+                            <span className="inline-flex items-center justify-center w-6 h-6 text-xs font-bold text-purple-600 bg-purple-100 rounded-full">
+                              {getItemCount(order.items)}
+                            </span>
+                          </td>
+
+                          <td className="px-3 py-2 whitespace-nowrap text-right text-sm font-bold text-purple-600">
+                            ₹{order.total}
+                          </td>
+
+                          <td className="px-3 py-2 whitespace-nowrap">
+                            <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${statusColors[order.status]}`}>
+                              {statusIcons[order.status]}
+                              <span className="ml-1">{order.status.charAt(0).toUpperCase() + order.status.slice(1)}</span>
+                            </span>
+                          </td>
+
+                          <td className="px-3 py-2 whitespace-nowrap">
+                            {order.trackingId ? (
+                              <div>
+                                <div className="text-sm font-medium">
                                   {order.trackingCourier}
-                                </Typography>
-                                <Typography variant="caption" color="textSecondary" sx={{ fontSize: isExtraSmallScreen ? '0.6rem' : (isSmallScreen ? '0.7rem' : '0.8rem') }}>
+                                </div>
+                                <div className="text-xs text-gray-500">
                                   {order.trackingId}
-                                </Typography>
-                              </Box>
+                                </div>
+                              </div>
                             ) : (
-                              <Typography variant="caption" color="textSecondary" sx={{ fontSize: isExtraSmallScreen ? '0.6rem' : (isSmallScreen ? '0.7rem' : '0.8rem') }}>
-                                Not shipped yet
-                              </Typography>
-                            )
-                          )}
-                          
-                          {renderTableCell(
-                            <FormControl size="small" variant="outlined">
-                              <Select
+                              <div className="text-xs text-gray-500">
+                                Not shipped
+                              </div>
+                            )}
+                          </td>
+
+                          <td className="px-3 py-2 whitespace-nowrap text-center">
+                            <div className="relative">
+                              <select
                                 value={order.status}
                                 onChange={(e) => handleStatusSelect(order, e.target.value)}
-                                sx={{
-                                  minWidth: isExtraSmallScreen ? 80 : 120,
-                                  fontWeight: '500',
-                                  '& .MuiSelect-select': {
-                                    color: purpleTheme.primaryDark,
-                                    fontSize: isExtraSmallScreen ? '0.7rem' : (isSmallScreen ? '0.75rem' : '0.875rem')
-                                  }
-                                }}
-                                // IconComponent={MoreVert}
-                                renderValue={(selected) => (
-                                  <Box display="flex" alignItems="center">
-                                    <Edit fontSize="small" sx={{ mr: 1, color: purpleTheme.primary, fontSize: isExtraSmallScreen ? '0.8rem' : '1rem' }} />
-                                    <span style={{ fontSize: isExtraSmallScreen ? '0.7rem' : (isSmallScreen ? '0.75rem' : '0.875rem') }}>Update</span>
-                                  </Box>
-                                )}
+                                className="pl-7 pr-8 py-1 text-xs text-purple-800 font-medium border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 appearance-none"
                               >
-                                <MenuItem value="pending" sx={{ fontSize: isExtraSmallScreen ? '0.7rem' : (isSmallScreen ? '0.75rem' : '0.875rem') }}>Pending</MenuItem>
-                                <MenuItem value="processing" sx={{ fontSize: isExtraSmallScreen ? '0.7rem' : (isSmallScreen ? '0.75rem' : '0.875rem') }}>Processing</MenuItem>
-                                <MenuItem value="shipped" sx={{ fontSize: isExtraSmallScreen ? '0.7rem' : (isSmallScreen ? '0.75rem' : '0.875rem') }}>Shipped</MenuItem>
-                                <MenuItem value="delivered" sx={{ fontSize: isExtraSmallScreen ? '0.7rem' : (isSmallScreen ? '0.75rem' : '0.875rem') }}>Delivered</MenuItem>
-                                <MenuItem value="cancelled" sx={{ fontSize: isExtraSmallScreen ? '0.7rem' : (isSmallScreen ? '0.75rem' : '0.875rem') }}>Cancelled</MenuItem>
-                              </Select>
-                            </FormControl>,
-                            'center'
-                          )}
-                          
-                          {renderTableCell(
-                            <Button
-                              variant="contained"
+                                <option value="pending">Pending</option>
+                                <option value="processing">Processing</option>
+                                <option value="shipped">Shipped</option>
+                                <option value="delivered">Delivered</option>
+                                <option value="cancelled">Cancelled</option>
+                              </select>
+                              <div className="absolute inset-y-0 left-0 pl-2 flex items-center pointer-events-none">
+                                <svg className="h-3 w-3 text-purple-600" fill="currentColor" viewBox="0 0 20 20">
+                                  <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
+                                </svg>
+                              </div>
+                            </div>
+                          </td>
+
+                          <td className="px-3 py-2 whitespace-nowrap text-center">
+                            <button
                               onClick={() => downloadInvoice(order._id)}
-                              startIcon={<Download fontSize="small" sx={{ fontSize: isExtraSmallScreen ? '0.8rem' : '1rem' }} />}
-                              sx={{
-                                background: `linear-gradient(135deg, ${purpleTheme.primary} 0%, ${purpleTheme.primaryDark} 100%)`,
-                                color: '#fff',
-                                borderRadius: '8px',
-                                fontWeight: 600,
-                                px: isExtraSmallScreen ? 1 : (isSmallScreen ? 1.5 : 2.5),
-                                py: isExtraSmallScreen ? 0.3 : (isSmallScreen ? 0.5 : 1),
-                                textTransform: 'none',
-                                fontSize: isExtraSmallScreen ? '0.65rem' : (isSmallScreen ? '0.7rem' : '0.875rem'),
-                                boxShadow: '0 4px 6px rgba(0,0,0,0.1)',
-                                transition: 'all 0.3s ease',
-                                '&:hover': {
-                                  transform: 'translateY(-2px)',
-                                  boxShadow: '0 6px 8px rgba(0,0,0,0.15)',
-                                  background: `linear-gradient(135deg, ${purpleTheme.primaryDark} 0%, ${purpleTheme.primary} 100%)`,
-                                }
-                              }}
+                              className="inline-flex items-center px-2 py-1 bg-gradient-to-r from-purple-600 to-purple-800 text-white text-xs font-semibold rounded shadow-sm hover:shadow-md transition-all"
                             >
+                              <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                              </svg>
                               Invoice
-                            </Button>,
-                            'center'
-                          )}
-                          
-                          {renderTableCell(
-                            <IconButton
-                              size="small"
+                            </button>
+                          </td>
+
+                          <td className="px-3 py-2 whitespace-nowrap text-center">
+                            <button
                               onClick={() => toggleOrderExpansion(order)}
-                              sx={{
-                                color: purpleTheme.primary,
-                                '&:hover': {
-                                  backgroundColor: purpleTheme.secondary
-                                }
-                              }}
+                              className="p-1 text-purple-600 hover:bg-purple-100 rounded"
                             >
-                              {expandedOrders[order._id] ? 
-                                <ExpandLess sx={{ fontSize: isExtraSmallScreen ? '0.8rem' : '1rem' }} /> : 
-                                <ExpandMore sx={{ fontSize: isExtraSmallScreen ? '0.8rem' : '1rem' }} />
-                              }
-                            </IconButton>,
-                            'center'
-                          )}
-                        </StyledTableRow>
-                        
+                              {expandedOrders[order._id] ? (
+                                <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                                  <path fillRule="evenodd" d="M14.707 12.707a1 1 0 01-1.414 0L10 9.414l-3.293 3.293a1 1 0 01-1.414-1.414l4-4a1 1 0 011.414 0l4 4a1 1 0 010 1.414z" clipRule="evenodd" />
+                                </svg>
+                              ) : (
+                                <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                                  <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
+                                </svg>
+                              )}
+                            </button>
+                          </td>
+                        </tr>
+
                         {/* Status History and Tracking Row */}
-                        <TableRow>
-                          <TableCell style={{ padding: 0 }} colSpan={12}>
-                            <Collapse in={expandedOrders[order._id]} timeout="auto" unmountOnExit>
-                              <Box sx={{ margin: 1, p: 2, backgroundColor: 'grey.50', borderRadius: 2 }}>
-                                <Typography variant="h6" gutterBottom component="div" sx={{ display: 'flex', alignItems: 'center', fontSize: isExtraSmallScreen ? '0.9rem' : '1.25rem' }}>
-                                  <History sx={{ mr: 1, fontSize: isExtraSmallScreen ? '0.9rem' : '1.25rem' }} /> Order Timeline
-                                </Typography>
-                                
+                        <tr>
+                          <td colSpan={12} className="p-0">
+                            <div className={`overflow-hidden transition-all duration-300 ${expandedOrders[order._id] ? 'max-h-screen' : 'max-h-0'}`}>
+                              <div className="m-1 p-3 bg-gray-50 rounded">
+                                <div className="flex items-center text-sm font-semibold mb-2">
+                                  <svg className="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clipRule="evenodd" />
+                                  </svg>
+                                  Order Timeline
+                                </div>
+
                                 {order.statusHistory && order.statusHistory.length > 0 ? (
                                   renderUnifiedTimeline(order)
                                 ) : (
-                                  <Typography variant="body2" color="textSecondary" sx={{ fontSize: isExtraSmallScreen ? '0.75rem' : '0.875rem' }}>
+                                  <div className="text-sm text-gray-500">
                                     No status history available.
-                                  </Typography>
+                                  </div>
                                 )}
-
-                              </Box>
-                            </Collapse>
-                          </TableCell>
-                        </TableRow>
+                              </div>
+                            </div>
+                          </td>
+                        </tr>
                       </React.Fragment>
                     ))
                   ) : (
-                    <TableRow>
-                      <TableCell colSpan={12} align="center" sx={{ py: 6 }}>
-                        <Box textAlign="center" p={2}>
-                          <LocalShipping sx={{ fontSize: isExtraSmallScreen ? 60 : 80, color: 'text.disabled', mb: 2 }} />
-                          <Typography variant="h6" color="textSecondary" sx={{ fontSize: isExtraSmallScreen ? '0.9rem' : '1.25rem' }}>
+                    <tr>
+                      <td colSpan={12} className="px-4 py-8 text-center">
+                        <div className="text-center p-4">
+                          <svg className="w-12 h-12 text-gray-400 mx-auto mb-2" fill="currentColor" viewBox="0 0 20 20">
+                            <path d="M8 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zM15 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0z" />
+                            <path d="M3 4a1 1 0 00-1 1v10a1 1 0 001 1h1.05a2.5 2.5 0 014.9 0H10a1 1 0 001-1v-1h4.05a2.5 2.5 0 014.9 0H20a1 1 0 001-1v-6a1 1 0 00-.293-.707l-4-4A1 1 0 0016 3H3a1 1 0 00-1 1zm14.707 3L17 5.414V7h2.293l-2-2zM16 9v2h2V9h-2z" />
+                          </svg>
+                          <div className="text-sm text-gray-600 font-medium">
                             No orders found
-                          </Typography>
-                          <Typography variant="body2" color="textSecondary" mt={1} sx={{ fontSize: isExtraSmallScreen ? '0.75rem' : '0.875rem' }}>
+                          </div>
+                          <div className="text-xs text-gray-500 mt-1">
                             Try changing your filters or check back later
-                          </Typography>
-                        </Box>
-                      </TableCell>
-                    </TableRow>
+                          </div>
+                        </div>
+                      </td>
+                    </tr>
                   )}
-                </TableBody>
-              </Table>
-            </TableContainer>
-          </Paper>
+                </tbody>
+              </table>
+            </div>
+          </div>
+          <div className="mb-4 mt-3 p-1 flex justify-end items-center rounded-lg shadow-md bg-white">
+                        <span className="text-sm text-purple-800 m-2">
+              {`${page * rowsPerPage + 1}-${Math.min(page * rowsPerPage + rowsPerPage, filteredOrders.length)} of ${filteredOrders.length}`}
+            </span>
 
-          <Box mt={3} display="flex" justifyContent="space-between" flexWrap="wrap" gap={1}>
-            <Box display="flex" flexWrap="wrap" gap={1}>
-              <Chip
-                label={`Total: ${orders.length}`}
-                sx={{
-                  fontWeight: 'bold',
-                  backgroundColor: purpleTheme.primary,
-                  color: 'white',
-                  fontSize: isExtraSmallScreen ? '0.7rem' : '0.875rem'
-                }}
-              />
-              <Chip
-                label={`Pending: ${orders.filter(o => o.status === 'pending').length}`}
-                color="warning"
-                variant="outlined"
-                sx={{ fontWeight: '500', fontSize: isExtraSmallScreen ? '0.7rem' : '0.875rem' }}
-              />
-              <Chip
-                label={`Processing: ${orders.filter(o => o.status === 'processing').length}`}
-                color="info"
-                variant="outlined"
-                sx={{ fontWeight: '500', fontSize: isExtraSmallScreen ? '0.7rem' : '0.875rem' }}
-              />
-              <Chip
-                label={`Shipped: ${orders.filter(o => o.status === 'shipped').length}`}
-                sx={{
-                  fontWeight: '500',
-                  backgroundColor: purpleTheme.secondary,
-                  color: purpleTheme.primaryDark,
-                  fontSize: isExtraSmallScreen ? '0.7rem' : '0.875rem'
-                }}
-              />
-              <Chip
-                label={`Delivered: ${orders.filter(o => o.status === 'delivered').length}`}
-                color="success"
-                variant="outlined"
-                sx={{ fontWeight: '500', fontSize: isExtraSmallScreen ? '0.7rem' : '0.875rem' }}
-              />
-              <Chip
-                label={`Cancelled: ${orders.filter(o => o.status === 'cancelled').length}`}
-                color="error"
-                variant="outlined"
-                sx={{ fontWeight: '500', fontSize: isExtraSmallScreen ? '0.7rem' : '0.875rem' }}
-              />
-            </Box>
+            <button
+              onClick={() => setPage(old => Math.max(old - 1, 0))}
+              disabled={page === 0}
+              className="m-2 p-2 bg-purple-100 text-purple-800 rounded disabled:opacity-50 hover:bg-purple-200"
+            >
+              <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clipRule="evenodd" />
+              </svg>
+            </button>
 
-            <Box>
-              <Typography variant="body2" color="textSecondary" sx={{ fontSize: isExtraSmallScreen ? '0.7rem' : '0.875rem' }}>
-                Showing {Math.min(paginatedOrders.length, rowsPerPage)} of {filteredOrders.length} orders
-                </Typography>
-            </Box>
-          </Box>
+            <button
+              onClick={() => setPage(old => old + 1)}
+              disabled={page >= Math.ceil(filteredOrders.length / rowsPerPage) - 1}
+              className="p-2 m-2 bg-purple-100 text-purple-800 rounded disabled:opacity-50 hover:bg-purple-200"
+            >
+              <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clipRule="evenodd" />
+              </svg>
+            </button>
+          </div>
+
         </>
       )}
 
       {/* Tracking Dialog */}
-      <Dialog open={trackingDialog.open} onClose={() => setTrackingDialog({...trackingDialog, open: false})}>
-        <DialogTitle sx={{ fontSize: isExtraSmallScreen ? '1rem' : '1.25rem' }}>Add Tracking Information</DialogTitle>
-        <DialogContent>
-          <Typography variant="body2" color="textSecondary" gutterBottom sx={{ fontSize: isExtraSmallScreen ? '0.75rem' : '0.875rem' }}>
-            Order #{trackingDialog.order?._id?.substring(trackingDialog.order?._id.length - 6).toUpperCase()}
-          </Typography>
-          <TextField
-            autoFocus
-            margin="dense"
-            label="Tracking ID"
-            fullWidth
-            variant="outlined"
-            value={trackingDialog.trackingId}
-            onChange={(e) => setTrackingDialog({...trackingDialog, trackingId: e.target.value})}
-            sx={{ mb: 2 }}
-            InputProps={{
-              sx: { fontSize: isExtraSmallScreen ? '0.8rem' : '0.9rem' }
-            }}
-            InputLabelProps={{
-              sx: { fontSize: isExtraSmallScreen ? '0.8rem' : '0.9rem' }
-            }}
-          />
-          <TextField
-            margin="dense"
-            label="Courier (e.g., ekart, dhl)"
-            fullWidth
-            variant="outlined"
-            value={trackingDialog.trackingCourier}
-            onChange={(e) => setTrackingDialog({...trackingDialog, trackingCourier: e.target.value})}
-            sx={{ mb: 2 }}
-            InputProps={{
-              sx: { fontSize: isExtraSmallScreen ? '0.8rem' : '0.9rem' }
-            }}
-            InputLabelProps={{
-              sx: { fontSize: isExtraSmallScreen ? '0.8rem' : '0.9rem' }
-            }}
-          />
-          <TextField
-            margin="dense"
-            label="Note (Optional)"
-            fullWidth
-            variant="outlined"
-            multiline
-            rows={3}
-            value={trackingDialog.note}
-            onChange={(e) => setTrackingDialog({...trackingDialog, note: e.target.value})}
-            InputProps={{
-              sx: { fontSize: isExtraSmallScreen ? '0.8rem' : '0.9rem' }
-            }}
-            InputLabelProps={{
-              sx: { fontSize: isExtraSmallScreen ? '0.8rem' : '0.9rem' }
-            }}
-          />
-        </DialogContent>
-        <DialogActions>
-          <Button 
-            onClick={() => setTrackingDialog({...trackingDialog, open: false})}
-            sx={{ fontSize: isExtraSmallScreen ? '0.7rem' : '0.875rem' }}
-          >
-            Cancel
-          </Button>
-          <Button 
-            onClick={() => handleStatusChange(
-              trackingDialog.order._id, 
-              'shipped', 
-              {
-                trackingId: trackingDialog.trackingId,
-                trackingCourier: trackingDialog.trackingCourier
-              },
-              trackingDialog.note
-            )}
-            disabled={!trackingDialog.trackingId || !trackingDialog.trackingCourier}
-            variant="contained"
-            sx={{ fontSize: isExtraSmallScreen ? '0.7rem' : '0.875rem' }}
-          >
-            Mark as Shipped
-          </Button>
-        </DialogActions>
-      </Dialog>
+      {trackingDialog.open && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-lg shadow-xl max-w-md w-full">
+            <div className="px-4 py-3 border-b border-gray-200">
+              <h3 className="text-sm font-semibold">Add Tracking Information</h3>
+            </div>
+            <div className="p-4">
+              <div className="text-xs text-gray-500 mb-3">
+                Order #{trackingDialog.order?._id?.substring(trackingDialog.order?._id.length - 6).toUpperCase()}
+              </div>
+              <div className="mb-3">
+                <label className="block text-xs font-medium text-gray-700 mb-1">Tracking ID</label>
+                <input
+                  type="text"
+                  className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+                  value={trackingDialog.trackingId}
+                  onChange={(e) => setTrackingDialog({ ...trackingDialog, trackingId: e.target.value })}
+                  placeholder="Enter tracking ID"
+                />
+              </div>
+              <div className="mb-3">
+                <label className="block text-xs font-medium text-gray-700 mb-1">Courier (e.g., ekart, dhl)</label>
+                <input
+                  type="text"
+                  className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+                  value={trackingDialog.trackingCourier}
+                  onChange={(e) => setTrackingDialog({ ...trackingDialog, trackingCourier: e.target.value })}
+                  placeholder="Enter courier name"
+                />
+              </div>
+              <div className="mb-3">
+                <label className="block text-xs font-medium text-gray-700 mb-1">Note (Optional)</label>
+                <textarea
+                  className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+                  rows={2}
+                  value={trackingDialog.note}
+                  onChange={(e) => setTrackingDialog({ ...trackingDialog, note: e.target.value })}
+                  placeholder="Add a note"
+                ></textarea>
+              </div>
+            </div>
+            <div className="px-4 py-3 border-t border-gray-200 flex justify-end gap-2">
+              <button
+                onClick={() => setTrackingDialog({ ...trackingDialog, open: false })}
+                className="px-3 py-1 text-xs text-gray-700 bg-gray-100 rounded hover:bg-gray-200"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => handleStatusChange(
+                  trackingDialog.order._id,
+                  'shipped',
+                  {
+                    trackingId: trackingDialog.trackingId,
+                    trackingCourier: trackingDialog.trackingCourier
+                  },
+                  trackingDialog.note
+                )}
+                disabled={!trackingDialog.trackingId || !trackingDialog.trackingCourier}
+                className="px-3 py-1 text-xs text-purple-600 bg-purple-100 rounded disabled:opacity-50 hover:bg-purple-700"
+              >
+                Mark as Shipped
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
-      <Snackbar
-        open={snackbar.open}
-        autoHideDuration={3000}
-        onClose={handleCloseSnackbar}
-        anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
-      >
-        <Alert
-          onClose={handleCloseSnackbar}
-          severity={snackbar.severity}
-          variant="filled"
-          sx={{
-            width: '100%',
-            fontWeight: '500',
-            backgroundColor: purpleTheme.primary,
-            fontSize: isExtraSmallScreen ? '0.8rem' : '0.9rem'
-          }}
-        >
-          {snackbar.message}
-        </Alert>
-      </Snackbar>
+      {/* Snackbar */}
+      {snackbar.open && (
+        <div className="fixed bottom-4 right-4 z-50">
+          <div className={`px-4 py-3 rounded shadow-lg text-purple-600 text-sm font-medium ${snackbar.severity === 'success' ? 'bg-green-600' : 'bg-red-600'
+            }`}>
+            {snackbar.message}
+            <button
+              onClick={handleCloseSnackbar}
+              className="ml-4 text-purple-600 hover:text-gray-200"
+            >
+              <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
+              </svg>
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

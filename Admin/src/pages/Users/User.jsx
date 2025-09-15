@@ -34,6 +34,14 @@ const UsersDashboard = () => {
   const [editMode, setEditMode] = useState(false);
   const [editForm, setEditForm] = useState({});
   const [userToDelete, setUserToDelete] = useState(null);
+  const [addUserOpen, setAddUserOpen] = useState(false);
+  const [newUser, setNewUser] = useState({
+    name: '',
+    email: '',
+    password: '',
+    isVerified: false
+  });
+  const [creatingUser, setCreatingUser] = useState(false);
 
   // Fetch users with pagination and search
   const fetchUsers = useCallback(async (page = 1, search = '') => {
@@ -182,6 +190,43 @@ const UsersDashboard = () => {
     }
   };
 
+  // Handle new user form changes
+  const handleNewUserChange = (e) => {
+    const { name, value, type, checked } = e.target;
+    setNewUser(prev => ({
+      ...prev,
+      [name]: type === 'checkbox' ? checked : value,
+      authProvider:'admin'
+    }));
+  };
+
+  // Create new user
+  const handleCreateUser = async () => {
+    if (!newUser.name || !newUser.email || !newUser.password) {
+      toast.error('Name, email and password are required');
+      return;
+    }
+
+    setCreatingUser(true);
+    try {
+      const response = await Api.post('/auth/users/create-user', newUser);
+      toast.success('User created successfully');
+      setAddUserOpen(false);
+      setNewUser({
+        name: '',
+        email: '',
+        password: '',
+        isVerified: false
+      });
+      fetchUsers(pagination.page);
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Failed to create user');
+      console.error('Error creating user:', err);
+    } finally {
+      setCreatingUser(false);
+    }
+  };
+
   return (
     <div className="p-6 bg-gray-50 min-h-screen">
       {/* Header Section */}
@@ -205,6 +250,7 @@ const UsersDashboard = () => {
           </div>
 
           <button
+            onClick={() => setAddUserOpen(true)}
             className="bg-purple-700 hover:bg-purple-800 text-white px-4 py-2 rounded-lg flex items-center justify-center transition duration-200"
           >
             <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-1" viewBox="0 0 20 20" fill="currentColor">
@@ -674,6 +720,100 @@ const UsersDashboard = () => {
                 className="px-4 py-2 bg-red-600 text-white hover:bg-red-700 rounded-lg transition duration-200"
               >
                 Delete User
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Add User Modal */}
+      {addUserOpen && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-xl w-full max-w-lg p-6">
+            <div className="flex justify-between items-center mb-6">
+              <h3 className="text-xl font-bold text-gray-900">Add New User</h3>
+              <button 
+                onClick={() => setAddUserOpen(false)}
+                className="text-gray-500 hover:text-gray-700"
+              >
+                <Close />
+              </button>
+            </div>
+
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Full Name *
+                </label>
+                <input
+                  type="text"
+                  name="name"
+                  value={newUser.name}
+                  onChange={handleNewUserChange}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                  placeholder="Enter full name"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Email Address *
+                </label>
+                <input
+                  type="email"
+                  name="email"
+                  value={newUser.email}
+                  onChange={handleNewUserChange}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                  placeholder="Enter email address"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Password *
+                </label>
+                <input
+                  type="password"
+                  name="password"
+                  value={newUser.password}
+                  onChange={handleNewUserChange}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                  placeholder="Enter password"
+                />
+              </div>
+
+              <div className="flex items-center">
+                <input
+                  type="checkbox"
+                  name="isVerified"
+                  id="isVerified"
+                  checked={newUser.isVerified}
+                  onChange={handleNewUserChange}
+                  className="h-4 w-4 text-purple-600 focus:ring-purple-500 border-gray-300 rounded"
+                />
+                <label htmlFor="isVerified" className="ml-2 block text-sm text-gray-700">
+                  Mark as verified
+                </label>
+              </div>
+            </div>
+
+            <div className="mt-8 flex justify-end space-x-3">
+              <button
+                onClick={() => setAddUserOpen(false)}
+                className="px-4 py-2 border border-gray-300 text-gray-700 hover:bg-gray-50 rounded-lg transition duration-200"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleCreateUser}
+                disabled={creatingUser}
+                className="px-4 py-2 bg-purple-700 text-white hover:bg-purple-800 rounded-lg transition duration-200 disabled:opacity-50 flex items-center"
+              >
+                {creatingUser && (
+                  <CircularProgress size={16} className="text-white mr-2" />
+                )}
+                {creatingUser ? 'Creating...' : 'Create User'}
               </button>
             </div>
           </div>

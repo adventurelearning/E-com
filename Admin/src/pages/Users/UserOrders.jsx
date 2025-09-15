@@ -93,7 +93,7 @@ const UserOrders = ({ userId }) => {
                       </span>
                     </TableCell>
                     <TableCell>
-                      ${calculateOrderTotal(order).toFixed(2)}
+                      ₹{calculateOrderTotal(order).toFixed(2)}
                     </TableCell>
                     <TableCell>
                       <button 
@@ -176,7 +176,7 @@ const UserOrders = ({ userId }) => {
                       </div>
                       <div className="flex justify-between py-2 font-bold">
                         <span>Total:</span>
-                        <span>${calculateOrderTotal(selectedOrder).toFixed(2)}</span>
+                        <span>₹{calculateOrderTotal(selectedOrder).toFixed(2)}</span>
                       </div>
                     </div>
                   </div>
@@ -230,18 +230,18 @@ const UserOrders = ({ userId }) => {
                                 {item.productId?.discountPrice ? (
                                   <>
                                     <span className="text-gray-500 line-through mr-2">
-                                      ${item.productId?.originalPrice?.toFixed(2)}
+                                      ₹{item.productId?.originalPrice?.toFixed(2)}
                                     </span>
                                     <span className="text-red-600">
-                                      ${item.productId?.discountPrice.toFixed(2)}
+                                      ₹{item.productId?.discountPrice.toFixed(2)}
                                     </span>
                                   </>
                                 ) : (
-                                  <span>${unitPrice.toFixed(2)}</span>
+                                  <span>₹{unitPrice.toFixed(2)}</span>
                                 )}
                               </td>
                               <td className="py-3 px-4 text-right font-medium">
-                                ${totalPrice.toFixed(2)}
+                                ₹{totalPrice.toFixed(2)}
                               </td>
                             </tr>
                           )

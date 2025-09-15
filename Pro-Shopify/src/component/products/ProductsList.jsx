@@ -1,8 +1,21 @@
 import React, { useState, useEffect } from 'react';
 import Api from '../../Services/Api';
-import { FaChevronLeft, FaChevronRight, FaHeart, FaRegHeart, FaStar, FaShoppingCart, FaChevronDown, FaChevronUp } from 'react-icons/fa';
+import { FaChevronLeft, FaChevronRight, FaHeart, FaRegHeart, FaStar, FaShoppingCart, FaChevronDown, FaChevronUp, FaPlay } from 'react-icons/fa';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
+
+// Function to determine media type
+const getMediaType = (url) => {
+  if (url.includes('/video/upload/')) {
+    return 'video';
+  } else if (url.includes('/image/upload/')) {
+    return 'image';
+  } else {
+    // fallback by extension if Cloudinary prefix is missing
+    const isVideo = /\.(mp4|mov|avi|mkv|webm)$/i.test(url);
+    return isVideo ? 'video' : 'image';
+  }
+};
 
 const ProductCard = ({ product }) => {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
@@ -33,7 +46,7 @@ const ProductCard = ({ product }) => {
   };
 
   const handleClick = () => {
-    navigate(`/product/${product._id}`);
+    navigate(`/productpage/${product._id}`);
   };
 
   const handleAddToCart = (e) => {
@@ -77,22 +90,43 @@ const ProductCard = ({ product }) => {
           </button>
         </div>
 
-        {/* Image Carousel */}
+        {/* Image/Video Carousel */}
         <div className="relative mt-3 sm:mt-4 overflow-hidden rounded-lg">
           <div className="relative w-full h-32 sm:h-40 md:h-48 bg-gray-100 flex items-center justify-center">
-            {product.images && product.images.map((image, index) => (
-              <motion.img
-                key={index}
-                src={image}
-                alt={`${product.name} - ${index + 1}`}
-                className={`absolute inset-0 w-full h-full transition-opacity duration-300 
-              ${index === currentImageIndex ? "opacity-100" : "opacity-0"} 
-              object-contain sm:object-cover`}
-                initial={{ opacity: 0 }}
-                animate={{ opacity: index === currentImageIndex ? 1 : 0 }}
-                transition={{ duration: 0.5 }}
-              />
-            ))}
+{product.images && product.images.map((media, index) => {
+  const mediaType = getMediaType(media);
+
+  const isActive = index === currentImageIndex;
+
+  return (
+    <motion.div
+      key={index}
+      className={`absolute inset-0 w-full h-full transition-opacity duration-300 
+        ${isActive ? "opacity-100" : "opacity-0"}`}
+      initial={{ opacity: 0 }}
+      animate={{ opacity: isActive ? 1 : 0 }}
+      transition={{ duration: 0.5 }}
+    >
+      {mediaType === 'video' ? (
+        <video
+          src={media}
+          className="w-full h-full object-cover"
+          muted
+          loop
+          autoPlay={ isActive}  // ✅ only play if current and hovered
+          playsInline
+        />
+      ) : (
+        <img
+          src={media}
+          alt={`${product.name} - ${index + 1}`}
+          className="w-full h-full object-contain sm:object-cover"
+        />
+      )}
+    </motion.div>
+  );
+})}
+
           </div>
 
           {/* Navigation Arrows */}
@@ -106,7 +140,7 @@ const ProductCard = ({ product }) => {
                 className="absolute left-2 top-1/2 -translate-y-1/2 bg-white text-gray-800 p-1.5 sm:p-2 rounded-full shadow-md hover:bg-gray-100"
                 whileHover={{ scale: 1.1 }}
                 whileTap={{ scale: 0.9 }}
-                aria-label="Previous image"
+                aria-label="Previous media"
               >
                 <FaChevronLeft className="text-xs sm:text-sm" />
               </motion.button>
@@ -118,7 +152,7 @@ const ProductCard = ({ product }) => {
                 className="absolute right-2 top-1/2 -translate-y-1/2 bg-white text-gray-800 p-1.5 sm:p-2 rounded-full shadow-md hover:bg-gray-100"
                 whileHover={{ scale: 1.1 }}
                 whileTap={{ scale: 0.9 }}
-                aria-label="Next image"
+                aria-label="Next media"
               >
                 <FaChevronRight className="text-xs sm:text-sm" />
               </motion.button>
@@ -128,18 +162,22 @@ const ProductCard = ({ product }) => {
           {/* Dots Indicator */}
           {product.images && product.images.length > 1 && (
             <div className="absolute bottom-2 left-0 right-0 flex justify-center gap-1">
-              {product.images.map((_, index) => (
-                <button
-                  key={index}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    goToImage(index);
-                  }}
-                  className={`w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full transition-all 
-                ${index === currentImageIndex ? "bg-black w-2 sm:w-3" : "bg-gray-300"}`}
-                  aria-label={`Go to image ${index + 1}`}
-                />
-              ))}
+              {product.images.map((media, index) => {
+                const mediaType = getMediaType(media);
+                
+                return (
+                  <button
+                    key={index}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      goToImage(index);
+                    }}
+                    className={`w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full transition-all 
+                      ${index === currentImageIndex ? "bg-black w-2 sm:w-3" : "bg-gray-300"}`}
+                    aria-label={`Go to ${mediaType} ${index + 1}`}
+                  />
+                );
+              })}
             </div>
           )}
         </div>
@@ -150,10 +188,7 @@ const ProductCard = ({ product }) => {
             <span className="text-base sm:text-lg font-bold">
              ₹{(product?.discountPrice ?? 0).toLocaleString()}
             </span>
-            <span className="text-green-600 text-xs sm:text-sm font-medium ml-2">
-              {product.discountPercent}% off
-            </span>
-            {product.discountPrice && (
+            {product.discountPrice && product.originalPrice && (
               <>
                 <span className="text-gray-500 line-through text-xs sm:text-sm ml-2">
                   ₹{product.originalPrice.toLocaleString()}

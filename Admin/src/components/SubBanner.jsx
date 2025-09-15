@@ -196,7 +196,7 @@ const SubBanner = () => {
                         <div>
                             <label className="block text-sm font-medium text-gray-700 mb-2">Price</label>
                             <div className="relative">
-                                <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500">$</span>
+                                <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500">₹</span>
                                 <input
                                     type="number"
                                     name="price"
@@ -389,7 +389,7 @@ const SubBanner = () => {
                                 <div className="p-4">
                                     <h3 className="text-lg font-semibold text-gray-800 truncate">{product.title}</h3>
                                     <p className="text-gray-600 text-sm truncate">{product.subtitle}</p>
-                                    <p className="text-blue-600 font-bold mt-2">${product.price}</p>
+                                    <p className="text-blue-600 font-bold mt-2">₹{product.price}</p>
                                     
                                     {product.link && (
                                         <div className="mt-2 flex items-center text-sm text-gray-500">

@@ -62,11 +62,16 @@ router.get('/:id', async (req, res) => {
 router.post('/', protect, requireRole('admin'), async (req, res) => {
   try {
     // Validate attribute family exists
+    
+    if (req.body.attributeFamily === "") {
+  delete req.body.attributeFamily;
+}
+ if (req.body.attributeFamily) {
     const family = await AttributeFamily.findById(req.body.attributeFamily);
     if (!family) {
       return res.status(400).json({ message: 'Invalid attribute family' });
     }
-    
+  }
     // Create product with all data from request
     const product = new Product(req.body);
     const savedProduct = await product.save();
@@ -85,6 +90,9 @@ router.post('/', protect, requireRole('admin'), async (req, res) => {
 // Update product
 router.put('/:id', protect, requireRole('admin'), async (req, res) => {
   try {
+        if (req.body.attributeFamily === "") {
+  delete req.body.attributeFamily;
+}
     const product = await Product.findByIdAndUpdate(
       req.params.id,
       req.body,

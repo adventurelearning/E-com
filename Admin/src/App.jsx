@@ -48,6 +48,7 @@ import AttributeManager from './pages/Product/Atribute/AttributeManager';
 import AttributeFamilies from './pages/Product/Atribute/AttributeFamilies';
 import AttributeFamilyForm from './pages/Product/Atribute/AttributeFamilyCreate';
 import CategoryManager from './pages/Product/Atribute/CategoryManager';
+import SalesReportDashboard from './pages/Sales/SalesReport';
 
 function AppContent() {
   const [sidebarOpen, setSidebarOpen] = useState(true);
@@ -348,6 +349,12 @@ function AppContent() {
              <Route path="/categories" element={
               <ProtectedRoute requiredPermission="product">
                 <CategoryManager />
+              </ProtectedRoute>
+            } />
+
+            <Route path="/SalesReport" element={
+              <ProtectedRoute requiredPermission="sales">
+                <SalesReportDashboard />
               </ProtectedRoute>
             } />
             {/* Catch-all route */}

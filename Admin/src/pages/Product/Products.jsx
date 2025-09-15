@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-import { FiSave, FiArrowLeft, FiUpload, FiX, FiPlus, FiMinus, FiCalendar } from 'react-icons/fi';
+import { FiSave, FiArrowLeft, FiUpload, FiX, FiPlus, FiMinus, FiCalendar, FiVideo, FiImage } from 'react-icons/fi';
 import Api from '../../Services/Api';
 import TinyEditor from '../../components/Editor';
 
@@ -20,7 +20,7 @@ const Product = () => {
   const [images, setImages] = useState([]);
   const [product, setProduct] = useState({
     name: '',
-    description: '',
+    // description: '',
     originalPrice: '',
     discountPrice: '',
     specialPrice: '',
@@ -40,6 +40,7 @@ const Product = () => {
     metaKeywords: '',
     metaDescription: '',
   });
+const [description, setDescription] = useState('');
 
   // Cloudinary configuration
   const CLOUD_NAME = import.meta.env.VITE_CLOUD_NAME;
@@ -126,18 +127,37 @@ console.log('Fetched product data:', data);
             metaKeywords: data.metaKeywords || '',
             metaDescription: data.metaDescription || '',
           });
-
+setDescription(data.description || '');
           // Set subcategories for dropdown
           setSubcategories(categoryObj?.subcategories || []);
 
-          // Initialize images
-          if (data.images?.length) {
-            setImages(data.images.map(img => ({
-              url: img,
-              serverFilename: img,
-              status: 'uploaded'
-            })));
+          // Initialize images (images and videos combined)
+          const imageItems = [];
+          
+          if (data.images && data.images.length) {
+            data.images.forEach(item => {
+              let type = 'image';
+
+              if (item.includes('/video/upload/')) {
+                type = 'video';
+              } else if (item.includes('/image/upload/')) {
+                type = 'image';
+              } else {
+                // fallback by extension if Cloudinary prefix is missing
+                const isVideo = /\.(mp4|mov|avi|mkv|webm)$/i.test(item);
+                type = isVideo ? 'video' : 'image';
+              }
+
+              imageItems.push({
+                url: item,
+                serverFilename: item,
+                status: 'uploaded',
+                type
+              });
+            });
           }
+
+          setImages(imageItems);
         }
       } catch (err) {
         toast.error(id ? 'Failed loading product' : 'Failed loading data');
@@ -243,7 +263,7 @@ console.log('product edit',product);
     }
 
     // Check for at least one successfully uploaded image
-    const hasValidImages = images.some(img => img.status === 'uploaded');
+    const hasValidImages = images.some(item => item.status === 'uploaded' && item.type === 'image');
     if (!hasValidImages) {
       errs.images = 'At least one image is required';
     }
@@ -258,93 +278,138 @@ console.log('product edit',product);
     if (errors[name]) setErrors(prev => ({ ...prev, [name]: '' }));
   };
 
-  const handleEditorChange = (content) => {
-    setProduct(prev => ({ ...prev, description: content }));
-    if (errors.description) setErrors(prev => ({ ...prev, description: '' }));
-  };
+const handleEditorChange = (content) => {
+  setDescription(content);
+  if (errors.description) setErrors(prev => ({ ...prev, description: '' }));
+};
 
-  const handleImageSelect = async (e) => {
+  const handleImagesSelect = async (e) => {
     const files = Array.from(e.target.files);
 
-    if (files.length + images.length > 5) {
-      toast.error('Maximum 5 images allowed');
-      return;
+    // Count current images by type
+    const imageCount = images.filter(item => item.type === 'image').length;
+    const videoCount = images.filter(item => item.type === 'video').length;
+
+    const newImages = [];
+
+    for (const file of files) {
+      const type = file.type.startsWith('video/') ? 'video' : 'image';
+
+      // Check limits
+      if (type === 'image' && imageCount + newImages.filter(m => m.type === 'image').length >= 5) {
+        toast.error('Maximum 5 images allowed');
+        continue;
+      }
+
+      if (type === 'video' && videoCount + newImages.filter(m => m.type === 'video').length >= 2) {
+        toast.error('Maximum 2 videos allowed');
+        continue;
+      }
+
+      if (images.length + newImages.length >= 7) {
+        toast.error('Maximum 7 media items allowed');
+        break;
+      }
+
+      newImages.push({
+        url: URL.createObjectURL(file),
+        serverFilename: '',
+        status: 'pending',
+        file,
+        type
+      });
     }
+
+    if (newImages.length === 0) return;
 
     e.target.value = null;
 
-    const newImages = files.map(file => ({
-      url: URL.createObjectURL(file),
-      serverFilename: '',
-      status: 'pending',
-      file
-    }));
-
     setImages(prev => [...prev, ...newImages]);
 
-    for (const img of newImages) {
-      await uploadImage(img);
+    for (const item of newImages) {
+      await uploadImage(item);
     }
 
     if (errors.images) setErrors(prev => ({ ...prev, images: '' }));
   };
 
-  const uploadImage = async (img) => {
+  const uploadImage = async (imageItem) => {
     setImages(prev =>
-      prev.map(i =>
-        i.url === img.url ? { ...i, status: 'uploading' } : i
+      prev.map(item =>
+        item.url === imageItem.url ? { ...item, status: 'uploading' } : item
       )
     );
 
     try {
       const formData = new FormData();
-      formData.append('file', img.file);
+      formData.append('file', imageItem.file);
       formData.append('upload_preset', UPLOAD_PRESET);
-      
+
+      // Set resource type for Cloudinary
+      if (imageItem.type === 'video') {
+        formData.append('resource_type', 'video');
+      }
+
       const response = await fetch(
-        `https://api.cloudinary.com/v1_1/${CLOUD_NAME}/image/upload`, 
+        `https://api.cloudinary.com/v1_1/${CLOUD_NAME}/${imageItem.type === 'video' ? 'video' : 'image'}/upload`,
         {
           method: 'POST',
           body: formData
         }
       );
-      
+
       const data = await response.json();
-      
+
       if (!response.ok) {
         throw new Error(data.error?.message || 'Upload failed');
       }
 
       setImages(prev =>
-        prev.map(i =>
-          i.url === img.url
+        prev.map(item =>
+          item.url === imageItem.url
             ? {
               url: data.secure_url,
               serverFilename: data.secure_url,
-              status: 'uploaded'
+              status: 'uploaded',
+              type: imageItem.type
             }
-            : i
+            : item
         )
       );
 
-      URL.revokeObjectURL(img.url);
+      if (imageItem.url.startsWith('blob:')) {
+        URL.revokeObjectURL(imageItem.url);
+      }
     } catch (err) {
       setImages(prev =>
-        prev.map(i =>
-          i.url === img.url ? { ...i, status: 'error' } : i
+        prev.map(item =>
+          item.url === imageItem.url ? { ...item, status: 'error' } : item
         )
       );
-      toast.error('Image upload failed: ' + err.message);
+      toast.error(`${imageItem.type} upload failed: ${err.message}`);
     }
   };
 
   const removeImage = (index) => {
-    const img = images[index];
-    if (img.url.startsWith('blob:')) {
-      URL.revokeObjectURL(img.url);
+    const item = images[index];
+    if (item.url && item.url.startsWith('blob:')) {
+      URL.revokeObjectURL(item.url);
     }
 
     setImages(prev => prev.filter((_, i) => i !== index));
+  };
+
+  const moveImage = (index, direction) => {
+    if ((direction === -1 && index === 0) || (direction === 1 && index === images.length - 1)) {
+      return;
+    }
+
+    const newImages = [...images];
+    const temp = newImages[index];
+    newImages[index] = newImages[index + direction];
+    newImages[index + direction] = temp;
+
+    setImages(newImages);
   };
 
   const calcDiscountPercent = (orig, disc) => {
@@ -379,7 +444,7 @@ console.log('product edit',product);
       formData.append('upload_preset', UPLOAD_PRESET);
       
       const response = await fetch(
-        `https://api.cloudinary.com/v1_1/${CLOUD_NAME}/image/upload`, 
+        `https://api.cloudinary.com/v1_1/${CLOUD_NAME}/image/upload`,
         {
           method: 'POST',
           body: formData
@@ -412,12 +477,10 @@ console.log('product edit',product);
       const subcategoryObj = subcategories.find(sc => sc._id === product.subcategory);
       const subcategoryName = subcategoryObj ? subcategoryObj.name : '';
 
-      const isUploading = images.some(img =>
-        img.status === 'pending' || img.status === 'uploading'
-      );
+      const isUploading = images.some(item => item.status === 'pending' || item.status === 'uploading');
 
       if (isUploading) {
-        toast.error('Please wait for images to finish uploading');
+        toast.error('Please wait for media to finish uploading');
         return;
       }
 
@@ -427,6 +490,7 @@ console.log('product edit',product);
 
       const pr = {
         ...product,
+        description,
         specialPriceStart: product.specialPriceStart
           ? new Date(product.specialPriceStart).toISOString()
           : '',
@@ -464,7 +528,7 @@ console.log('Submitting product:', pr);
   };
 
   const renderAttributeInput = (attribute, groupCode = null, instanceIndex = 0) => {
-    const value = groupCode 
+    const value = groupCode
       ? product.attributes[groupCode]?.[instanceIndex]?.[attribute._id] || ''
       : product.attributes[attribute._id] || '';
 
@@ -534,7 +598,7 @@ console.log('Submitting product:', pr);
             </button>
           </div>
         );
-      
+
       case 'textarea':
         return (
           <textarea
@@ -544,7 +608,7 @@ console.log('Submitting product:', pr);
             rows={4}
           />
         );
-      
+
       case 'select':
       case 'multiselect':
         return (
@@ -566,7 +630,7 @@ console.log('Submitting product:', pr);
             ))}
           </select>
         );
-      
+
       case 'boolean':
         return (
           <input
@@ -576,7 +640,7 @@ console.log('Submitting product:', pr);
             className="h-5 w-5"
           />
         );
-      
+
       case 'image':
       case 'file':
         return (
@@ -584,15 +648,15 @@ console.log('Submitting product:', pr);
             {value && (
               <div className="flex items-center gap-2">
                 {attribute.type === 'image' ? (
-                  <img 
-                    src={value} 
-                    alt="Preview" 
+                  <img
+                    src={value}
+                    alt="Preview"
                     className="w-16 h-16 object-contain border rounded"
                   />
                 ) : (
-                  <a 
-                    href={value} 
-                    target="_blank" 
+                  <a
+                    href={value}
+                    target="_blank"
                     rel="noopener noreferrer"
                     className="text-blue-600 underline"
                   >
@@ -608,7 +672,7 @@ console.log('Submitting product:', pr);
                 </button>
               </div>
             )}
-            
+
             {isUploading ? (
               <div className="flex items-center gap-2 text-gray-500">
                 <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-purple-600"></div>
@@ -634,7 +698,7 @@ console.log('Submitting product:', pr);
             )}
           </div>
         );
-      
+
       default:
         return (
           <input
@@ -646,6 +710,15 @@ console.log('Submitting product:', pr);
           />
         );
     }
+  };
+
+  // Function to determine if a media item is an image based on URL or type
+  const isImageMedia = (item) => {
+    if (item.type) return item.type === 'image';
+
+    // Fallback: check file extension
+    const url = item.url || item.serverFilename || '';
+    return /\.(jpg|jpeg|png|gif|webp|bmp|svg)$/i.test(url);
   };
 
   return (
@@ -711,7 +784,7 @@ console.log('Submitting product:', pr);
                   <label className="block text-sm font-medium text-gray-700 mb-1">Description *</label>
                   <div className={`border border-gray-300 rounded-lg ${errors.description ? 'border-red-500' : ''}`}>
                     <TinyEditor
-                      value={product.description}
+                      value={description}
                       onChange={handleEditorChange}
                       height={400}
                     />
@@ -733,74 +806,137 @@ console.log('Submitting product:', pr);
                 </div>
               </div>
             </div>
-            {/* Images */}
+
+            {/* Media Upload Section */}
             <div className="bg-white p-6 rounded-xl border border-purple-100 shadow-sm">
-              <h3 className="text-lg font-semibold text-purple-800 border-b border-purple-200 pb-3 mb-4">Product Images</h3>
+              <h3 className="text-lg font-semibold text-purple-800 border-b border-purple-200 pb-3 mb-4">Product Media</h3>
+
               <div className="mb-4">
-                <label className="block text-sm font-medium text-gray-700 mb-2">Upload Images *</label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Upload Media *</label>
                 <div className="flex items-center gap-4">
                   <label
-                    className={`flex items-center gap-2 px-4 py-2 rounded-lg cursor-pointer transition-all ${images.length >= 5
+                    className={`flex items-center gap-2 px-4 py-2 rounded-lg cursor-pointer transition-all ${images.length >= 7
                       ? 'bg-gray-200 text-gray-500 cursor-not-allowed'
                       : 'bg-purple-100 text-purple-700 hover:bg-purple-200'
                       }`}
                   >
                     <FiUpload className="text-lg" />
-                    Select Images
+                    Select Media
                     <input
                       type="file"
-                      accept="image/*"
+                      accept="image/*,video/*"
                       multiple
                       className="hidden"
-                      onChange={handleImageSelect}
-                      disabled={images.length >= 5}
+                      onChange={handleImagesSelect}
+                      disabled={images.length >= 7}
                     />
                   </label>
                   <span className="text-sm text-gray-500">
-                    {images.length} of 5 images selected
+                    {images.filter(m => m.type === 'image').length} of 5 images, {images.filter(m => m.type === 'video').length} of 2 videos
                   </span>
                 </div>
                 {errors.images && <p className="mt-2 text-sm text-red-600">{errors.images}</p>}
               </div>
 
               <div className="flex flex-wrap gap-4">
-                {images.map((img, i) => (
-                  <div key={i} className="relative border border-purple-200 rounded-lg p-2 bg-purple-50">
-                    <div className="relative">
-                      <img
-                        src={img.url}
-                        className="w-24 h-24 object-contain rounded bg-gray-50"
-                        style={{
-                          opacity: img.status === 'uploading' ? 0.7 : 1,
-                        }}
-                        alt="preview"
-                      />
-                      {img.status === 'uploading' && (
-                        <div className="absolute inset-0 flex items-center justify-center">
-                          <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-purple-600"></div>
+                {images.map((item, i) => {
+                  const isImage = isImageMedia(item);
+
+                  return (
+                    <div key={i} className="relative border border-purple-200 rounded-lg p-2 bg-purple-50 group">
+                      <div className="relative">
+                        {isImage ? (
+                          <img
+                            src={item.url || item.serverFilename}
+                            className="w-24 h-24 object-contain rounded bg-gray-50"
+                            style={{
+                              opacity: item.status === 'uploading' ? 0.7 : 1,
+                            }}
+                            alt="preview"
+                            onError={(e) => {
+                              e.target.style.display = 'none';
+                              const errorDiv = document.createElement('div');
+                              errorDiv.className = 'absolute inset-0 bg-red-100 bg-opacity-50 flex items-center justify-center rounded';
+                              errorDiv.innerHTML = '<span class="text-red-600 font-semibold">Failed to load</span>';
+                              e.target.parentNode.appendChild(errorDiv);
+                            }}
+                          />
+                        ) : (
+                          <video
+                            src={item.url || item.serverFilename}
+                            className="w-24 h-24 object-contain rounded bg-gray-50"
+                            style={{
+                              opacity: item.status === 'uploading' ? 0.7 : 1,
+                            }}
+                            onError={(e) => {
+                              e.target.style.display = 'none';
+                              const errorDiv = document.createElement('div');
+                              errorDiv.className = 'absolute inset-0 bg-red-100 bg-opacity-50 flex items-center justify-center rounded';
+                              errorDiv.innerHTML = '<span class="text-red-600 font-semibold">Failed to load</span>';
+                              e.target.parentNode.appendChild(errorDiv);
+                            }}
+                          />
+                        )}
+                        {item.status === 'uploading' && (
+                          <div className="absolute inset-0 flex items-center justify-center">
+                            <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-purple-600"></div>
+                          </div>
+                        )}
+                        {item.status === 'error' && (
+                          <div className="absolute inset-0 bg-red-100 bg-opacity-50 flex items-center justify-center rounded">
+                            <span className="text-red-600 font-semibold">Error</span>
+                          </div>
+                        )}
+
+                        {/* Media type indicator */}
+                        <div className="absolute top-1 left-1 bg-black bg-opacity-60 text-white text-xs px-1 py-0.5 rounded">
+                          {isImage ? <FiImage className="inline" /> : <FiVideo className="inline" />}
+                          {isImage ? 'image' : 'video'}
                         </div>
-                      )}
-                      {img.status === 'error' && (
-                        <div className="absolute inset-0 bg-red-100 bg-opacity-50 flex items-center justify-center rounded">
-                          <span className="text-red-600 font-semibold">Error</span>
+                      </div>
+
+                      <button
+                        type="button"
+                        className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-600"
+                        onClick={() => removeImage(i)}
+                      >
+                        <FiX size={16} />
+                      </button>
+
+                      {/* Move buttons */}
+                      {images.length > 1 && (
+                        <div className="absolute -left-2 top-1/2 transform -translate-y-1/2 flex flex-col space-y-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                          <button
+                            type="button"
+                            className="bg-white rounded-full p-1 shadow-md hover:bg-gray-100 disabled:opacity-50"
+                            onClick={() => moveImage(i, -1)}
+                            disabled={i === 0}
+                          >
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
+                            </svg>
+                          </button>
+                          <button
+                            type="button"
+                            className="bg-white rounded-full p-1 shadow-md hover:bg-gray-100 disabled:opacity-50"
+                            onClick={() => moveImage(i, 1)}
+                            disabled={i === images.length - 1}
+                          >
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                            </svg>
+                          </button>
                         </div>
                       )}
                     </div>
-
-                    <button
-                      type="button"
-                      className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-600"
-                      onClick={() => removeImage(i)}
-                    >
-                      <FiX size={16} />
-                    </button>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
               <p className="mt-3 text-sm text-gray-500">
-                Max 5 images. Recommended size: 800x800px. Formats: JPG, PNG, WEBP.
+                Max 7 media items (5 images + 2 videos). Drag to reorder. At least one image is required.
               </p>
             </div>
+
             {/* Pricing */}
             <div className="bg-white p-6 rounded-xl border border-purple-100 shadow-sm">
               <h3 className="text-lg font-semibold text-purple-800 border-b border-purple-200 pb-3 mb-4">Pricing</h3>

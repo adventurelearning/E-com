@@ -248,7 +248,7 @@ const Offer = () => {
             </div>
             
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Original Price ($) *</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Original Price (₹) *</label>
               <input
                 type="number"
                 min="0"
@@ -263,7 +263,7 @@ const Offer = () => {
             </div>
             
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Discounted Price ($) *</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Discounted Price (₹) *</label>
               <input
                 type="number"
                 min="0"
@@ -442,8 +442,8 @@ const Offer = () => {
                       <div className="text-xs text-blue-500 truncate max-w-xs">{offer.link}</div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm text-gray-900 line-through">${offer.price}</div>
-                      <div className="text-sm font-bold text-red-600">${offer.discountPrice}</div>
+                      <div className="text-sm text-gray-900 line-through">₹{offer.price}</div>
+                      <div className="text-sm font-bold text-red-600">₹{offer.discountPrice}</div>
                       {offer.price > 0 && (
                         <div className="text-xs text-green-600">
                           {Math.round((1 - offer.discountPrice / offer.price) * 100)}% off

@@ -1,4 +1,4 @@
-// src/components/RecentOrdersTable.jsx
+// src/components/Charts/RecentOrdersTable.jsx
 import React from "react";
 import {
   Table,
@@ -21,15 +21,15 @@ const RecentOrdersTable = ({ orders }) => {
   const getStatusColor = (status) => {
     switch (status) {
       case "delivered":
-        return "success";
+        return { bg: "#e6f4ea", text: "#137333" };
       case "shipped":
-        return "info";
+        return { bg: "#e8f0fe", text: "#1a73e8" };
       case "pending":
-        return "warning";
+        return { bg: "#fef7e0", text: "#f9ab00" };
       case "cancelled":
-        return "error";
+        return { bg: "#fce8e6", text: "#c5221f" };
       default:
-        return "default";
+        return { bg: "#f3e5f5", text: "#9c27b0" };
     }
   };
 
@@ -46,37 +46,92 @@ const RecentOrdersTable = ({ orders }) => {
   }
 
   return (
-    <TableContainer component={Paper} elevation={0}>
-      <Table size={isMobile ? "small" : "medium"}>
+    <TableContainer 
+      component={Paper} 
+      elevation={0}
+      sx={{ 
+        borderRadius: 1,
+        maxHeight: isMobile ? 250 : 300,
+        '&::-webkit-scrollbar': {
+          width: '6px',
+        },
+        '&::-webkit-scrollbar-track': {
+          background: '#f1f1f1',
+        },
+        '&::-webkit-scrollbar-thumb': {
+          background: '#c1c1c1',
+          borderRadius: '3px',
+        },
+      }}
+    >
+      <Table size="small" stickyHeader>
         <TableHead>
-          <TableRow sx={{ height: isMobile ? 36 : 48 }}>
-            <TableCell sx={{ fontSize: isMobile ? "0.7rem" : "0.875rem" }}>
+          <TableRow>
+            <TableCell 
+              sx={{ 
+                fontSize: isMobile ? "0.7rem" : "0.8rem", 
+                fontWeight: 600, 
+                py: 1,
+                background: theme.palette.grey[100]
+              }}
+            >
               Order ID
             </TableCell>
             {!isMobile && (
-              <TableCell sx={{ fontSize: "0.875rem" }}>Customer</TableCell>
+              <TableCell 
+                sx={{ 
+                  fontSize: "0.8rem", 
+                  fontWeight: 600,
+                  background: theme.palette.grey[100]
+                }}
+              >
+                Customer
+              </TableCell>
             )}
-            <TableCell sx={{ fontSize: isMobile ? "0.7rem" : "0.875rem" }}>
+            <TableCell 
+              sx={{ 
+                fontSize: isMobile ? "0.7rem" : "0.8rem", 
+                fontWeight: 600,
+                background: theme.palette.grey[100]
+              }}
+            >
               Amount
             </TableCell>
-            <TableCell sx={{ fontSize: isMobile ? "0.7rem" : "0.875rem" }}>
+            <TableCell 
+              sx={{ 
+                fontSize: isMobile ? "0.7rem" : "0.8rem", 
+                fontWeight: 600,
+                background: theme.palette.grey[100]
+              }}
+            >
               Status
             </TableCell>
             {!isMobile && (
-              <TableCell sx={{ fontSize: "0.875rem" }}>Date</TableCell>
+              <TableCell 
+                sx={{ 
+                  fontSize: "0.8rem", 
+                  fontWeight: 600,
+                  background: theme.palette.grey[100]
+                }}
+              >
+                Date
+              </TableCell>
             )}
           </TableRow>
         </TableHead>
         <TableBody>
-          {orders.map((order) => (
-            <TableRow key={order._id} sx={{ height: isMobile ? 36 : 48 }}>
-              <TableCell>
+          {orders.map((order) => {
+            const statusColors = getStatusColor(order.status);
+            return (
+            <TableRow key={order._id} hover sx={{ '&:last-child td, &:last-child th': { border: 0 } }}>
+              <TableCell sx={{ fontSize: isMobile ? "0.7rem" : "0.8rem", py: 1 }}>
                 <Typography
                   variant="body2"
                   noWrap
                   sx={{
                     maxWidth: isMobile ? "70px" : "100px",
-                    fontSize: isMobile ? "0.7rem" : "0.875rem",
+                    fontSize: isMobile ? "0.7rem" : "0.8rem",
+                    fontWeight: 500,
                   }}
                 >
                   #{order._id.slice(-8)}
@@ -84,34 +139,37 @@ const RecentOrdersTable = ({ orders }) => {
               </TableCell>
 
               {!isMobile && (
-                <TableCell sx={{ fontSize: "0.8rem" }}>
+                <TableCell sx={{ fontSize: "0.8rem", py: 1 }}>
                   {order.shippingAddress?.fullName || "N/A"}
                 </TableCell>
               )}
 
-              <TableCell sx={{ fontSize: isMobile ? "0.7rem" : "0.875rem" }}>
+              <TableCell sx={{ fontSize: isMobile ? "0.7rem" : "0.8rem", fontWeight: 500, py: 1 }}>
                 ₹{order.total?.toLocaleString("en-IN")}
               </TableCell>
 
-              <TableCell>
+              <TableCell sx={{ py: 1 }}>
                 <Chip
                   label={order.status}
-                  color={getStatusColor(order.status)}
                   size="small"
                   sx={{
-                    fontSize: isMobile ? "0.65rem" : "0.75rem",
+                    fontSize: isMobile ? "0.65rem" : "0.7rem",
                     height: isMobile ? 20 : 24,
+                    backgroundColor: statusColors.bg,
+                    color: statusColors.text,
+                    fontWeight: 500,
+                    minWidth: 70
                   }}
                 />
               </TableCell>
 
               {!isMobile && (
-                <TableCell sx={{ fontSize: "0.8rem" }}>
+                <TableCell sx={{ fontSize: "0.8rem", py: 1 }}>
                   {new Date(order.createdAt).toLocaleDateString()}
                 </TableCell>
               )}
             </TableRow>
-          ))}
+          )})}
         </TableBody>
       </Table>
     </TableContainer>
